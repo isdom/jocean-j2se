@@ -47,6 +47,9 @@
         <dependency org="org.jocean" name="jocean-idiom" rev="0.0.6" 
             conf="compile->default(*)" />
 		
+        <dependency org="org.springframework" name="spring-context" 
+            rev="4.0.3.RELEASE" conf="compile->default(*)" />
+        
         <dependency org="ch.qos.logback" name="logback-classic" 
             rev="1.1.2" conf="test->default(*)" />
 		
