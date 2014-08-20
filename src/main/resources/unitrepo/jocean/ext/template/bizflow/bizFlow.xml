@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        ">
+
+    <bean id="registrar" class="org.jocean.ext.restful.PackageRegistrar">
+        <property name="scanPackage" value="${flow.package.base}"/>
+    </bean>
+
+    <bean factory-bean="rootRegistry"
+          factory-method="setImplToProxy">
+        <constructor-arg value="eventReceiverSource"/>
+        <constructor-arg value="org.jocean.event.api.EventReceiverSource"/>
+        <constructor-arg>
+            <bean factory-bean="registrar" factory-method="getSourceImpl"/>
+        </constructor-arg>
+    </bean>
+
+    <bean factory-bean="rootBeanRegistry"
+          factory-method="setBean">
+        <constructor-arg value="registrar"/>
+        <constructor-arg ref="registrar"/>
+    </bean>
+</beans>

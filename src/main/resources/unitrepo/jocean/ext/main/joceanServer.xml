@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        ">
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:unitrepo/jocean/ext/main/defaultUnits.properties</value>
+                <value>classpath:units.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="cfgUnitImpl"
+          class="org.jocean.ext.ebus.unit.PropertiesEventUnitImpl" scope="prototype">
+        <constructor-arg index="0">
+            <null/>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <bean class="org.springframework.util.StringUtils" factory-method="commaDelimitedListToSet">
+                <constructor-arg value="${unit.template.paths:${_default.unit.template.paths}}"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="unitRegistry"
+          class="org.jocean.ext.ebus.unit.UnitRegistry"
+          destroy-method="destroy">
+        <constructor-arg value="rootUnitRegistry"/>
+        <property name="eventBus" ref="eventBus"/>
+        <property name="unitBuilder">
+            <bean class="org.jocean.ext.ebus.unit.CompositeUnitBuilder">
+                <property name="builders">
+                    <map>
+                        <entry key="cfg">
+                            <bean class="org.jocean.ext.ebus.unit.AbstractUnitBuilder">
+                                <constructor-arg value="cfg"/>
+                                <lookup-method name="createUnitImpl" bean="cfgUnitImpl"/>
+                            </bean>
+                        </entry>
+                    </map>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="unitAdmin" class="org.jocean.ext.ebus.unit.UnitAdmin"
+          init-method="init">
+        <constructor-arg>
+            <bean factory-bean="rootRegistry"
+                  factory-method="getEntry">
+                <constructor-arg value="__root_spring_ctx"/>
+            </bean>
+        </constructor-arg>
+        <property name="sourcePatterns" value="${units.sources:${_default.units.sources}}"/>
+    </bean>
+
+    <bean factory-bean="rootRegistry"
+          factory-method="getOrCreateEntry">
+        <constructor-arg value="__unit_admin"/>
+        <constructor-arg ref="unitAdmin"/>
+    </bean>
+
+    <bean id="jvmMemory"
+          class="org.jocean.ext.jmx.JVMMemory">
+    </bean>
+
+    <bean id="appInfo"
+          class="org.jocean.ext.util.AppInfo">
+        <property name="jarLocation" value="${user.dir}/bin/${app.name}.jar"/>
+    </bean>
+
+    <bean id="fsUnitSourcesManager"
+          class="org.jocean.ext.ebus.unit.FsUnitSourceGroupManager"
+          init-method="start"
+          destroy-method="stop">
+        <constructor-arg value="${fs.units.enabled:${_default.fs.units.enabled}}"/>
+        <property name="eventBus" ref="eventBus"/>
+        <property name="prefix" value="${user.dir}/"/>
+        <property name="pathes">
+            <bean class="org.springframework.util.StringUtils" factory-method="commaDelimitedListToStringArray">
+                <constructor-arg value="${fs.units:${_default.fs.units}}"/>
+            </bean>
+        </property>
+        <property name="timeout" value="${fs.timeout:${_default.fs.timeout}}"/>
+    </bean>
+
+    <bean id="connectorServer"
+          class="org.springframework.jmx.support.ConnectorServerFactoryBean">
+        <property name="serviceUrl" value="service:jmx:jmxmp://${jmxmp.ip:0.0.0.0}:${jmxmp.port}"/>
+        <property name="threaded" value="true"/>
+        <property name="daemon" value="true"/>
+    </bean>
+
+    <bean id="booterExporter" class="org.springframework.jmx.export.MBeanExporter"
+          lazy-init="false">
+        <property name="beans">
+            <map>
+                <entry key="org.jocean:name=ebus" value-ref="eventBus"/>
+                <entry key="org.jocean:name=unitBooter" value-ref="booter"/>
+                <entry key="org.jocean:name=unitManager" value-ref="fsUnitSourcesManager"/>
+                <entry key="org.jocean:name=unitRegistry" value-ref="unitRegistry"/>
+                <entry key="org.jocean:name=jvmMemory" value-ref="jvmMemory"/>
+                <entry key="org.jocean:name=registry" value-ref="rootRegistry"/>
+                <entry key="org.jocean:name=appInfo" value-ref="appInfo"/>
+                <entry key="org.jocean:name=unitAdmin" value-ref="unitAdmin"/>
+            </map>
+        </property>
+    </bean>
+
+</beans>

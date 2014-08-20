@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        ">
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:unitrepo/jocean/ext/main/defaultUnits.properties</value>
+                <value>classpath:units.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="appCtxInitor"
+          class="org.jocean.ext.unit.AppContextInitor"
+          init-method="init">
+        <constructor-arg>
+            <bean factory-bean="rootRegistry"
+                  factory-method="getEntry">
+                <constructor-arg value="__root_spring_ctx"/>
+            </bean>
+        </constructor-arg>
+        <property name="locations">
+            <bean class="org.springframework.util.StringUtils" factory-method="commaDelimitedListToSet">
+                <constructor-arg value="${app.spring.xmls:${_default.spring.xmls}}"/>
+            </bean>
+        </property>
+    </bean>
+
+</beans>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+    <bean id="bytesPool" class="org.jocean.idiom.pool.Pools"
+          factory-method="createCachedBytesPool">
+        <constructor-arg value="10240"/>
+    </bean>
+
+    <bean id="registrar" factory-bean="rootBeanRegistry"
+          factory-method="getBean">
+        <constructor-arg value="registrar"/>
+    </bean>
+
+    <bean id="tcpServer" class="org.jocean.ext.netty.server.TCPServer" init-method="start" destroy-method="stop">
+        <property name="acceptIp" value="${tcp.inbound.ip:0.0.0.0}"/>
+        <property name="acceptPort" value="${tcp.inbound.port}"/>
+        <property name="serviceCode" value="${serviceCode:}"/>
+        <property name="pipelineFactory" ref="tcpServerInitializer"/>
+        <property name="extraZkNodeData">
+            <bean factory-bean="registrar" factory-method="getZkNodeData"/>
+        </property>
+    </bean>
+
+    <bean id="tcpServerInitializer" class="org.jocean.ext.netty.initializer.TcpServerInitializer">
+        <property name="trafficCounter" ref="trafficCounter"/>
+        <property name="tcpResponseEncoder" ref="tcpResponseEncoder"/>
+        <property name="tcpRequestHandler" ref="tcpRequestHandler"/>
+        <property name="logByteStream" value="${inbound.logByteStream:false}"/>
+        <property name="idleTimeSeconds" value="${inbound.idleTimeSeconds:0}"/>
+        <lookup-method name="getTcpRequestDecoder" bean="tcpRequestDecoder"/>
+    </bean>
+
+    <bean id="globalByteTrafficMonitor" class="io.netty.handler.traffic.GlobalByteTrafficMonitor"/>
+
+    <bean id="trafficCounter" factory-bean="globalByteTrafficMonitor" factory-method="getTrafficCounter"/>
+
+    <bean id="tcpResponseEncoder"
+          class="org.jocean.ext.netty.handler.codec.tcp.NettyMixedTcpEncoder">
+    </bean>
+
+    <bean id="tcpRequestDecoder"
+          class="org.jocean.ext.netty.handler.codec.tcp.NettyMixedTcpDecoder" scope="prototype">
+        <property name="maxMessageLength" value="${transport.maxMessageLength:1024000}"/>
+    </bean>
+
+    <bean id="endpoint"
+          class="org.jocean.ext.transport.endpoint.DefaultEndpoint" scope="prototype">
+        <property name="messageClosure" ref="bizFlowClosure"/>
+        <property name="waitTimeout" value="${transport.send.waitTimeout:10000}"/>
+        <property name="sendQueue">
+            <bean class="java.util.concurrent.LinkedBlockingQueue">
+                <constructor-arg value="${transport.send.cachedCount:10000}"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="endpointFactory"
+          class="org.jocean.ext.transport.endpoint.DefaultEndpointFactory"
+          destroy-method="stop">
+        <constructor-arg value="false"/>
+        <constructor-arg value="0"/>
+        <lookup-method name="createEndpoint" bean="endpoint"/>
+    </bean>
+
+
+    <bean id="tcpRequestHandler" class="org.jocean.ext.netty.handler.TcpRequestHandler">
+        <property name="endpointFactory" ref="endpointFactory"/>
+    </bean>
+
+    <bean id="bizFlowClosure" class="org.jocean.ext.netty.closure.BizFlowClosure">
+        <property name="bytesPool" ref="bytesPool"/>
+    </bean>
+    <!--
+            this bean must not be lazily initialized if the exporting is to happen
+        -->
+    <bean id="exporter" class="org.jocean.ext.jmx.PrefixableMBeanExporter"
+          lazy-init="false">
+        <constructor-arg ref="appMBeanPrefix"/>
+        <property name="beans">
+            <map>
+                <entry key=
+                           "prefix:class=transport.tcp.server,group=${export.requestCmdDispatch:default},name=inbound"
+                       value-ref="tcpServer"/>
+                <entry key=
+                           "prefix:class=transport.tcp.server,group=${export.requestCmdDispatch:default},name=tcpRequestHandler"
+                       value-ref="tcpRequestHandler"/>
+                <entry key=
+                           "prefix:class=transport.tcp.server,group=${export.requestCmdDispatch:default},name=statisticor"
+                       value-ref="trafficCounter"/>
+                <entry key=
+                           "prefix:class=transport.tcp.server,group=${export.requestCmdDispatch:default},name=cmddispatch"
+                       value-ref="bizFlowClosure"/>
+            </map>
+        </property>
+    </bean>
+</beans>

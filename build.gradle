@@ -1,0 +1,44 @@
+apply from: 'http://hbdev.widget-inc.com:8080/devconf/build-lib.gradle'
+
+configurations {
+    all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    all*.exclude group: 'log4j', module: 'log4j'
+    all*.exclude group: 'commons-logging', module: 'commons-logging'
+}
+
+dependencies {
+    /* log */
+    compile "org.slf4j:jcl-over-slf4j:1.7.7"
+    compile "ch.qos.logback:logback-classic:1.1.2"
+    optional("org.logback-extensions:logback-ext-spring:0.1.2") { transitive = false }
+
+    /* basics */
+    compile "org.springframework:spring-context-support:${springVersion}"
+    compile "org.springframework:spring-test:${springVersion}"
+
+    /* commons */
+    compile 'org.apache.commons:commons-lang3:3.3.2'
+    compile "org.apache.commons:commons-pool2:2.2"
+    compile "commons-beanutils:commons-beanutils:1.9.1"
+    compile "commons-io:commons-io:2.4"
+    compile "commons-codec:commons-codec:1.9"
+
+    compile "com.google.guava:guava:17.0"
+    compile 'com.alibaba:fastjson:1.1.41'
+    compile "javax.ws.rs:javax.ws.rs-api:2.0"
+    optional 'redis.clients:jedis:2.5.2'
+    optional 'com.jolbox:bonecp:0.8.0.RELEASE'
+
+    optional "org.apache.curator:curator-recipes:2.6.0"
+
+    /** jocean */
+    compile group: 'org.jocean', name: 'jocean-idiom', version: '0.1.1-SNAPSHOT', configuration: 'compile', transitive: false
+    compile group: 'org.jocean', name: 'jocean-restful-server', version: '0.0.3', configuration: 'compile', transitive: false
+    compile group: 'org.jocean', name: 'jocean-event-api', version: '0.0.5-SNAPSHOT', configuration: 'compile', transitive: false
+    compile group: 'org.jocean', name: 'jocean-event-extend', version: 'latest.release', configuration: 'compile', transitive: false
+    compile group: 'com.huaban.bizhi', name: 'rose-api', version: '0.0.8-SNAPSHOT', configuration: 'compile', transitive: false, changing: true
+
+    compile "io.netty:netty-all:4.0.19.Final"
+
+    testCompile 'junit:junit:4.11'
+}

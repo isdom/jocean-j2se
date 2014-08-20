@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        ">
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:unitrepo/jocean/ext/main/defaultUnits.properties</value>
+                <value>classpath:units.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="booter"
+          class="org.jocean.ext.ebus.unit.UnitGroupBooter"
+          init-method="start"
+          destroy-method="destroy">
+        <constructor-arg ref="eventBus"/>
+        <constructor-arg ref="rootRegistry"/>
+        <property name="cfgXmlLocations">
+            <bean class="org.springframework.util.StringUtils" factory-method="commaDelimitedListToSet">
+                <constructor-arg value="${unit.template.paths:${_default.unit.template.paths}}"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="rootRegistry" class="org.jocean.ext.util.SimpleRegistry"/>
+
+    <bean id="rootBeanRegistry" class="org.jocean.ext.util.RootBeanRegistry"/>
+
+    <bean id="eventBus" class="org.jocean.ext.ebus.SoftBus"/>
+
+    <bean id="appMBeanPrefix"
+          class="java.lang.String">
+        <constructor-arg value="public:app=${app.name},"/>
+    </bean>
+</beans>

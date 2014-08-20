@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+    <bean id="sendQueue" class="java.util.concurrent.LinkedBlockingQueue">
+        <constructor-arg value="${transport.send.cachedCount:10000}"/>
+    </bean>
+
+    <bean id="bytesPool" class="org.jocean.idiom.pool.Pools"
+          factory-method="createCachedBytesPool">
+        <constructor-arg value="10240"/>
+    </bean>
+
+    <bean id="registrar" factory-bean="rootBeanRegistry"
+          factory-method="getBean">
+        <constructor-arg value="registrar"/>
+    </bean>
+
+    <bean id="bizFlowClosure" class="org.jocean.ext.netty.closure.BizFlowClosure">
+        <property name="bytesPool" ref="bytesPool"/>
+    </bean>
+
+    <bean id="messageSender" class="org.jocean.ext.netty.client.TcpMessageSender" factory-method="getInstance"/>
+
+    <bean id="autoTcpConnector" class="org.jocean.ext.netty.client.ZKAutoTcpConnector" init-method="start"
+          destroy-method="stop">
+        <property name="remoteServiceCode" value="${remote.service.code}"/>
+        <lookup-method name="getTCPConnector" bean="tcpConnector"/>
+    </bean>
+
+    <bean id="tcpConnector" class="org.jocean.ext.netty.client.TCPConnector" scope="prototype">
+        <property name="retryTimeout" value="${remote.reconnect.timeout:1000}"/>
+        <property name="tcpClientInitializer" ref="tcpClientInitializer"/>
+        <property name="endpointFactory" ref="endpointFactory"/>
+        <property name="sendQueue" ref="sendQueue"/>
+        <property name="needHoldMessage" value="${transport.send.needHoldMessage:true}"/>
+    </bean>
+
+    <bean id="globalByteTrafficMonitor" class="io.netty.handler.traffic.GlobalByteTrafficMonitor" scope="prototype"/>
+
+    <bean id="trafficCounter" factory-bean="globalByteTrafficMonitor" factory-method="getTrafficCounter"
+          scope="prototype"/>
+
+    <bean id="tcpClientInitializer" class="org.jocean.ext.netty.initializer.TcpClientInitializer" scope="prototype">
+        <property name="trafficCounter" ref="trafficCounter"/>
+        <property name="tcpRequestEncoder" ref="tcpEncoder"/>
+        <property name="tcpResponseDecoder" value="tcpDecoder"/>
+        <property name="idleTimeSeconds" value="${outbound.idleTimeSeconds:0}"/>
+        <property name="logByteStream" value="${outbound.logByteStream:false}"/>
+    </bean>
+
+    <bean id="tcpEncoder"
+          class="org.jocean.ext.netty.handler.codec.tcp.NettyMixedTcpEncoder">
+    </bean>
+
+    <bean id="tcpDecoder"
+          class="org.jocean.ext.netty.handler.codec.tcp.NettyMixedTcpDecoder" scope="prototype">
+        <property name="maxMessageLength" value="${transport.maxMessageLength:1024000}"/>
+    </bean>
+
+    <bean id="endpointFactory"
+          class="org.jocean.ext.transport.endpoint.DefaultEndpointFactory"
+          destroy-method="stop">
+        <constructor-arg value="true"/>
+        <constructor-arg value="${transport.send.cachedCount:10000}"/>
+        <lookup-method name="createEndpoint" bean="tcpEndpoint"/>
+    </bean>
+
+    <bean id="tcpEndpoint"
+          class="org.jocean.ext.transport.endpoint.DefaultEndpoint" scope="prototype">
+        <property name="messageClosure" ref="bizFlowClosure"/>
+        <property name="waitTimeout" value="${transport.send.waitTimeout:1000}"/>
+    </bean>
+
+    <!--
+        this bean must not be lazily initialized if the exporting is to happen
+    -->
+    <bean id="mBeanExporter" class="org.jocean.ext.jmx.PrefixableMBeanExporter">
+        <constructor-arg ref="appMBeanPrefix"/>
+    </bean>
+</beans>
