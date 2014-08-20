@@ -32,11 +32,10 @@ dependencies {
     optional "org.apache.curator:curator-recipes:2.6.0"
 
     /** jocean */
-    compile group: 'org.jocean', name: 'jocean-idiom', version: '0.1.1-SNAPSHOT', configuration: 'compile', transitive: false
+    compile group: 'org.jocean', name: 'jocean-idiom', version: '0.1.1', configuration: 'compile', transitive: false
     compile group: 'org.jocean', name: 'jocean-restful-server', version: '0.0.3', configuration: 'compile', transitive: false
-    compile group: 'org.jocean', name: 'jocean-event-api', version: '0.0.5-SNAPSHOT', configuration: 'compile', transitive: false
-    compile group: 'org.jocean', name: 'jocean-event-extend', version: 'latest.release', configuration: 'compile', transitive: false
-    compile group: 'com.huaban.bizhi', name: 'rose-api', version: '0.0.8-SNAPSHOT', configuration: 'compile', transitive: false, changing: true
+    compile group: 'org.jocean', name: 'jocean-event-api', version: '0.0.5', configuration: 'compile', transitive: false
+    compile group: 'org.jocean', name: 'jocean-event-extend', version: '0.0.3', configuration: 'compile', transitive: false
 
     compile "io.netty:netty-all:4.0.19.Final"
 

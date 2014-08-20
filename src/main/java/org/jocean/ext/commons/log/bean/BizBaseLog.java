@@ -1,14 +1,10 @@
 package org.jocean.ext.commons.log.bean;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.huaban.bizhi.api.bean.TerminalProperty;
-import org.apache.commons.beanutils.PropertyUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 
-public class BizBaseLog extends TerminalProperty {
-
+public class BizBaseLog {
     @JSONField(name = "tableName")
     private String tableName;
     @JSONField(name = "tableSuffix")
@@ -23,16 +19,6 @@ public class BizBaseLog extends TerminalProperty {
 
     public BizBaseLog(String tableName) {
         this.tableName = tableName;
-    }
-
-    public void copyProperties(Object requestModel) {
-        if (null == requestModel)
-            throw new NullPointerException("requestModel");
-        try {
-            PropertyUtils.copyProperties(this, requestModel);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException("mergeInvokeStatus:", e);
-        }
     }
 
     public String getTableName() {
