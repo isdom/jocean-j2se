@@ -42,7 +42,7 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
             private static final long serialVersionUID = 1L;
 
             {
-                for (Entry<String, Object> entry : _resolvedPlaceholders.entrySet()) {
+                for (Map.Entry<String, Object> entry : _resolvedPlaceholders.entrySet()) {
                     if (entry.getValue() instanceof String) {
                         this.put(entry.getKey(), entry.getValue().toString());
                     } else {

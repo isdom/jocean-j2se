@@ -5,6 +5,7 @@ import ch.qos.logback.classic.spi.*;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.CoreConstants;
 import org.jocean.ext.commons.log.bean.LogbackDbLog;
+import org.jocean.ext.commons.log.bean.LoggingEvent;
 import org.jocean.ext.commons.log.bean.LoggingEventException;
 import org.jocean.ext.commons.log.bean.LoggingEventProperty;
 import org.jocean.ext.transport.Sender;

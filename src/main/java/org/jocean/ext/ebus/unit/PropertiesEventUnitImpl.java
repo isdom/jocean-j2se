@@ -10,20 +10,21 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
-public class PropertiesEventUnitImpl implements EventUnit, UnitSourceAware{
+public class PropertiesEventUnitImpl implements EventUnit, UnitSourceAware {
 
     private static final Logger LOG =
     		 LoggerFactory.getLogger(PropertiesEventUnitImpl.class);
 
-        private UnitSource                	source;
+        private UnitSource source;
         private String[]					xmlLocations;
-        private UnitAdmin					unitAdmin;
+        private UnitAdmin unitAdmin;
 
         public PropertiesEventUnitImpl(
-        		UnitSource 			source,
-        		String[]			xmlLocations) {
+                UnitSource source,
+                String[] xmlLocations) {
         	this.source = source;
         	this.xmlLocations = xmlLocations;
         }
@@ -59,7 +60,7 @@ public class PropertiesEventUnitImpl implements EventUnit, UnitSourceAware{
     							private static final long serialVersionUID = 1L;
 
     						{
-    							for ( Entry<Object,Object> entry : props.entrySet() ) {
+    							for ( Map.Entry<Object,Object> entry : props.entrySet() ) {
     								this.put(entry.getKey().toString(), entry.getValue().toString());
     							}
     						}},
