@@ -17,8 +17,9 @@ public class ServerBizLog extends TcpRequest {
 
     public ServerBizLog(Object logBean, Object terminalPropertyBean, Class terminalPropertyBeanType) {
         //去掉多余的信息,只保留终端属性
-        JSONObject bean = (JSONObject) JSON.parseObject(JSON.toJSONString(terminalPropertyBean), terminalPropertyBeanType);
-        bean.putAll((JSONObject) JSON.toJSON(logBean));
+        JSONObject bean = (JSONObject) JSON.toJSON(JSON.parseObject(JSON.toJSONString(terminalPropertyBean), terminalPropertyBeanType));
+        if (bean != null)
+            bean.putAll((JSONObject) JSON.toJSON(logBean));
         this.logBean = bean;
     }
 
