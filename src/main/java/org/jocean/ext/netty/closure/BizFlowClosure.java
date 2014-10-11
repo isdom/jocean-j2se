@@ -13,6 +13,7 @@ import org.jocean.event.api.EventReceiver;
 import org.jocean.ext.flow.FlowEvents;
 import org.jocean.ext.netty.handler.codec.http.HttpRequestExt;
 import org.jocean.ext.netty.handler.codec.http.HttpResponseExt;
+import org.jocean.ext.restful.HeaderableOutputReactor;
 import org.jocean.ext.restful.PackageRegistrar;
 import org.jocean.ext.transport.Sender;
 import org.jocean.ext.transport.TransportUtils;
@@ -26,7 +27,6 @@ import org.jocean.idiom.block.Blob;
 import org.jocean.idiom.block.BlockUtils;
 import org.jocean.idiom.block.PooledBytesOutputStream;
 import org.jocean.idiom.pool.BytesPool;
-import org.jocean.restful.OutputReactor;
 import org.jocean.restful.OutputSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
@@ -72,23 +73,28 @@ public class BizFlowClosure implements Closure<PDUBean> {
                     registrar.buildFlowMatch(msg.getMethod().name(), msg.getUri(), msg, blob, contentType, this._output);
             if (null == flowAndEvent) {
                 // path not found
-                writeAndFlushResponse(null, msg);
+                writeAndFlushResponse(null, msg, null);
                 return;
             }
 
             final InterfaceSource flow = (InterfaceSource) flowAndEvent.getFirst();
             final Detachable detachable = flow.queryInterfaceInstance(Detachable.class);
 
-            ((OutputSource) flow).setOutputReactor(new OutputReactor() {
+            ((OutputSource) flow).setOutputReactor(new HeaderableOutputReactor() {
 
                 @Override
-                public void output(final Object representation) {
+                public void output(Object representation, Map<String, String> httpHeaders) {
                     safeDetachCurrentFlow(detachable);
                     String responseJson = JSON.toJSONString(representation, SerializerFeature.PrettyFormat);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("send resp:{}", responseJson);
                     }
-                    writeAndFlushResponse(responseJson, msg);
+                    writeAndFlushResponse(responseJson, msg, httpHeaders);
+                }
+
+                @Override
+                public void output(final Object representation) {
+                    output(representation, null);
                 }
             });
 
@@ -99,12 +105,17 @@ public class BizFlowClosure implements Closure<PDUBean> {
         }
     }
 
-    private void writeAndFlushResponse(final String content, final HttpRequestExt msg) {
+    private void writeAndFlushResponse(final String content, final HttpRequestExt msg, final Map<String, String> httpHeaders) {
         FullHttpResponse response = new DefaultFullHttpResponse(
                 HTTP_1_1, (null != content ? OK : NO_CONTENT),
                 (null != content ? Unpooled.copiedBuffer(content, CharsetUtil.UTF_8) : Unpooled.buffer(0)));
 
         response.headers().set(CONTENT_TYPE, "application/json; charset=UTF-8");
+        if (httpHeaders != null) {
+            for (Map.Entry<String, String> entry : httpHeaders.entrySet()) {
+                response.headers().set(entry.getKey(), entry.getValue());
+            }
+        }
 
         Sender sender = TransportUtils.getSenderOf(msg);
         LOG.debug("SendResp {}", response);
