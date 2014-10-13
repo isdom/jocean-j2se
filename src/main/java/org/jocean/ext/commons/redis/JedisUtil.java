@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.Tuple;
 
 import javax.annotation.PostConstruct;
@@ -25,6 +26,33 @@ public class JedisUtil {
     private MasterSlavePool jedisPool;
     private JedisStatistics jedisStatistics = new JedisStatistics();
     private ObjectName oname;
+
+    /**
+     * @see redis.clients.jedis.Jedis#append(String, String)
+     */
+    public Long append(final String key, final String value) {
+        try (Jedis jedis = jedisPool.getMasterResource()) {
+            return jedis.append(key, value);
+        }
+    }
+
+    /**
+     * @see redis.clients.jedis.Jedis#bitcount(String)
+     */
+    public Long bitcount(final String key) {
+        try (Jedis jedis = jedisPool.getReadableResource()) {
+            return jedis.bitcount(key);
+        }
+    }
+
+    /**
+     * @see redis.clients.jedis.Jedis#bitcount(String, long, long)
+     */
+    public Long bitcount(final String key, long start, long end) {
+        try (Jedis jedis = jedisPool.getReadableResource()) {
+            return jedis.bitcount(key, start, end);
+        }
+    }
 
     /**
      * @see redis.clients.jedis.Jedis#smembers(String)
@@ -76,6 +104,24 @@ public class JedisUtil {
      */
     public List<String> lrangeString(final String key, final long start, final long end) {
         return BuilderFactory.STRING_LIST.build(lrange(key, start, end));
+    }
+
+    public void subscribe(final JedisPubSub jedisPubSub, final String... channels) {
+        try (Jedis jedis = jedisPool.getReadableResource()) {
+            jedis.subscribe(jedisPubSub, channels);
+        }
+    }
+
+    public Long publish(final String channel, final String message) {
+        try (Jedis jedis = jedisPool.getMasterResource()) {
+            return jedis.publish(channel, message);
+        }
+    }
+
+    public void psubscribe(final JedisPubSub jedisPubSub, final String... patterns) {
+        try (Jedis jedis = jedisPool.getReadableResource()) {
+            jedis.psubscribe(jedisPubSub, patterns);
+        }
     }
 
     /**
