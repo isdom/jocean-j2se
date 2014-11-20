@@ -42,6 +42,7 @@
     <bean id="httpRequestHandler" class="org.jocean.restful.http.RestfulHttpServerHandler" scope="prototype">
         <constructor-arg ref="registrar"/>
         <constructor-arg ref="bytesPool"/>
+        <property name="useJackson" value="${useJackson:false}"/>
     </bean>
 
     <bean id="globalByteTrafficMonitor" class="io.netty.handler.traffic.GlobalByteTrafficMonitor"/>
