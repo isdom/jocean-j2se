@@ -1,7 +1,5 @@
 package org.jocean.ext.netty.closure;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
@@ -27,6 +25,9 @@ import org.jocean.idiom.block.Blob;
 import org.jocean.idiom.block.BlockUtils;
 import org.jocean.idiom.block.PooledBytesOutputStream;
 import org.jocean.idiom.pool.BytesPool;
+import org.jocean.json.FastJSONProvider;
+import org.jocean.json.JSONProvider;
+import org.jocean.json.JacksonProvider;
 import org.jocean.restful.OutputSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,7 @@ public class BizFlowClosure implements Closure<PDUBean> {
     private PackageRegistrar registrar;
     private PooledBytesOutputStream _output;
     private EventRegistry eventRegistry = EventRegistry.getInstance();
+    private JSONProvider jsonProvider = new FastJSONProvider();
 
     @Override
     public void execute(final PDUBean bean) {
@@ -85,7 +87,7 @@ public class BizFlowClosure implements Closure<PDUBean> {
                 @Override
                 public void output(Object representation, Map<String, String> httpHeaders) {
                     safeDetachCurrentFlow(detachable);
-                    String responseJson = JSON.toJSONString(representation, SerializerFeature.PrettyFormat);
+                    String responseJson = jsonProvider.toJSONString(representation);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("send resp:{}", responseJson);
                     }
@@ -152,5 +154,13 @@ public class BizFlowClosure implements Closure<PDUBean> {
 
     public void setBytesPool(BytesPool bytesPool) {
         this._output = new PooledBytesOutputStream(bytesPool);
+    }
+
+    public void setJsonProvider(JSONProvider jsonProvider) {
+        this.jsonProvider = jsonProvider;
+    }
+
+    public void setUseJackson(boolean useJackson) {
+        this.jsonProvider = useJackson ? new JacksonProvider() : new FastJSONProvider();
     }
 }

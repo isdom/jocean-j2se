@@ -23,6 +23,7 @@
 
     <bean id="bizFlowClosure" class="org.jocean.ext.netty.closure.BizFlowClosure">
         <property name="bytesPool" ref="bytesPool"/>
+        <property name="useJackson" value="${useJackson:false}"/>
     </bean>
 
     <bean id="messageSender" class="org.jocean.ext.netty.client.TcpMessageSender" factory-method="getInstance"/>

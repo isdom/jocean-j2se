@@ -74,6 +74,7 @@
 
     <bean id="bizFlowClosure" class="org.jocean.ext.netty.closure.BizFlowClosure">
         <property name="bytesPool" ref="bytesPool"/>
+        <property name="useJackson" value="${useJackson:false}"/>
     </bean>
     <!--
             this bean must not be lazily initialized if the exporting is to happen

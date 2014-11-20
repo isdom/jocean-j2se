@@ -136,6 +136,24 @@ public class JedisUtil {
     }
 
     /**
+     * @see redis.clients.jedis.Jedis#rpush(String, String...)
+     */
+    public Long rpush(final String key, final String... strings) {
+        try (Jedis jedis = jedisPool.getMasterResource()) {
+            return jedis.rpush(key, strings);
+        }
+    }
+
+    /**
+     * @see redis.clients.jedis.Jedis#lpush(String, String...)
+     */
+    public Long lpush(final String key, final String... strings) {
+        try (Jedis jedis = jedisPool.getMasterResource()) {
+            return jedis.lpush(key, strings);
+        }
+    }
+
+    /**
      * @see redis.clients.jedis.Jedis#set(String, String)
      */
     public String set(final String key, String value) {
