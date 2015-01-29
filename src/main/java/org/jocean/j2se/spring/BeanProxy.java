@@ -52,6 +52,10 @@ public class BeanProxy<T> implements FactoryBean<T> {
 		}
 	}
 
+    public void setImplForced(final T impl) {
+        this._ref.set(impl);
+    }
+    
 	@Override
 	public String toString() {
 		final T impl = this._ref.get();
