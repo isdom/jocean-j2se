@@ -1046,7 +1046,7 @@ class HtmlObjectPage extends HtmlPage {
         // Start a form, containing the operation table.
         // 
         if (support) {
-            str.append("<FORM ACTION=" + HtmlDef.INVOKEACTION + toUrlName(manipulatedObjName.toString())+"/action="+action);
+            str.append("<FORM ACTION=../.." + HtmlDef.INVOKEACTION + toUrlName(manipulatedObjName.toString())+"/action="+action);
             str.append( " METHOD=GET>" + HtmlDef.PF);
         }
         str.append("<TABLE>" + HtmlDef.PF);

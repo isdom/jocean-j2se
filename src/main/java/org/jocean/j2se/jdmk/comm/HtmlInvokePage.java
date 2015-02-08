@@ -310,8 +310,8 @@ class HtmlInvokePage extends HtmlPage {
         }
 
         add2Page("<P><TABLE WIDTH=100%><TR>");
-        add2Page("<TD ALIGN=LEFT><A HREF=\""+HtmlDef.VIEWOBJECTRES+toUrlName(objNameStr)+"\">Back to "+HtmlDef.objectPageTitle+"</A></TD>");
-        add2Page("<TD ALIGN=RIGHT>"+HtmlDef.LISTOFMBEAN+"</TD>");
+        add2Page("<TD ALIGN=LEFT><A HREF=\"../../.."+HtmlDef.VIEWOBJECTRES+toUrlName(objNameStr)+"\">Back to "+HtmlDef.objectPageTitle+"</A></TD>");
+        add2Page("<TD ALIGN=RIGHT><A HREF=\"../../.."+HtmlDef.MAIN+"\">Back to "+HtmlDef.masterPageTitle+"</A></TD>");
         add2Page("</TR></TABLE>");
         
         add2Page(stopBody());
