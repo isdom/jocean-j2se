@@ -24,9 +24,9 @@ dependencies {
     compile "commons-io:commons-io:2.4"
     compile "commons-codec:commons-codec:1.9"
 
-    compile "com.google.guava:guava:17.0"
+    compile 'com.google.guava:guava:17.0'
     compile 'com.alibaba:fastjson:1.1.41'
-    compile "javax.ws.rs:javax.ws.rs-api:2.0"
+    compile 'javax.ws.rs:javax.ws.rs-api:2.0'
     optional 'redis.clients:jedis:2.5.2'
     optional 'com.jolbox:bonecp:0.8.0.RELEASE'
 
@@ -38,7 +38,7 @@ dependencies {
     compile("org.jocean:jocean-event-api:0.0.7-SNAPSHOT") { transitive = false }
     compile("org.jocean:jocean-event-extend:0.0.4-SNAPSHOT") { transitive = false }
 
-    compile "io.netty:netty-all:4.0.19.Final"
+    compile 'io.netty:netty-all:4.0.25.Final'
 
     testCompile 'junit:junit:4.11'
 }

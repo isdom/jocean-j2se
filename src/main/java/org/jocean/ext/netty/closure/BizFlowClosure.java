@@ -96,7 +96,12 @@ public class BizFlowClosure implements Closure<PDUBean> {
 
                 @Override
                 public void output(final Object representation) {
-                    output(representation, null);
+                    output(representation, (Map<String, String>)null);
+                }
+
+                @Override
+                public void output(Object representation, String outerName) {
+                    throw new RuntimeException("not impl");
                 }
             });
 

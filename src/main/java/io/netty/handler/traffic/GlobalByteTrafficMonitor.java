@@ -1,6 +1,8 @@
 package io.netty.handler.traffic;
 
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,5 +32,11 @@ public class GlobalByteTrafficMonitor extends AbstractTrafficShapingHandler {
 
     public TrafficCounter getTrafficCounter() {
         return trafficCounter;
+    }
+
+    @Override
+    void submitWrite(ChannelHandlerContext ctx, Object msg, long size,
+            long delay, long now, ChannelPromise promise) {
+        // TODO Auto-generated method stub
     }
 }
