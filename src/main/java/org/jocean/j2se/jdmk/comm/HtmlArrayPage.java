@@ -274,7 +274,7 @@ class HtmlArrayPage
             add2Page("</UL>");
         
             add2Page("<TABLE WIDTH=100%><TR>");
-            add2Page("<TD ALIGN=LEFT><A HREF=\""+HtmlDef.VIEWOBJECTRES+toUrlName(objNameStr)+"\">Back to "+HtmlDef.objectPageTitle+"</A></TD>");
+            add2Page("<TD ALIGN=LEFT><A HREF=\"../.."+HtmlDef.VIEWOBJECTRES+toUrlName(objNameStr)+"\">Back to "+HtmlDef.objectPageTitle+"</A></TD>");
             add2Page("<TD ALIGN=RIGHT>"+HtmlDef.LISTOFMBEAN+"</TD>");
             add2Page("</TR></TABLE>");
             add2Page("<HR>");
@@ -337,7 +337,7 @@ class HtmlArrayPage
                         htmlPage.append("<TD>null</TD>");
                     } 
                     else if (typeStr.equals("javax.management.ObjectName")) {
-                        add2Page("<TD><A HREF=\""+HtmlDef.VIEWOBJECTRES+toUrlName(ob[i].toString())+"\">"+
+                        add2Page("<TD><A HREF=\"../.."+HtmlDef.VIEWOBJECTRES+toUrlName(ob[i].toString())+"\">"+
                                  ob[i].toString()+"</A></TD>");
                     }     
                     else if (typeStr.endsWith("Date")){     
@@ -385,7 +385,7 @@ class HtmlArrayPage
                         htmlPage.append("<TD><INPUT TYPE=\"text\" NAME=\""+prop+"["+i+"]+"+typeStr+"\" ");
                         htmlPage.append("VALUE= \""+(ob[i] != null?ob[i].toString():"")+"\" ");
                         add2Page("SIZE="+(ob[i] != null? ob[i].toString().length() : 20)+">");
-                        add2Page("<A HREF=\""+HtmlDef.VIEWOBJECTRES+toUrlName(ob[i] != null ?ob[i].toString():"")+"\">V</A></TD>");
+                        add2Page("<A HREF=\"../.."+HtmlDef.VIEWOBJECTRES+toUrlName(ob[i] != null ?ob[i].toString():"")+"\">V</A></TD>");
                     } else if (typeStr.endsWith("Date")){       
                         htmlPage.append("<TD><INPUT TYPE=\"text\" NAME=\""+prop+"["+i+"]+"+typeStr+"\" ");
                         htmlPage.append("VALUE= \""+convertDate((Date)ob[i])+"\" ");

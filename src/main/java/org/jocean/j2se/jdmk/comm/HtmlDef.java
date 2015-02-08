@@ -113,5 +113,5 @@ class HtmlDef extends HttpDef {
     //
     public static final String endPage     = "</BODY></HTML>";
     public static final String PF          = "\r\n";
-    public static final String LISTOFMBEAN = "<A HREF=\""+HtmlDef.MAIN+"\">Back to "+masterPageTitle+"</A>"; 
+    public static final String LISTOFMBEAN = "<A HREF=\"../.."+HtmlDef.MAIN+"\">Back to "+masterPageTitle+"</A>"; 
 }
