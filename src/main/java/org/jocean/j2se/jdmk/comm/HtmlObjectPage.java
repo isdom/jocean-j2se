@@ -854,7 +854,7 @@ class HtmlObjectPage extends HtmlPage {
                     add2Page("<TD>" + propertyView[i] + "</TD>");
                 } else if (attType != null && 
 			   attType.equals("javax.management.ObjectName")) {
-                    add2Page("<TD><A HREF=\""+ HtmlDef.VIEWOBJECTRES+toUrlName(propertyView[i]) +"\">"+ propertyView[i] +"</A></TD>");
+                    add2Page("<TD><A HREF=\"../.."+ HtmlDef.VIEWOBJECTRES+toUrlName(propertyView[i]) +"\">"+ propertyView[i] +"</A></TD>");
                 } else if (isArrayType(attType)) {
                     add2Page(buildArrayRef(propertyName[i], objNameStr, "view the values of "+propertyName[i]));
 		} else if (!checkType(attType)) {
@@ -913,9 +913,9 @@ class HtmlObjectPage extends HtmlPage {
                     add2Page(">");
                     if (attType.equals("javax.management.ObjectName")) {
                         if (propertyView[i].equals(" ") || propertyView[i].equals("")) {
-                            htmlPage.append("<A HREF=\""+HtmlDef.VIEWOBJECTRES+toUrlName(propertyView[i])+"\"></A>");
+                            htmlPage.append("<A HREF=\"../.."+HtmlDef.VIEWOBJECTRES+toUrlName(propertyView[i])+"\"></A>");
                         } else {
-                            htmlPage.append("<A HREF=\""+HtmlDef.VIEWOBJECTRES+toUrlName(propertyView[i])+"\">view</A>");
+                            htmlPage.append("<A HREF=\"../.."+HtmlDef.VIEWOBJECTRES+toUrlName(propertyView[i])+"\">view</A>");
                         }
                     } 
                     add2Page("</TD>"); 
@@ -1113,7 +1113,7 @@ class HtmlObjectPage extends HtmlPage {
      * Builds the link to the array page.
      */    
     private String buildArrayRef(String name, String objName, String value) {
-        return new String("<TD> <A HREF=\"" + HtmlDef.VIEWPROPERTY + "/" +
+        return new String("<TD> <A HREF=\"../.." + HtmlDef.VIEWPROPERTY + "/" +
                           name + toUrlName(objName) + "\">" + value + "</A> </TD>");
     }
 

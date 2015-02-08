@@ -209,7 +209,7 @@ class HtmlMasterPage extends HtmlPage {
                         add2Page("<LI><STRONG>" + currDom + "</STRONG>");
                         add2Page("<UL type=disc>");
                     }
-                    add2Page("<LI><A HREF=\""+HtmlDef.VIEWOBJECTRES+toUrlName(currElt)+"\">"+str+"</A>");
+                    add2Page("<LI><A HREF=\"."+HtmlDef.VIEWOBJECTRES+toUrlName(currElt)+"\">"+str+"</A>");
                     j++;
           
                 }
