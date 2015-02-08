@@ -190,12 +190,12 @@ class HtmlObjectPage extends HtmlPage {
         add2Page("<TD ALIGN=LEFT>"+HtmlDef.LISTOFMBEAN+"</TD>");
 
         add2Page("<TD ALIGN=CENTER>");
-        add2Page("<FORM ACTION=" + HtmlDef.AUTOREFRESH + toUrlName(objNameStr) + " METHOD=GET>");
+        add2Page("<FORM ACTION=../.." + HtmlDef.AUTOREFRESH + toUrlName(objNameStr) + " METHOD=GET>");
         add2Page("Reload Period in seconds:<BR><INPUT type=text name=period value="+autoRefresh+" SIZE=2>"+
                  "<INPUT TYPE=submit VALUE=\"Reload\"></FORM></TD>");
 
 
-        add2Page("<TD ALIGN=RIGHT><BR><FORM ACTION=\"" + 
+        add2Page("<TD ALIGN=RIGHT><BR><FORM ACTION=\"../.." + 
                  HtmlDef.ADMIN+
                  HtmlDef.ADMIN_OBJECT+
                  HtmlDef.ADMIN_QUEST2+
@@ -804,7 +804,7 @@ class HtmlObjectPage extends HtmlPage {
         // The name of INPUT field is propertyName[i] '+' propertyType[i]
         // We can be sure about the type, when receiving the form request.
         //
-        add2Page("<FORM ACTION=" + HtmlDef.SETFORM + toUrlName(objNameStr) + " METHOD=GET>");
+        add2Page("<FORM ACTION=../.." + HtmlDef.SETFORM + toUrlName(objNameStr) + " METHOD=GET>");
 
         boolean hasInput = false;
 
