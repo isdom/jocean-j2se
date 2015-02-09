@@ -526,7 +526,7 @@ class HtmlObjectPage extends HtmlPage {
                 autoRefresh = minAutoRefresh;
             }
             meta = "<META HTTP-EQUIV=REFRESH CONTENT=\"";
-            meta += autoRefresh+"; URL="+HtmlDef.AUTOREFRESH+objName+"\">";
+            meta += autoRefresh+"; URL=../.."+HtmlDef.AUTOREFRESH+objName+"\">";
         }
     }
 
