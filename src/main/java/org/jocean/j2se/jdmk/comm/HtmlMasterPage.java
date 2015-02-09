@@ -101,7 +101,7 @@ class HtmlMasterPage extends HtmlPage {
         
         // Add the Filter.
         //
-        add2Page("<FORM ACTION="+HtmlDef.FILTER+" METHOD=GET>");
+        add2Page("<FORM ACTION=."+HtmlDef.FILTER+" METHOD=GET>");
 
         ObjectName filter = null;
         if (req.startsWith(HtmlDef.FILTER)){
@@ -155,7 +155,7 @@ class HtmlMasterPage extends HtmlPage {
             //
             add2Page("<TD ALIGN=\"right\">");
             if (writePerm) {
-                add2Page("<FORM ACTION=\""+HtmlDef.ADMIN+HtmlDef.ADMIN_MAIN+"/\" METHOD=GET>");
+                add2Page("<FORM ACTION=\"."+HtmlDef.ADMIN+HtmlDef.ADMIN_MAIN+"/\" METHOD=GET>");
                 add2Page("<INPUT TYPE=submit VALUE=\"Admin\">");
                 add2Page("</FORM>");
                 add2Page("</TD></TR>");
