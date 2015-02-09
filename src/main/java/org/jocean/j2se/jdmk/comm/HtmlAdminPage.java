@@ -499,7 +499,7 @@ class HtmlAdminPage extends HtmlPage {
         //
         add2Page("<P>Specify the object name and java class of the MBean to add, delete or view the constructors of:<BR>");
         add2Page("<I>(Optionally provide a class loader name for loading the specified class.)</I><BR>");
-        add2Page("<FORM ACTION=/Admin/Objects/ METHOD=GET>");
+        add2Page("<FORM ACTION=../../../Admin/Objects/ METHOD=GET>");
 
         // --------------------------------------------
         // part 1
@@ -963,7 +963,7 @@ class HtmlAdminPage extends HtmlPage {
 
         add2Page("<TD>");
         if (support) {
-            str.append("<FORM ACTION=\"" + 
+            str.append("<FORM ACTION=\"../../.." + 
                 HtmlDef.ADMIN + 
                 HtmlDef.ADMIN_OBJECT + 
                 HtmlDef.ADMIN_QUEST2 +
