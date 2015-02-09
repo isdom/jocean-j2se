@@ -398,8 +398,8 @@ class HtmlAdminPage extends HtmlPage {
                     add2Page(errBuf.toString());
                 }
                 if (isreq2) {
-                    add2Page("<P><TABLE WIDTH=100%><TR>");      
-                    add2Page("<TD ALIGN=RIGHT>"+HtmlDef.LISTOFMBEAN+"</TD>");
+                    add2Page("<P><TABLE WIDTH=100%><TR>");
+                    add2Page("<TD ALIGN=RIGHT><A HREF=\".."+HtmlDef.MAIN+"\">Back to "+HtmlDef.masterPageTitle+"</A></TD>");
                     add2Page("</TR></TABLE>");
                 }
             } else if (action.equals(HtmlDef.actionAdd)) {
