@@ -175,7 +175,7 @@ public class ServiceName {
      * <BR>
      * The value is <CODE>Project OpenDMK</CODE>.
      */
-    public static final String JMX_IMPL_NAME = "Project OpenDMK";
+    public static final String JMX_IMPL_NAME = "JOcean OpenDMK";
 
     /**
      * The name of the vendor of this product implementing the  JMX specification.  
@@ -188,7 +188,7 @@ public class ServiceName {
       * The build number of the current product version, of the form 
       * <CODE>bXX</CODE>.
       */
-    public static final String BUILD_NUMBER = "b02";
+    public static final String BUILD_NUMBER = "b02.1";
 
     /**
      * The version of this product implementing the  JMX specification.  
