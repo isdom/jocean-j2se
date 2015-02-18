@@ -52,6 +52,21 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
             }
         };
     }
+    
+    public String[] getTextedResolvedPlaceholdersAsStringArray() {
+        return new ArrayList<String>() {
+            private static final long serialVersionUID = 1L;
+            {
+                for (Map.Entry<String, Object> entry : _resolvedPlaceholders.entrySet()) {
+                    if (entry.getValue() instanceof String) {
+                        this.add(entry.getKey() + "<--" + entry.getValue().toString());
+                    } else {
+                        this.add(entry.getKey() + "<--" + Arrays.toString((String[]) entry.getValue()));
+                    }
+                }
+            }
+        }.toArray(new String[0]);
+    }
 
     private class PlaceholderResolvingStringValueResolver implements StringValueResolver {
 
