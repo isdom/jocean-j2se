@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  * @author isdom
  *
  */
-public class MBeanRegisterSupport {
+public class MBeanRegisterSupport implements MBeanRegister {
     
     private static final Logger LOG = 
             LoggerFactory.getLogger(MBeanRegisterSupport.class);
