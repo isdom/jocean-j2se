@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.jocean.j2se;
+package org.jocean.j2se.jmx;
 
 
 /**

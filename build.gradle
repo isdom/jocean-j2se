@@ -27,10 +27,10 @@ dependencies {
     compile 'com.google.guava:guava:17.0'
     compile 'com.alibaba:fastjson:1.1.41'
     compile 'javax.ws.rs:javax.ws.rs-api:2.0'
+    compile 'org.apache.curator:curator-recipes:2.7.1'
     optional 'redis.clients:jedis:2.5.2'
     optional 'com.jolbox:bonecp:0.8.0.RELEASE'
 
-    optional "org.apache.curator:curator-recipes:2.6.0"
 
     /** jocean */
     compile("org.jocean:jocean-idiom:0.1.3-SNAPSHOT") { transitive = false }

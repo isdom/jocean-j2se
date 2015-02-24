@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.jocean.j2se;
+package org.jocean.j2se.jmx;
 
 import java.lang.management.ManagementFactory;
 import java.util.Map;

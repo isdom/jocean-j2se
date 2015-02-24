@@ -10,7 +10,7 @@ import org.jocean.ext.util.ant.SelectorUtils;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.Pair;
 import org.jocean.idiom.Triple;
-import org.jocean.j2se.MBeanRegisterSupport;
+import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;

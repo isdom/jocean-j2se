@@ -10,7 +10,7 @@ import org.jocean.ext.transport.Validateable;
 import org.jocean.ext.transport.endpoint.EndpointFactory;
 import org.jocean.ext.transport.protocol.endpoint.Endpoint;
 import org.jocean.ext.util.Identifyable;
-import org.jocean.j2se.MBeanRegisterSupport;
+import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
