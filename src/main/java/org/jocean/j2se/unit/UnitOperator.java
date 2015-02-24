@@ -27,8 +27,8 @@ public class UnitOperator implements Operator<Object> {
     private static final Logger LOG = LoggerFactory
             .getLogger(UnitOperator.class);
     
-    public UnitOperator(final UnitAgent unitAdmin) {
-        this._unitAdmin = unitAdmin;
+    public UnitOperator(final UnitAgent unitAgent) {
+        this._unitAgent = unitAgent;
     }
     
     @Override
@@ -69,7 +69,7 @@ public class UnitOperator implements Operator<Object> {
                 LOG.debug("creating unit named {}", pathName);
             }
             final UnitMXBean unit = 
-                this._unitAdmin.createUnit(
+                this._unitAgent.createUnit(
                         pathName,
                         "**"+ getTemplateFromFullPathName(pathName) + ".xml",
                         Maps.fromProperties(loadProperties(data.getData())),
@@ -97,7 +97,7 @@ public class UnitOperator implements Operator<Object> {
                 LOG.debug("updating unit named {}", pathName);
             }
             final UnitMXBean unit = 
-                this._unitAdmin.updateUnit(
+                this._unitAgent.updateUnit(
                         pathName,
                         Maps.fromProperties(loadProperties(data.getData())));
             if (null == unit) {
@@ -121,7 +121,7 @@ public class UnitOperator implements Operator<Object> {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("removing unit for {}", pathName);
             }
-            if ( this._unitAdmin.deleteUnit(pathName) ) {
+            if ( this._unitAgent.deleteUnit(pathName) ) {
                 LOG.info("remove unit {} success", pathName);
             }
             else {
@@ -155,5 +155,5 @@ public class UnitOperator implements Operator<Object> {
         return ( -1 != idx ) ? template.substring(0, idx) : template;
     }
     
-    private final UnitAgent _unitAdmin;
+    private final UnitAgent _unitAgent;
 }
