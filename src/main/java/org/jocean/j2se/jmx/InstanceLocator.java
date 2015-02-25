@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.jocean.j2se;
+package org.jocean.j2se.jmx;
 
 import java.lang.management.ManagementFactory;
 
@@ -92,6 +92,7 @@ public class InstanceLocator {
         } 
     }
 
+    @SuppressWarnings("unchecked")
     public static <RET> RET locateInstance(
             final String instanceType, 
             final String instanceName ) {
