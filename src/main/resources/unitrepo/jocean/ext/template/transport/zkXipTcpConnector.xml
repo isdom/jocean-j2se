@@ -21,7 +21,7 @@
         <constructor-arg value="registrar"/>
     </bean>
 
-    <bean id="bizFlowClosure" class="org.jocean.ext.netty.closure.BizFlowClosure">
+    <bean id="bizFlowClosure" class="org.jocean.restful.closure.BizFlowClosure">
         <property name="bytesPool" ref="bytesPool"/>
         <property name="useJackson" value="${useJackson:false}"/>
     </bean>

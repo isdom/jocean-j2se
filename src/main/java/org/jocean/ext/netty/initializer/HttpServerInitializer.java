@@ -5,7 +5,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslHandler;
-import org.jocean.restful.ssl.SecureChatSslContextFactory;
+//import org.jocean.restful.ssl.SecureChatSslContextFactory;
 
 import javax.net.ssl.SSLEngine;
 
@@ -16,11 +16,12 @@ public abstract class HttpServerInitializer extends BaseInitializer {
 
     @Override
     public void addCodecHandler(ChannelPipeline pipeline) throws Exception {
-        if (this.enableSSL) {
-            final SSLEngine engine = SecureChatSslContextFactory.getServerContext().createSSLEngine();
-            engine.setUseClientMode(false);
-            pipeline.addFirst("ssl", new SslHandler(engine));
-        }
+        //  TODO adjust SecureChatSslContextFactory's package
+//        if (this.enableSSL) {
+//            final SSLEngine engine = SecureChatSslContextFactory.getServerContext().createSSLEngine();
+//            engine.setUseClientMode(false);
+//            pipeline.addFirst("ssl", new SslHandler(engine));
+//        }
         //HttpServerCodec是非线程安全的,不能所有Channel使用同一个
         HttpServerCodec httpServerCodec = new HttpServerCodec();
         pipeline.addLast("codec", httpServerCodec)

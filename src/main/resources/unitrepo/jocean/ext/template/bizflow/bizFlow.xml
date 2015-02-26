@@ -3,7 +3,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
         ">
 
-    <bean id="registrar" class="org.jocean.ext.restful.PackageRegistrar">
+    <bean id="registrar" class="org.jocean.PackageRegistrar">
         <property name="scanPackage" value="${flow.package.base}"/>
     </bean>
 

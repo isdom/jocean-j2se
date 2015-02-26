@@ -34,7 +34,6 @@ dependencies {
 
     /** jocean */
     compile("org.jocean:jocean-idiom:0.1.3-SNAPSHOT") { transitive = false }
-    compile("org.jocean:jocean-restful-server:0.0.4-SNAPSHOT") { transitive = false }
     compile("org.jocean:jocean-event-api:0.0.7-SNAPSHOT") { transitive = false }
     compile("org.jocean:jocean-event-extend:0.0.4-SNAPSHOT") { transitive = false }
 
