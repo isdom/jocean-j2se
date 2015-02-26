@@ -24,8 +24,8 @@ dependencies {
     compile "commons-io:commons-io:2.4"
     compile "commons-codec:commons-codec:1.9"
 
-    compile 'com.google.guava:guava:17.0'
-    compile 'com.alibaba:fastjson:1.1.41'
+    compile 'com.google.guava:guava:18.0'
+    compile 'com.alibaba:fastjson:1.2.4'
     compile 'javax.ws.rs:javax.ws.rs-api:2.0'
     compile 'org.apache.curator:curator-recipes:2.7.1'
     optional 'redis.clients:jedis:2.5.2'
