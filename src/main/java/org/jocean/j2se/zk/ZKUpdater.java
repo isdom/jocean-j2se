@@ -6,8 +6,8 @@ import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.jocean.event.api.AbstractFlow;
 import org.jocean.event.api.BizStep;
+import org.jocean.event.api.EventEngine;
 import org.jocean.event.api.EventReceiver;
-import org.jocean.event.api.EventReceiverSource;
 import org.jocean.event.api.annotation.OnEvent;
 import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public class ZKUpdater<CTX> {
             .getLogger(ZKUpdater.class);
 
     public ZKUpdater(
-            final EventReceiverSource source,
+            final EventEngine engine,
             final CuratorFramework client, 
             final String root, 
             final Operator<CTX> operator) {
@@ -41,7 +41,7 @@ public class ZKUpdater<CTX> {
         this._root = root;
         this._zkCache = TreeCache.newBuilder(client, root).setCacheData(true).build();
         this._receiver = new ZKTreeWatcherFlow() {{
-            source.create(this, this.UNINITIALIZED);
+            engine.create(this, this.UNINITIALIZED);
         }}.queryInterfaceInstance(EventReceiver.class);
         this._context = this._operator.createContext();
     }
