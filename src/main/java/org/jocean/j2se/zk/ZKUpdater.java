@@ -41,7 +41,7 @@ public class ZKUpdater<CTX> {
         this._root = root;
         this._zkCache = TreeCache.newBuilder(client, root).setCacheData(true).build();
         this._receiver = new ZKTreeWatcherFlow() {{
-            engine.create(this, this.UNINITIALIZED);
+            engine.create( "(" + root + ")'s updater with " + operator.toString(), this.UNINITIALIZED, this);
         }}.queryInterfaceInstance(EventReceiver.class);
         this._context = this._operator.createContext();
     }
