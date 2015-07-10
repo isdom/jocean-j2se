@@ -20,6 +20,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.jocean.ext.unit.ValueAwarePlaceholderConfigurer;
 import org.jocean.ext.util.PackageUtils;
 import org.jocean.ext.util.ant.SelectorUtils;
+import org.jocean.idiom.BeanHolder;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
@@ -27,6 +28,7 @@ import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
@@ -40,7 +42,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ReflectionUtils;
 
-public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware {
+public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, BeanHolder {
 
     private final static String[] _DEFAULT_SOURCE_PATTERNS = new String[]{"**/units/**.xml"};
 
@@ -76,6 +78,29 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware {
         }
     }
 
+    @Override
+    public <T> T getBean(final Class<T> requiredType) {
+        T bean = getBeanOf(this._rootApplicationContext, requiredType);
+        if (null != bean) {
+            return bean;
+        }
+        for ( Node node : this._units.values()) {
+            bean = getBeanOf(node._applicationContext, requiredType);
+            if (null != bean) {
+                return bean;
+            }
+        }
+        return null;
+    }
+
+    private static <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType) {
+        try {
+         return factory.getBean(requiredType);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
     public void init() {
         refreshSources();
     }
