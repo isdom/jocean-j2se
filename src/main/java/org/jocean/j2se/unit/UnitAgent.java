@@ -62,7 +62,6 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
         this._unitsRegister = new MBeanRegisterSupport("org.jocean:type=units", null);
     }
 
-    @Override
     public void addUnitListener(final UnitListener listener) {
         if ( null == listener ) {
             LOG.warn("addUnitListener: listener is null, just ignore");
@@ -75,7 +74,6 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
         }
     }
 
-    @Override
     public void removeUnitListener(final UnitListener listener) {
         if ( null == listener ) {
             LOG.warn("removeUnitListener: listener is null, just ignore");
