@@ -21,7 +21,9 @@ import org.jocean.ext.unit.ValueAwarePlaceholderConfigurer;
 import org.jocean.ext.util.PackageUtils;
 import org.jocean.ext.util.ant.SelectorUtils;
 import org.jocean.idiom.BeanHolder;
+import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
+import org.jocean.idiom.Visitor;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
@@ -60,6 +62,29 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
         this._unitsRegister = new MBeanRegisterSupport("org.jocean:type=units", null);
     }
 
+    @Override
+    public void addUnitListener(final UnitListener listener) {
+        if ( null == listener ) {
+            LOG.warn("addUnitListener: listener is null, just ignore");
+        }
+        else {
+            if ( !this._unitListenerSupport.addComponent(listener) ) {
+                LOG.warn("addUnitListener: listener {} has already added", 
+                        listener);
+            }
+        }
+    }
+
+    @Override
+    public void removeUnitListener(final UnitListener listener) {
+        if ( null == listener ) {
+            LOG.warn("removeUnitListener: listener is null, just ignore");
+        }
+        else {
+            this._unitListenerSupport.removeComponent(listener);
+        }
+    }
+    
     @Override
     public void setApplicationContext(final ApplicationContext applicationContext)
             throws BeansException {
@@ -265,6 +290,14 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
 
             addLog(" newUnit(" + unitName + ") succeed.");
 
+            if (!this._unitListenerSupport.isEmpty()) {
+                this._unitListenerSupport.foreachComponent(new Visitor<UnitListener> () {
+                    @Override
+                    public void visit(final UnitListener listener) throws Exception {
+                        listener.onUnitCreated(ctx);
+                    }});
+            }
+            
             return unit;
         } catch (Exception e) {
             registerUnactiveUnit(
@@ -501,7 +534,14 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
                     nodesDeleted.addAll(nodes);
                 }
             }
-            node.closeApplicationContext();
+            final ConfigurableApplicationContext ctx = node.closeApplicationContext();
+            if (null != ctx && !this._unitListenerSupport.isEmpty()) {
+                this._unitListenerSupport.foreachComponent(new Visitor<UnitListener> () {
+                    @Override
+                    public void visit(final UnitListener listener) throws Exception {
+                        listener.onUnitClosed(ctx);
+                    }});
+            }
             final Node parentNode = getParentNode(unitName);
             if (null!=parentNode) {
                 parentNode.removeChild(unitName);
@@ -666,10 +706,11 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
             return this._applicationContext;
         }
         
-        void closeApplicationContext() {
+        ConfigurableApplicationContext closeApplicationContext() {
             if (null != this._applicationContext) {
                 this._applicationContext.close();
             }
+            return this._applicationContext;
         }
         
         void addChild(final String child) {
@@ -717,4 +758,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
     private final AtomicInteger _logidx = new AtomicInteger(0);
 
     private final Queue<String> _logs = new ConcurrentLinkedQueue<>();
+    
+    private final COWCompositeSupport<UnitListener> _unitListenerSupport
+        = new COWCompositeSupport<UnitListener>();
 }

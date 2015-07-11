@@ -2,6 +2,8 @@ package org.jocean.j2se.unit;
 
 import java.util.Map;
 
+import org.springframework.context.ConfigurableApplicationContext;
+
 public interface UnitAgentMXBean {
     
     public static interface UnitMXBean {
@@ -50,4 +52,13 @@ public interface UnitAgentMXBean {
     public String[] getLogs();
 
     public void resetLogs();
+    
+    public interface UnitListener {
+        public void onUnitCreated(final ConfigurableApplicationContext appctx);
+        public void onUnitClosed(final ConfigurableApplicationContext appctx);
+    }
+    
+    public void addUnitListener(final UnitListener listener);
+    
+    public void removeUnitListener(final UnitListener listener);
 }
