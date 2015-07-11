@@ -292,7 +292,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
                 this._unitListenerSupport.foreachComponent(new Visitor<UnitListener> () {
                     @Override
                     public void visit(final UnitListener listener) throws Exception {
-                        listener.onUnitCreated(ctx);
+                        listener.postUnitCreated(ctx);
                     }});
             }
             
@@ -532,14 +532,15 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
                     nodesDeleted.addAll(nodes);
                 }
             }
-            final ConfigurableApplicationContext ctx = node.closeApplicationContext();
+            final ConfigurableApplicationContext ctx = node._applicationContext;
             if (null != ctx && !this._unitListenerSupport.isEmpty()) {
                 this._unitListenerSupport.foreachComponent(new Visitor<UnitListener> () {
                     @Override
                     public void visit(final UnitListener listener) throws Exception {
-                        listener.onUnitClosed(ctx);
+                        listener.beforeUnitClosed(ctx);
                     }});
             }
+            node.closeApplicationContext();
             final Node parentNode = getParentNode(unitName);
             if (null!=parentNode) {
                 parentNode.removeChild(unitName);
