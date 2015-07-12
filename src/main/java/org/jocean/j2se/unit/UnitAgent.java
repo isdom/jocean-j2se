@@ -292,7 +292,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
                 this._unitListenerSupport.foreachComponent(new Visitor<UnitListener> () {
                     @Override
                     public void visit(final UnitListener listener) throws Exception {
-                        listener.postUnitCreated(ctx);
+                        listener.postUnitCreated(unitName, ctx);
                     }});
             }
             
@@ -537,7 +537,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
                 this._unitListenerSupport.foreachComponent(new Visitor<UnitListener> () {
                     @Override
                     public void visit(final UnitListener listener) throws Exception {
-                        listener.beforeUnitClosed(ctx);
+                        listener.beforeUnitClosed(unitName, ctx);
                     }});
             }
             node.closeApplicationContext();

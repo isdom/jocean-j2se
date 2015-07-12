@@ -4,7 +4,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 public interface UnitListener {
 
-    public void postUnitCreated(final ConfigurableApplicationContext appctx);
+    public void postUnitCreated(final String unitPath, final ConfigurableApplicationContext appctx);
 
-    public void beforeUnitClosed(final ConfigurableApplicationContext appctx);
+    public void beforeUnitClosed(final String unitPath, final ConfigurableApplicationContext appctx);
 }
