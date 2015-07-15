@@ -37,7 +37,7 @@ dependencies {
     compile("org.jocean:jocean-event-api:0.0.7-SNAPSHOT") { transitive = false }
     compile("org.jocean:jocean-event-extend:0.0.4-SNAPSHOT") { transitive = false }
 
-    compile 'io.netty:netty-all:4.0.25.Final'
+    compile 'io.netty:netty-all:4.0.29.Final'
 
     testCompile 'junit:junit:4.11'
 }
