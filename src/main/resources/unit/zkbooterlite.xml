@@ -7,28 +7,16 @@
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="locations">
             <list>
-                <value>classpath:${zkunits:zkunits.properties}</value>
+                <value>classpath:${zkbooter:zkbooter.properties}</value>
             </list>
         </property>
         <property name="fileEncoding" value="UTF-8"/>
     </bean>
     
-    <bean id="zkClient" class="org.jocean.j2se.zk.ZKUtils"
-        factory-method="buildWithExhibitorEnsembleProvider"
-        init-method="start"
-        destroy-method="close">
-        <constructor-arg>
-            <bean class="org.springframework.util.StringUtils"
-                factory-method="commaDelimitedListToStringArray">
-                <constructor-arg value="${exhibitor.hosts}"/>
-            </bean>
-        </constructor-arg>
-        <constructor-arg value="${exhibitor.restport}"/>
+    <bean id="zkClient" class="org.apache.curator.framework.CuratorFrameworkFactory"
+        factory-method="newClient"
+        init-method="start">
         <constructor-arg value="${zk.address}"/>
-        <constructor-arg value="${exhibitor.basicAuthUser:}"/>
-        <constructor-arg value="${exhibitor.basicAuthPass:}"/>
-        <constructor-arg value="${exhibitor.restUriPath:/exhibitor/v1/cluster/list}"/>
-        <constructor-arg value="${exhibitor.pollingMs:2000}"/>
         <constructor-arg>
             <bean class="org.apache.curator.retry.ExponentialBackoffRetry">
                 <constructor-arg value="1000"/>
@@ -73,25 +61,10 @@
         </constructor-arg>
     </bean>
  
-    <bean id="jmxConnectorServer" 
-        class="org.springframework.jmx.support.ConnectorServerFactoryBean"  >
-        <property name="serviceUrl" value="service:jmx:jmxmp://0.0.0.0:${jmxmp.port:9876}" />
-        <property name="threaded"   value="true" />
-        <property name="daemon"     value="true" />
-        <property name="objectName" value="org.jocean:type=agent,name0=jmxmp" />
-    </bean>
-     
-    <bean id="htmlAdaptorServer" class="org.jocean.jdmk.comm.HtmlAdaptorServer" 
-        init-method="start" destroy-method="stop">
-        <property name="port" value="${jmxhtml.port:8082}"/>
-    </bean>
-    
     <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"
           lazy-init="false">
         <property name="beans">
             <map>
-                <entry key="org.jocean:type=htmladapter,port=${jmxhtml.port:8082}" 
-                    value-ref="htmlAdaptorServer"/>
                 <entry key="org.jocean:type=zkclient" 
                     value-ref="zkClient"/>
                 <entry key="org.jocean:type=unitAgent" 
