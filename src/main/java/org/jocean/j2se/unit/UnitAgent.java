@@ -1,6 +1,7 @@
 package org.jocean.j2se.unit;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import org.jocean.ext.util.ant.SelectorUtils;
 import org.jocean.idiom.BeanHolder;
 import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
+import org.jocean.idiom.Pair;
 import org.jocean.idiom.Visitor;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
@@ -81,6 +83,16 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
         else {
             this._unitListenerSupport.removeComponent(listener);
         }
+    }
+    
+    @SuppressWarnings("unchecked")
+    public Pair<String, ConfigurableApplicationContext>[] allUnit() {
+        final List<Pair<String, ConfigurableApplicationContext>> units = new ArrayList<>();
+        for (Node node : this._units.values() ) {
+            if (null!=node._applicationContext)
+            units.add(Pair.of(node._unitName, node._applicationContext));
+        }
+        return units.toArray((Pair<String, ConfigurableApplicationContext>[]) Array.newInstance(Pair.class, 0));
     }
     
     @Override
