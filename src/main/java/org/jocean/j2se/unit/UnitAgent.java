@@ -1,7 +1,6 @@
 package org.jocean.j2se.unit;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
@@ -21,14 +20,13 @@ import org.apache.commons.io.FilenameUtils;
 import org.jocean.ext.unit.ValueAwarePlaceholderConfigurer;
 import org.jocean.ext.util.PackageUtils;
 import org.jocean.ext.util.ant.SelectorUtils;
-import org.jocean.idiom.BeanHolder;
 import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
-import org.jocean.idiom.Pair;
 import org.jocean.idiom.Visitor;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
+import org.jocean.j2se.spring.SpringBeanHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -46,7 +44,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ReflectionUtils;
 
-public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, BeanHolder {
+public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, SpringBeanHolder {
 
     private final static String[] _DEFAULT_SOURCE_PATTERNS = new String[]{"**/units/**.xml"};
 
@@ -83,16 +81,6 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
         else {
             this._unitListenerSupport.removeComponent(listener);
         }
-    }
-    
-    @SuppressWarnings("unchecked")
-    public Pair<String, ConfigurableApplicationContext>[] allUnit() {
-        final List<Pair<String, ConfigurableApplicationContext>> units = new ArrayList<>();
-        for (Node node : this._units.values() ) {
-            if (null!=node._applicationContext)
-            units.add(Pair.of(node._unitName, node._applicationContext));
-        }
-        return units.toArray((Pair<String, ConfigurableApplicationContext>[]) Array.newInstance(Pair.class, 0));
     }
     
     @Override
@@ -134,6 +122,16 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
         } catch (Exception e) {
             return null;
         }
+    }
+    
+    @Override
+    public ConfigurableApplicationContext[] allApplicationContext() {
+        final List<ConfigurableApplicationContext> ctxs = new ArrayList<>();
+        for (Node node : this._units.values() ) {
+            if (null!=node._applicationContext)
+                ctxs.add(node._applicationContext);
+        }
+        return ctxs.toArray(new ConfigurableApplicationContext[0]);
     }
     
     public void init() {
@@ -272,13 +270,13 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
             return null;
         }
         try {
-            final ConfigurableApplicationContext ctx =
+            final ClassPathXmlApplicationContext ctx =
                     createConfigurableApplicationContext(
                             parentCtx,
                             "org.jocean:type=units,unit=" + unitName,
                             unitSource, 
                             configurer);
-
+            ctx.setDisplayName(unitName);
             if ( null != parentNode) {
                 parentNode.addChild(unitName);
             }
@@ -640,14 +638,14 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Bean
      * @param configurer
      * @return
      */
-    private ConfigurableApplicationContext createConfigurableApplicationContext(
+    private ClassPathXmlApplicationContext createConfigurableApplicationContext(
             final ApplicationContext parentCtx,
             final String objectNameSuffix,
             final String unitSource, 
             final PropertyPlaceholderConfigurer configurer) {
         final MBeanRegister register = new MBeanRegisterSupport(objectNameSuffix, null);
         
-        final ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(
+        final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
                     new String[]{unitSource},
                     false,
                     parentCtx);
