@@ -1,10 +1,10 @@
 package org.jocean.j2se.spring;
 
 import org.jocean.idiom.BeanHolder;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 public interface SpringBeanHolder extends BeanHolder {
 
-    public ConfigurableApplicationContext[] allApplicationContext();
+    public ConfigurableListableBeanFactory[] allBeanFactory();
     
 }

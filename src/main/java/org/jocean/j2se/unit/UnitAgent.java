@@ -125,13 +125,13 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
     }
     
     @Override
-    public ConfigurableApplicationContext[] allApplicationContext() {
-        final List<ConfigurableApplicationContext> ctxs = new ArrayList<>();
+    public ConfigurableListableBeanFactory[] allBeanFactory() {
+        final List<ConfigurableListableBeanFactory> factorys = new ArrayList<>();
         for (Node node : this._units.values() ) {
-            if (null!=node._applicationContext)
-                ctxs.add(node._applicationContext);
+            if (null!=node._applicationContext && null!=node._applicationContext.getBeanFactory())
+                factorys.add(node._applicationContext.getBeanFactory());
         }
-        return ctxs.toArray(new ConfigurableApplicationContext[0]);
+        return factorys.toArray(new ConfigurableListableBeanFactory[0]);
     }
     
     public void init() {

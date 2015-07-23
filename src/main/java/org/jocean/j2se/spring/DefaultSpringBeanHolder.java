@@ -3,7 +3,7 @@ package org.jocean.j2se.spring;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 public class DefaultSpringBeanHolder implements SpringBeanHolder, BeanFactoryAware {
 
@@ -18,10 +18,10 @@ public class DefaultSpringBeanHolder implements SpringBeanHolder, BeanFactoryAwa
     }
 
     @Override
-    public ConfigurableApplicationContext[] allApplicationContext() {
-        return ( this._beanFactory instanceof ConfigurableApplicationContext)
-                ? new ConfigurableApplicationContext[]{(ConfigurableApplicationContext)this._beanFactory}
-                : new ConfigurableApplicationContext[0]
+    public ConfigurableListableBeanFactory[] allBeanFactory() {
+        return ( this._beanFactory instanceof ConfigurableListableBeanFactory)
+                ? new ConfigurableListableBeanFactory[]{(ConfigurableListableBeanFactory)this._beanFactory}
+                : new ConfigurableListableBeanFactory[0]
         ;
     }
     
