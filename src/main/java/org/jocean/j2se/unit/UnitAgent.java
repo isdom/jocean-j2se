@@ -657,7 +657,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
                     final ConfigurableListableBeanFactory beanFactory)
                     throws BeansException {
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
-                beanFactory.addBeanPostProcessor(_injector);
+//                beanFactory.addBeanPostProcessor(_injector);
             }});
         ctx.addApplicationListener(new ApplicationListener<ApplicationContextEvent>() {
             @Override
