@@ -104,14 +104,19 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
 
     @Override
     public <T> T getBean(final Class<T> requiredType) {
-        T bean = getBeanOf(this._rootApplicationContext, requiredType);
+        T bean = null;
+        if (null != this._rootApplicationContext) {
+            bean = getBeanOf(this._rootApplicationContext, requiredType);
+        }
         if (null != bean) {
             return bean;
         }
         for ( Node node : this._units.values()) {
-            bean = getBeanOf(node._applicationContext, requiredType);
-            if (null != bean) {
-                return bean;
+            if (null != node._applicationContext) {
+                bean = getBeanOf(node._applicationContext, requiredType);
+                if (null != bean) {
+                    return bean;
+                }
             }
         }
         return null;
@@ -119,7 +124,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
 
     private static <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType) {
         try {
-         return factory.getBean(requiredType);
+            return factory.getBean(requiredType);
         } catch (Exception e) {
             return null;
         }
@@ -657,7 +662,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
                     final ConfigurableListableBeanFactory beanFactory)
                     throws BeansException {
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
-//                beanFactory.addBeanPostProcessor(_injector);
+                beanFactory.addBeanPostProcessor(_injector);
             }});
         ctx.addApplicationListener(new ApplicationListener<ApplicationContextEvent>() {
             @Override

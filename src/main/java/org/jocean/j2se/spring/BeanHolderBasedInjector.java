@@ -48,7 +48,7 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName)
             throws BeansException {
-        return null;
+        return bean;
     }
 
     private final BeanHolder _beanHoler;
