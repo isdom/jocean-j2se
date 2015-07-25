@@ -26,6 +26,7 @@ import org.jocean.idiom.Visitor;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
+import org.jocean.j2se.spring.BeanHolderBasedInjector;
 import org.jocean.j2se.spring.SpringBeanHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -656,6 +657,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
                     final ConfigurableListableBeanFactory beanFactory)
                     throws BeansException {
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
+                beanFactory.addBeanPostProcessor(_injector);
             }});
         ctx.addApplicationListener(new ApplicationListener<ApplicationContextEvent>() {
             @Override
@@ -752,6 +754,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
         private final Map<String, String>   _unitParameters;
     }
     
+    private final BeanHolderBasedInjector _injector = new BeanHolderBasedInjector(this);
     private String[] _sourcePatterns;
 
     private ApplicationContext _rootApplicationContext = null;
