@@ -38,6 +38,10 @@ dependencies {
     compile("org.jocean:jocean-event-extend:0.0.4-SNAPSHOT") { transitive = false }
 
     compile 'io.netty:netty-all:4.0.29.Final'
-
+    
+    // javax.inject
+    // compile 'org.glassfish.hk2.external:javax.inject:2.4.0-b27'
+    compile 'javax.inject:javax.inject:1'
+    
     testCompile 'junit:junit:4.11'
 }
