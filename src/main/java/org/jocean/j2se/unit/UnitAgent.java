@@ -20,6 +20,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.jocean.ext.unit.ValueAwarePlaceholderConfigurer;
 import org.jocean.ext.util.PackageUtils;
 import org.jocean.ext.util.ant.SelectorUtils;
+import org.jocean.idiom.BeanHolder;
 import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.Visitor;
@@ -662,7 +663,16 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
                     final ConfigurableListableBeanFactory beanFactory)
                     throws BeansException {
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
-                beanFactory.addBeanPostProcessor(_injector);
+                beanFactory.addBeanPostProcessor(new BeanHolderBasedInjector(new BeanHolder(){
+                    @Override
+                    public <T> T getBean(final Class<T> requiredType) {
+                        try {
+                            return ctx.getBean(requiredType);
+                        } catch (Exception e) {
+                            LOG.info("can't found {} locally, try find global.", requiredType);
+                        }
+                        return UnitAgent.this.getBean(requiredType);
+                    }}));
             }});
         ctx.addApplicationListener(new ApplicationListener<ApplicationContextEvent>() {
             @Override
@@ -759,7 +769,6 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
         private final Map<String, String>   _unitParameters;
     }
     
-    private final BeanHolderBasedInjector _injector = new BeanHolderBasedInjector(this);
     private String[] _sourcePatterns;
 
     private ApplicationContext _rootApplicationContext = null;
