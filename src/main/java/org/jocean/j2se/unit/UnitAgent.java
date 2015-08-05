@@ -192,32 +192,34 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
             final String unitName, 
             final String pattern, 
             final Map<String, String> unitParameters) {
-        return null != createUnit(unitName, pattern, unitParameters, false);
+        return null != createUnit(unitName, new String[]{pattern}, unitParameters, false);
     }
 
     public UnitMXBean createUnit(
             final String unitName,
-            final String pattern,
+            final String[] patterns,
             final Map<String, String> unitParameters,
             final boolean usingFirstWhenMatchedMultiSource) {
-        final String[] sources = searchUnitSourceOf(new String[]{pattern});
+        final String[] sources = searchUnitSourceOf(patterns);
 
         if (null == sources) {
-            LOG.warn("can't found unit source matched {}, newUnit {} failed", pattern, unitName);
+            LOG.warn("can't found unit source matched {}, newUnit {} failed", 
+                    Arrays.toString(patterns), unitName);
             addLog(" newUnit(" + unitName
                     + ") failed for can't found source matched ("
-                    + pattern + ")");
+                    + Arrays.toString(patterns) + ")");
             return null;
         } else if (sources.length > 1) {
             if (!usingFirstWhenMatchedMultiSource) {
-                LOG.warn("found unit source more than one matched {}, failed to create unit {}/{}", pattern, unitName);
+                LOG.warn("found unit source more than one matched {}, failed to create unit {}/{}", 
+                        Arrays.toString(patterns), unitName);
                 addLog(" newUnit(" + unitName
                         + ") failed for found unit source > 1 "
-                        + pattern);
+                        + Arrays.toString(patterns));
                 return null;
             } else {
                 LOG.warn("found unit source more than one matched {}, using first one to create unit {}",
-                        pattern, unitName);
+                        Arrays.toString(patterns), unitName);
             }
         }
 

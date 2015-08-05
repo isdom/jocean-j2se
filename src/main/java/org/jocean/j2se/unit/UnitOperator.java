@@ -68,10 +68,11 @@ public class UnitOperator implements Operator<Object> {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("creating unit named {}", pathName);
             }
+            final String template = getTemplateFromFullPathName(pathName);
             final UnitMXBean unit = 
                 this._unitAgent.createUnit(
                         pathName,
-                        "**"+ getTemplateFromFullPathName(pathName) + ".xml",
+                        new String[]{"**/"+ template + ".xml", template + ".xml"},
                         Maps.fromProperties(loadProperties(data.getData())),
                         true);
             if (null == unit) {
