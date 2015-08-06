@@ -73,6 +73,10 @@
         </constructor-arg>
     </bean>
  
+    <bean id="httpClient" class="org.jocean.http.client.impl.DefaultHttpClient" />
+    
+    <bean id="httpServer" class="org.jocean.http.server.impl.DefaultHttpServer"/>
+    
     <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"
           lazy-init="false">
         <property name="beans">
