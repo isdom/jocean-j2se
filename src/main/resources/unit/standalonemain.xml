@@ -28,6 +28,10 @@
         </constructor-arg>
     </bean>
     
+    <bean id="httpClient" class="org.jocean.http.client.impl.DefaultHttpClient" />
+    
+    <bean id="httpServer" class="org.jocean.http.server.impl.DefaultHttpServer"/>
+    
     <bean id="unitAgent" 
         class="org.jocean.j2se.spring.DefaultSpringBeanHolder"/>
     
