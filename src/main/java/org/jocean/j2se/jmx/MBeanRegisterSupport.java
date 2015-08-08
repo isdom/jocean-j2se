@@ -179,6 +179,9 @@ public class MBeanRegisterSupport implements MBeanRegister {
             for ( Map.Entry<ObjectName, Object> entry : this._objectNames.entrySet() ) {
                 try {
                     this._mbeanServer.unregisterMBean(entry.getKey());
+                    if ( LOG.isDebugEnabled() ) {
+                        LOG.debug("unregisterAllMBeans: unregister mbean with objectname {} succeed.", entry.getKey());
+                    }
                 } catch (Exception e) {
                     LOG.error("exception when (unregisterAllMBean|destroy)'s unregisterMBean({}), detail: {}", 
                             entry.getKey(), ExceptionUtils.exception2detail(e));
