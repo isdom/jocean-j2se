@@ -680,7 +680,18 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
             @Override
             public void onApplicationEvent(final ApplicationContextEvent event) {
                 if (event instanceof ContextClosedEvent) {
-                    register.destroy();
+                    if (event.getApplicationContext() == ctx) {
+                        register.destroy();
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("application {} closed, so destroy it's MBeanRegister {}",
+                                    ctx, register);
+                        }
+                    } else {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("application {} raised close event, and received by parent application {}, just ignore.", 
+                                    event.getApplicationContext(), ctx);
+                        }
+                    }
                 }
             }});
 
