@@ -123,9 +123,37 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
         return null;
     }
 
+    @Override
+    public <T> T getBean(final String name, final Class<T> requiredType) {
+        T bean = null;
+        if (null != this._rootApplicationContext) {
+            bean = getBeanOf(this._rootApplicationContext, name, requiredType);
+        }
+        if (null != bean) {
+            return bean;
+        }
+        for ( Node node : this._units.values()) {
+            if (null != node._applicationContext) {
+                bean = getBeanOf(node._applicationContext, name, requiredType);
+                if (null != bean) {
+                    return bean;
+                }
+            }
+        }
+        return null;
+    }
+    
     private static <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType) {
         try {
             return factory.getBean(requiredType);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    private static <T> T getBeanOf(final BeanFactory factory, final String name, final Class<T> requiredType) {
+        try {
+            return factory.getBean(name, requiredType);
         } catch (Exception e) {
             return null;
         }
@@ -674,6 +702,16 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
                             LOG.info("can't found {} locally, try find global.", requiredType);
                         }
                         return UnitAgent.this.getBean(requiredType);
+                    }
+
+                    @Override
+                    public <T> T getBean(final String name, final Class<T> requiredType) {
+                        try {
+                            return ctx.getBean(name, requiredType);
+                        } catch (Exception e) {
+                            LOG.info("can't found {}/{} locally, try find global.", name, requiredType);
+                        }
+                        return UnitAgent.this.getBean(name, requiredType);
                     }}));
             }});
         ctx.addApplicationListener(new ApplicationListener<ApplicationContextEvent>() {

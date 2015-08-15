@@ -13,8 +13,13 @@ public class DefaultSpringBeanHolder implements SpringBeanHolder, BeanFactoryAwa
     }
 
     @Override
-    public <T> T getBean(Class<T> requiredType) {
+    public <T> T getBean(final Class<T> requiredType) {
         return this._beanFactory.getBean(requiredType);
+    }
+
+    @Override
+    public <T> T getBean(final String name, final Class<T> requiredType) {
+        return this._beanFactory.getBean(name, requiredType);
     }
 
     @Override
@@ -26,5 +31,4 @@ public class DefaultSpringBeanHolder implements SpringBeanHolder, BeanFactoryAwa
     }
     
     private BeanFactory _beanFactory;
-
 }
