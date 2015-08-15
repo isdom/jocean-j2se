@@ -28,6 +28,7 @@ import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.jocean.j2se.spring.BeanHolderBasedInjector;
+import org.jocean.j2se.spring.BeanHolderSetter;
 import org.jocean.j2se.spring.SpringBeanHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -693,6 +694,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
                     final ConfigurableListableBeanFactory beanFactory)
                     throws BeansException {
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
+                beanFactory.addBeanPostProcessor(new BeanHolderSetter(UnitAgent.this));
                 beanFactory.addBeanPostProcessor(new BeanHolderBasedInjector(new BeanHolder(){
                     @Override
                     public <T> T getBean(final Class<T> requiredType) {
