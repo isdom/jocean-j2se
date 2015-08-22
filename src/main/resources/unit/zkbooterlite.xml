@@ -65,6 +65,8 @@
     
     <bean id="httpServer" class="org.jocean.http.server.impl.DefaultHttpServer"/>
     
+    <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>
+    
     <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"
           lazy-init="false">
         <property name="beans">
@@ -73,6 +75,8 @@
                     value-ref="zkClient"/>
                 <entry key="org.jocean:type=unitAgent" 
                     value-ref="unitAgent"/>
+                <entry key="org.jocean:type=directMemory"
+                    value-ref="directMemory"/>
             </map>
         </property>
     </bean>

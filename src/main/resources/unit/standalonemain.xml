@@ -32,6 +32,8 @@
     
     <bean id="httpServer" class="org.jocean.http.server.impl.DefaultHttpServer"/>
     
+    <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>
+    
     <bean id="unitAgent" 
         class="org.jocean.j2se.spring.DefaultSpringBeanHolder"/>
     
