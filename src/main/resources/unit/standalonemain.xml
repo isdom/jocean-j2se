@@ -28,9 +28,14 @@
         </constructor-arg>
     </bean>
     
-    <bean id="httpClient" class="org.jocean.http.client.impl.DefaultHttpClient" />
+    <bean id="httpClient" class="org.jocean.http.client.impl.DefaultHttpClient">
+        <constructor-arg value="${http.client.thread.count:0}"/>
+    </bean>
     
-    <bean id="httpServer" class="org.jocean.http.server.impl.DefaultHttpServer"/>
+    <bean id="httpServer" class="org.jocean.http.server.impl.DefaultHttpServer">
+        <constructor-arg value="${http.server.accept.thread.count:1}"/>
+        <constructor-arg value="${http.server.work.thread.count:0}"/>
+    </bean>
     
     <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>
     
