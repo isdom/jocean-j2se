@@ -72,7 +72,7 @@ public class UnitOperator implements Operator<Object> {
             }
             final String template = getTemplateFromFullPathName(pathName);
             final Properties properties = loadProperties(data.getData());
-            final String[] source = loadSourceFrom(properties);
+            final String[] source = genSourceFrom(properties);
             
             UnitMXBean unit = null;
             if (null != source ) {
@@ -97,7 +97,7 @@ public class UnitOperator implements Operator<Object> {
         return ctx;
     }
 
-    private static String[] loadSourceFrom(final Properties properties) {
+    private static String[] genSourceFrom(final Properties properties) {
         final String value = properties.getProperty(SPRING_XML_KEY);
         properties.remove(SPRING_XML_KEY);
         return null!=value ? value.split(",") : null;
