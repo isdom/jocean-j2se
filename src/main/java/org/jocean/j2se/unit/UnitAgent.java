@@ -224,6 +224,13 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
         return null != createUnit(unitName, new String[]{pattern}, unitParameters, false);
     }
 
+    public UnitMXBean createUnitWithSource(
+            final String unitName,
+            final String[] source,
+            final Map<String, String> unitParameters) {
+        return doCreateUnit(unitName, source, unitParameters);
+    }
+    
     public UnitMXBean createUnit(
             final String unitName,
             final String[] patterns,
@@ -252,12 +259,12 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
             }
         }
 
-        return doCreateUnit(unitName, sources[0], unitParameters);
+        return doCreateUnit(unitName, new String[]{sources[0]}, unitParameters);
     }
     
     private UnitMXBean doCreateUnit(
             final String unitName,
-            final String unitSource,
+            final String[] unitSource,
             final Map<String, String> unitParameters) {
 
         final String objectNameSuffix = genUnitSuffix(unitName);
@@ -389,7 +396,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
      */
     private void registerUnactiveUnit(
             final String unitName,
-            final String unitSource, 
+            final String[] unitSource, 
             final Map<String, String> unitParameters,
             final String objectNameSuffix, 
             final Node parentNode, 
@@ -451,7 +458,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
     private UnitMXBean newUnitMXBean(
             final boolean isActive,
             final String name,
-            final String source,
+            final String[] source,
             final String now,
             final String[] params,
             final String[] placeholders,
@@ -466,7 +473,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
             
             @Override
             public String getSource() {
-                return source;
+                return Arrays.toString(source);
             }
 
             @Override
@@ -645,7 +652,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
                     };
 
             try {
-                createConfigurableApplicationContext(null, "", source, configurer);
+                createConfigurableApplicationContext(null, "", new String[]{source}, configurer);
             } catch (StopInitCtxException ignored) {
             }
             infos.put(unitSource, configurer.getTextedResolvedPlaceholdersAsStringArray());
@@ -679,12 +686,12 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
     private ClassPathXmlApplicationContext createConfigurableApplicationContext(
             final ApplicationContext parentCtx,
             final String objectNameSuffix,
-            final String unitSource, 
+            final String[] unitSource, 
             final PropertyPlaceholderConfigurer configurer) {
         final MBeanRegister register = new MBeanRegisterSupport(objectNameSuffix, null);
         
         final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
-                    new String[]{unitSource},
+                    unitSource,
                     false,
                     parentCtx);
         ctx.addBeanFactoryPostProcessor(configurer);
@@ -773,7 +780,7 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
     private static class Node {
         Node(final ConfigurableApplicationContext applicationContext,
             final String unitName,
-            final String unitSource, 
+            final String[] unitSource, 
             final Map<String, String> unitParameters) {
             this._applicationContext = applicationContext;
             this._unitName = unitName;
@@ -811,14 +818,14 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
         @Override
         public String toString() {
             return "Node [unitName=" + _unitName + ", applicationContext="
-                    + _applicationContext + ", unitSource=" + _unitSource
+                    + _applicationContext + ", unitSource=" + Arrays.toString(_unitSource)
                     + ", children's count=" + _children.size() + "]";
         }
 
         private final List<String> _children = new ArrayList<>();
         private final ConfigurableApplicationContext _applicationContext;
         private final String _unitName;
-        private final String _unitSource;
+        private final String[] _unitSource;
         private final Map<String, String>   _unitParameters;
     }
     
