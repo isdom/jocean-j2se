@@ -27,6 +27,8 @@ public class UnitOperator implements Operator<Object> {
     private static final Logger LOG = LoggerFactory
             .getLogger(UnitOperator.class);
     
+    private static final String SPRING_XML_KEY = "__spring.xml";
+    
     public UnitOperator(final UnitAgent unitAgent) {
         this._unitAgent = unitAgent;
     }
@@ -69,12 +71,22 @@ public class UnitOperator implements Operator<Object> {
                 LOG.debug("creating unit named {}", pathName);
             }
             final String template = getTemplateFromFullPathName(pathName);
-            final UnitMXBean unit = 
-                this._unitAgent.createUnit(
+            final Properties properties = loadProperties(data.getData());
+            final String[] source = loadSourceFrom(properties);
+            
+            UnitMXBean unit = null;
+            if (null != source ) {
+                unit = this._unitAgent.createUnitWithSource(
+                        pathName,
+                        source,
+                        Maps.fromProperties(properties));
+            } else {
+                unit = this._unitAgent.createUnit(
                         pathName,
                         new String[]{"**/"+ template + ".xml", template + ".xml"},
-                        Maps.fromProperties(loadProperties(data.getData())),
+                        Maps.fromProperties(properties),
                         true);
+            }
             if (null == unit) {
                 LOG.info("create unit {} failed.", pathName);
             } else {
@@ -83,6 +95,12 @@ public class UnitOperator implements Operator<Object> {
             
         }
         return ctx;
+    }
+
+    private static String[] loadSourceFrom(final Properties properties) {
+        final String value = properties.getProperty(SPRING_XML_KEY);
+        properties.remove(SPRING_XML_KEY);
+        return null!=value ? value.split(",") : null;
     }
 
     @Override
