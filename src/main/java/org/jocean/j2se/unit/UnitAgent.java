@@ -422,6 +422,26 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
         this._unitsRegister.replaceRegisteredMBean(objectNameSuffix, mock, unit);
     }
 
+    public UnitMXBean updateUnitWithSource(
+            final String unitName,
+            final String[] newSource,
+            final Map<String, String> newUnitParameters) {
+        if (null == this._units.get(unitName)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("can't found unit named {}, update failed.", unitName);
+            }
+            addLog(" can't found unit named "+ unitName + ", update failed.");
+            return null;
+        }
+        final Node[] nodes = doDeleteUnit(unitName).toArray(new Node[0]);
+        final UnitMXBean mbean = doCreateUnit(nodes[0]._unitName, newSource, newUnitParameters);
+        for (int idx = 1; idx < nodes.length; idx++) {
+            final Node node = nodes[idx];
+            doCreateUnit(node._unitName, node._unitSource, node._unitParameters);
+        }
+        return mbean;
+    }
+    
     public UnitMXBean updateUnit(
             final String unitName,
             final Map<String, String> newUnitParameters) {

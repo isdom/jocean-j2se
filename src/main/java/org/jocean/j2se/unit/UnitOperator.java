@@ -115,10 +115,20 @@ public class UnitOperator implements Operator<Object> {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("updating unit named {}", pathName);
             }
-            final UnitMXBean unit = 
-                this._unitAgent.updateUnit(
+            final Properties properties = loadProperties(data.getData());
+            final String[] source = genSourceFrom(properties);
+            
+            UnitMXBean unit = null;
+            if (null != source ) {
+                unit = this._unitAgent.updateUnitWithSource(
                         pathName,
-                        Maps.fromProperties(loadProperties(data.getData())));
+                        source,
+                        Maps.fromProperties(properties));
+            } else {
+                unit = this._unitAgent.updateUnit(
+                        pathName,
+                        Maps.fromProperties(properties));
+            }
             if (null == unit) {
                 LOG.info("update unit {} failed.", pathName);
             } else {
