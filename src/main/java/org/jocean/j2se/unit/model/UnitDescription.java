@@ -24,12 +24,15 @@ public class UnitDescription {
     private static final Logger LOG = LoggerFactory
             .getLogger(UnitDescription.class);
 
+    private static final UnitDescription[] EMPTY_DESCRIPTIONS = 
+            new UnitDescription[0];
+    
     public void setName(final String name) {
         this._name = name;
     }
     
     public void setChildren(final UnitDescription[] children) {
-        this._children = children;
+        this._children = null != children ? children : EMPTY_DESCRIPTIONS;
     }
     
     public void setParameters(final String parameters) {
@@ -77,5 +80,5 @@ public class UnitDescription {
 
     private String _name;
     private String _parameters;
-    private UnitDescription[] _children;
+    private UnitDescription[] _children = EMPTY_DESCRIPTIONS;
 }
