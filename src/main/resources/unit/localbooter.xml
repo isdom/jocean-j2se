@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+        
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:${local:local.properties}</value>
+            </list>
+        </property>
+        <property name="fileEncoding" value="UTF-8"/>
+    </bean>
+    
+    <bean id="eventEngine" class="org.jocean.event.extend.Runners"
+        factory-method="build">
+        <constructor-arg>
+            <bean class="org.jocean.event.extend.Runners.Config">
+                <constructor-arg value="org.jocean:type=eventengine"/>
+                <constructor-arg value="${eventengine.name:default}"/>
+                <constructor-arg>
+                    <bean class="org.jocean.event.extend.Services" 
+                        factory-method="lookupOrCreateTimerService">
+                        <constructor-arg value="${eventengine.name:default}"/>
+                    </bean>
+                </constructor-arg>
+                <constructor-arg>
+                    <bean class="org.jocean.event.extend.Services" 
+                        factory-method="lookupOrCreateFlowBasedExecutorSource">
+                        <constructor-arg value="${eventengine.name:default}"/>
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"/>
+    
+    <bean id="unitBuilder" class="org.jocean.j2se.unit.model.UnitBuilder"
+        init-method="start">
+        <constructor-arg ref="unitAgent"/>
+        <property name="location" value="${unitdesc:classpath:local.yaml}"/>
+    </bean>
+    
+    <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>
+
+    <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"
+          lazy-init="false">
+        <property name="beans">
+            <map>
+                <entry key="org.jocean:type=unitAgent" 
+                    value-ref="unitAgent"/>
+                <entry key="org.jocean:type=directMemory"
+                    value-ref="directMemory"/>
+            </map>
+        </property>
+    </bean>
+    
+</beans>
