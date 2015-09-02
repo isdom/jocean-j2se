@@ -4,15 +4,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
         
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="locations">
-            <list>
-                <value>classpath:${local:local.properties}</value>
-            </list>
-        </property>
-        <property name="fileEncoding" value="UTF-8"/>
-    </bean>
-    
     <bean id="eventEngine" class="org.jocean.event.extend.Runners"
         factory-method="build">
         <constructor-arg>
