@@ -4,23 +4,28 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
         
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
-    
     <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"/>
     
-    <bean id="unitBuilder" class="org.jocean.j2se.unit.model.UnitBuilder"
-        init-method="start"
+    <bean id="unitUpdater" class="org.jocean.j2se.zk.ZKUpdater"
+        init-method="start" 
         destroy-method="stop">
-        <constructor-arg ref="unitAgent"/>
-        <property name="location" value="${unitdesc:classpath:local.yaml}"/>
+        <constructor-arg ref="zkClient"/>
+        <constructor-arg value="${zk.units.path}"/>
+        <constructor-arg>
+            <bean class="org.jocean.j2se.unit.UnitOperator">
+                <constructor-arg ref="unitAgent"/>
+            </bean>
+        </constructor-arg>
     </bean>
-    
+ 
     <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>
-
+    
     <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"
           lazy-init="false">
         <property name="beans">
             <map>
+                <entry key="org.jocean:type=zkclient" 
+                    value-ref="zkClient"/>
                 <entry key="org.jocean:type=unitAgent" 
                     value-ref="unitAgent"/>
                 <entry key="org.jocean:type=directMemory"
@@ -28,5 +33,5 @@
             </map>
         </property>
     </bean>
-    
+     
 </beans>

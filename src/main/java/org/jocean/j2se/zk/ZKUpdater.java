@@ -4,11 +4,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
-import org.jocean.event.api.AbstractFlow;
-import org.jocean.event.api.BizStep;
-import org.jocean.event.api.EventEngine;
-import org.jocean.event.api.EventReceiver;
-import org.jocean.event.api.annotation.OnEvent;
 import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +24,12 @@ public class ZKUpdater{
             .getLogger(ZKUpdater.class);
 
     public ZKUpdater(
-            final EventEngine engine,
             final CuratorFramework client, 
             final String root, 
             final Operator operator) {
         this._operator = operator;
         this._root = root;
         this._zkCache = TreeCache.newBuilder(client, root).setCacheData(true).build();
-        this._receiver = new ZKTreeWatcherFlow() {{
-            engine.create( "(" + root + ")'s updater with " + operator.toString(), this.UNINITIALIZED, this);
-        }}.queryInterfaceInstance(EventReceiver.class);
     }
     
     public void start() {
@@ -47,7 +38,22 @@ public class ZKUpdater{
             @Override
             public void childEvent(CuratorFramework client, TreeCacheEvent event)
                     throws Exception {
-                _receiver.acceptEvent(event.getType().name(), event);
+                switch (event.getType()) {
+                case NODE_ADDED:
+                    nodeAdded(event);
+                    break;
+                case NODE_REMOVED:
+                    nodeRemoved(event);
+                    break;
+                case NODE_UPDATED:
+                    nodeUpdated(event);
+                default:
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("unhandle event ({}), just ignore.", 
+                                event);
+                    }
+                    break;
+                }
             }});
         try {
             this._zkCache.start();
@@ -61,119 +67,46 @@ public class ZKUpdater{
         this._zkCache.close();
     }
 
-    private class ZKTreeWatcherFlow extends AbstractFlow<ZKTreeWatcherFlow> {
-        final BizStep UNINITIALIZED = new BizStep("zkupdate.UNINITIALIZED") {
-
-            @OnEvent(event = "NODE_ADDED")
-            private BizStep nodeAdded(final TreeCacheEvent event) throws Exception {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("handler ({}) with event ({}), try to add or update operator", 
-                            currentEventHandler(), event);
-                }
-                try {
-                    _operator.doAdd(_root, event);
-                } catch (Exception e) {
-                    LOG.warn("exception when doAdd for event({}), detail:{}",
-                            event, ExceptionUtils.exception2detail(e));
-                }
-                
-                return currentEventHandler();
-            }
-            
-            @OnEvent(event = "NODE_REMOVED")
-            private BizStep nodeRemoved(final TreeCacheEvent event) throws Exception {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("handler ({}) with event ({}), try to remove operator", 
-                            currentEventHandler(), event);
-                }
-                try {
-                    _operator.doRemove(_root, event);
-                } catch (Exception e) {
-                    LOG.warn("exception when doRemove for event({}), detail:{}",
-                            event, ExceptionUtils.exception2detail(e));
-                }
-                
-                return currentEventHandler();
-            }
-            
-            @OnEvent(event = "NODE_UPDATED")
-            private BizStep nodeUpdated(final TreeCacheEvent event) throws Exception {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("handler ({}) with event ({}), try to update operator", 
-                            currentEventHandler(), event);
-                }
-                try {
-                    _operator.doUpdate(_root, event);
-                } catch (Exception e) {
-                    LOG.warn("exception when doUpdate for event({}), detail:{}",
-                            event, ExceptionUtils.exception2detail(e));
-                }
-                
-                return currentEventHandler();
-            }
-            
-            @OnEvent(event = "INITIALIZED")
-            private BizStep initialized(final TreeCacheEvent event) throws Exception {
-                return INITIALIZED;
-            }
+    private void nodeAdded(final TreeCacheEvent event) throws Exception {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("handle event ({}), try to add or update operator", 
+                    event);
         }
-        .freeze();
-        
-        final BizStep INITIALIZED = new BizStep("zkupdate.INITIALIZED") {
-
-            @OnEvent(event = "NODE_ADDED")
-            private BizStep nodeAdded(final TreeCacheEvent event) throws Exception {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("handler ({}) with event ({}), try to add operator", 
-                            currentEventHandler(), event);
-                }
-                try {
-                    _operator.doAdd(_root, event);
-                } catch (Exception e) {
-                    LOG.warn("exception when doAdd for event({}), detail:{}",
-                            event, ExceptionUtils.exception2detail(e));
-                }
-                
-                return currentEventHandler();
-            }
-            
-            @OnEvent(event = "NODE_REMOVED")
-            private BizStep nodeRemoved(final TreeCacheEvent event) throws Exception {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("handler ({}) with event ({}), try to remove operator", 
-                            currentEventHandler(), event);
-                }
-                try {
-                    _operator.doRemove(_root, event);
-                } catch (Exception e) {
-                    LOG.warn("exception when doRemove for event({}), detail:{}",
-                            event, ExceptionUtils.exception2detail(e));
-                }
-                
-                return currentEventHandler();
-            }
-            
-            @OnEvent(event = "NODE_UPDATED")
-            private BizStep nodeUpdated(final TreeCacheEvent event) throws Exception {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("handler ({}) with event ({}), try to update operator", 
-                            currentEventHandler(), event);
-                }
-                try {
-                    _operator.doUpdate(_root, event);
-                } catch (Exception e) {
-                    LOG.warn("exception when doUpdate for event({}), detail:{}",
-                            event, ExceptionUtils.exception2detail(e));
-                }
-                
-                return currentEventHandler();
-            }
+        try {
+            this._operator.doAdd(this._root, event);
+        } catch (Exception e) {
+            LOG.warn("exception when doAdd for event({}), detail:{}",
+                    event, ExceptionUtils.exception2detail(e));
         }
-        .freeze();
+    }
+    
+    private void nodeRemoved(final TreeCacheEvent event) throws Exception {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("handle event ({}), try to remove operator", 
+                    event);
+        }
+        try {
+            this._operator.doRemove(this._root, event);
+        } catch (Exception e) {
+            LOG.warn("exception when doRemove for event({}), detail:{}",
+                    event, ExceptionUtils.exception2detail(e));
+        }
+    }
+    
+    private void nodeUpdated(final TreeCacheEvent event) throws Exception {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("handle event ({}), try to update operator", 
+                    event);
+        }
+        try {
+            this._operator.doUpdate(this._root, event);
+        } catch (Exception e) {
+            LOG.warn("exception when doUpdate for event({}), detail:{}",
+                    event, ExceptionUtils.exception2detail(e));
+        }
     }
     
     private final String _root;
     private final TreeCache _zkCache;
     private final Operator _operator;
-    private final EventReceiver _receiver;
 }
