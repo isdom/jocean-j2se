@@ -3,8 +3,11 @@
  */
 package org.jocean.j2se.unit.model;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.jocean.j2se.unit.UnitAgent;
 import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
@@ -45,6 +48,16 @@ public class UnitBuilder {
             }
             build(desc, null);
         }
+        
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    LOG.debug("location{}'s last modify:{}", _location, _location.lastModified());
+                } catch (IOException e) {
+                }
+                
+            }}, 1000L);
     }
     
     public void build(final UnitDescription desc, final String parentPath) {
