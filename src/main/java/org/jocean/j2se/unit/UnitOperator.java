@@ -22,7 +22,7 @@ import com.google.common.collect.Maps;
  * @author isdom
  *
  */
-public class UnitOperator implements Operator<Object> {
+public class UnitOperator implements Operator {
 
     private static final Logger LOG = LoggerFactory
             .getLogger(UnitOperator.class);
@@ -33,11 +33,6 @@ public class UnitOperator implements Operator<Object> {
         this._unitAgent = unitAgent;
     }
     
-    @Override
-    public Object createContext() {
-        return null;
-    }
-
     /**
      * @param data
      * @throws IOException
@@ -59,8 +54,7 @@ public class UnitOperator implements Operator<Object> {
     }
     
     @Override
-    public Object doAdd(
-            final Object ctx, 
+    public void doAdd(
             final String root, 
             final TreeCacheEvent event)
             throws Exception {
@@ -94,7 +88,6 @@ public class UnitOperator implements Operator<Object> {
             }
             
         }
-        return ctx;
     }
 
     private static String[] genSourceFrom(final Properties properties) {
@@ -104,8 +97,7 @@ public class UnitOperator implements Operator<Object> {
     }
 
     @Override
-    public Object doUpdate(
-            final Object ctx, 
+    public void doUpdate(
             final String root, 
             final TreeCacheEvent event)
             throws Exception {
@@ -135,12 +127,10 @@ public class UnitOperator implements Operator<Object> {
                 LOG.info("update unit {} success with active status:{}", pathName, unit.isActive());
             }
         }
-        return ctx;
     }
     
     @Override
-    public Object doRemove(
-            final Object ctx, 
+    public void doRemove(
             final String root, 
             final TreeCacheEvent event)
             throws Exception {
@@ -157,12 +147,6 @@ public class UnitOperator implements Operator<Object> {
                 LOG.info("remove unit {} failure", pathName);
             }
         }
-        return ctx;
-    }
-
-    @Override
-    public Object applyContext(final Object ctx) {
-        return ctx;
     }
 
     private String parseSourceFromPath(final String root, final String path) {

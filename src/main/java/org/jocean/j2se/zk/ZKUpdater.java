@@ -13,20 +13,16 @@ import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZKUpdater<CTX> {
-    public interface Operator<CTX> {
-        public CTX createContext();
-        
-        public CTX doAdd(final CTX ctx, final String root, final TreeCacheEvent event) 
+public class ZKUpdater{
+    public interface Operator {
+        public void doAdd(final String root, final TreeCacheEvent event) 
                 throws Exception;
         
-        public CTX doUpdate(final CTX ctx, final String root, final TreeCacheEvent event) 
+        public void doUpdate(final String root, final TreeCacheEvent event) 
                 throws Exception;
         
-        public CTX doRemove(final CTX ctx, final String root, final TreeCacheEvent event) 
+        public void doRemove(final String root, final TreeCacheEvent event) 
                 throws Exception;
-        
-        public CTX applyContext(final CTX ctx);
     }
     
     private static final Logger LOG = LoggerFactory
@@ -36,14 +32,13 @@ public class ZKUpdater<CTX> {
             final EventEngine engine,
             final CuratorFramework client, 
             final String root, 
-            final Operator<CTX> operator) {
+            final Operator operator) {
         this._operator = operator;
         this._root = root;
         this._zkCache = TreeCache.newBuilder(client, root).setCacheData(true).build();
         this._receiver = new ZKTreeWatcherFlow() {{
             engine.create( "(" + root + ")'s updater with " + operator.toString(), this.UNINITIALIZED, this);
         }}.queryInterfaceInstance(EventReceiver.class);
-        this._context = this._operator.createContext();
     }
     
     public void start() {
@@ -66,15 +61,6 @@ public class ZKUpdater<CTX> {
         this._zkCache.close();
     }
 
-    /**
-     * @param newCtx
-     */
-    private void safeUpdateCtx(final CTX newCtx) {
-        if (null != newCtx) {
-            this._context = newCtx;
-        }
-    }
-
     private class ZKTreeWatcherFlow extends AbstractFlow<ZKTreeWatcherFlow> {
         final BizStep UNINITIALIZED = new BizStep("zkupdate.UNINITIALIZED") {
 
@@ -85,7 +71,7 @@ public class ZKUpdater<CTX> {
                             currentEventHandler(), event);
                 }
                 try {
-                    _operator.doAdd(_context, _root, event);
+                    _operator.doAdd(_root, event);
                 } catch (Exception e) {
                     LOG.warn("exception when doAdd for event({}), detail:{}",
                             event, ExceptionUtils.exception2detail(e));
@@ -101,7 +87,7 @@ public class ZKUpdater<CTX> {
                             currentEventHandler(), event);
                 }
                 try {
-                    _operator.doRemove(_context, _root, event);
+                    _operator.doRemove(_root, event);
                 } catch (Exception e) {
                     LOG.warn("exception when doRemove for event({}), detail:{}",
                             event, ExceptionUtils.exception2detail(e));
@@ -117,7 +103,7 @@ public class ZKUpdater<CTX> {
                             currentEventHandler(), event);
                 }
                 try {
-                    _operator.doUpdate(_context, _root, event);
+                    _operator.doUpdate(_root, event);
                 } catch (Exception e) {
                     LOG.warn("exception when doUpdate for event({}), detail:{}",
                             event, ExceptionUtils.exception2detail(e));
@@ -128,7 +114,6 @@ public class ZKUpdater<CTX> {
             
             @OnEvent(event = "INITIALIZED")
             private BizStep initialized(final TreeCacheEvent event) throws Exception {
-                safeUpdateCtx(_operator.applyContext(_context));
                 return INITIALIZED;
             }
         }
@@ -143,8 +128,7 @@ public class ZKUpdater<CTX> {
                             currentEventHandler(), event);
                 }
                 try {
-                    safeUpdateCtx(
-                        _operator.applyContext(_operator.doAdd(_context, _root, event)));
+                    _operator.doAdd(_root, event);
                 } catch (Exception e) {
                     LOG.warn("exception when doAdd for event({}), detail:{}",
                             event, ExceptionUtils.exception2detail(e));
@@ -160,8 +144,7 @@ public class ZKUpdater<CTX> {
                             currentEventHandler(), event);
                 }
                 try {
-                    safeUpdateCtx(
-                        _operator.applyContext(_operator.doRemove(_context, _root, event)));
+                    _operator.doRemove(_root, event);
                 } catch (Exception e) {
                     LOG.warn("exception when doRemove for event({}), detail:{}",
                             event, ExceptionUtils.exception2detail(e));
@@ -177,8 +160,7 @@ public class ZKUpdater<CTX> {
                             currentEventHandler(), event);
                 }
                 try {
-                    safeUpdateCtx(
-                        _operator.applyContext(_operator.doUpdate(_context, _root, event)));
+                    _operator.doUpdate(_root, event);
                 } catch (Exception e) {
                     LOG.warn("exception when doUpdate for event({}), detail:{}",
                             event, ExceptionUtils.exception2detail(e));
@@ -192,7 +174,6 @@ public class ZKUpdater<CTX> {
     
     private final String _root;
     private final TreeCache _zkCache;
-    private final Operator<CTX> _operator;
+    private final Operator _operator;
     private final EventReceiver _receiver;
-    private CTX _context;
 }
