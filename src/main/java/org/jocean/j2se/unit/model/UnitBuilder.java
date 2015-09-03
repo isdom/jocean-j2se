@@ -3,12 +3,12 @@
  */
 package org.jocean.j2se.unit.model;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.jocean.idiom.ExceptionUtils;
 import org.jocean.j2se.unit.UnitAgent;
 import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
 import org.slf4j.Logger;
@@ -38,29 +38,53 @@ public class UnitBuilder {
         this._location = location;
     }
     
-    public void start() throws Exception {
-        final Yaml yaml = new Yaml(new Constructor(UnitDescription.class));
-        
-        try (final InputStream is = this._location.getInputStream()) {
-            final UnitDescription desc = (UnitDescription)yaml.load(is);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("load unit description from location[{}]\n{}", this._location, desc);
-            }
-            build(desc, null);
-        }
-        
-        new Timer().scheduleAtFixedRate(new TimerTask() {
+    public void start() {
+        scheduleRebuild(0L);
+    }
+    
+    private void scheduleRebuild(final long delay) {
+        this._timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 try {
-                    LOG.debug("location{}'s last modify:{}", _location, _location.lastModified());
-                } catch (IOException e) {
+                    rebuildUnits();
+                } catch (Exception e) {
+                    LOG.warn("exception when rebuildUnits, detail:{}",
+                            ExceptionUtils.exception2detail(e));
                 }
-                
-            }}, 1000L, 1000L);
+            }}, delay);
     }
     
-    public void build(final UnitDescription desc, final String parentPath) {
+    private void rebuildUnits() throws Exception {
+        try {
+            if ( this._locationLastModified != this._location.lastModified() ) {
+                this._locationLastModified = this._location.lastModified();
+                
+                final Yaml yaml = new Yaml(new Constructor(UnitDescription.class));
+            
+                try (final InputStream is = this._location.getInputStream()) {
+                    final UnitDescription desc = (UnitDescription)yaml.load(is);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("load unit description from location[{}]\n{}", 
+                                this._location, desc);
+                    }
+                    if (null!=this._rootDesc) {
+                        this._unitAgent.deleteUnit(this._rootDesc.getName());
+                    }
+                    this._rootDesc = desc;
+                    build(desc, null);
+                }
+            }
+        } finally {
+            scheduleRebuild(1000L);
+        }
+    }
+    
+    public void stop() {
+        this._timer.cancel();
+    }
+    
+    private void build(final UnitDescription desc, final String parentPath) {
         final String pathName = null != parentPath 
                 ? parentPath + desc.getName() 
                 : desc.getName();
@@ -105,5 +129,8 @@ public class UnitBuilder {
     }
     
     private final UnitAgent _unitAgent;
+    private UnitDescription _rootDesc = null;
     private Resource _location;
+    private long _locationLastModified = 0;
+    private final Timer _timer = new Timer();
 }
