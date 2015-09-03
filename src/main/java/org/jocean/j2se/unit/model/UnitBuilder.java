@@ -49,7 +49,7 @@ public class UnitBuilder {
             build(desc, null);
         }
         
-        new Timer().schedule(new TimerTask() {
+        new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 try {
@@ -57,7 +57,7 @@ public class UnitBuilder {
                 } catch (IOException e) {
                 }
                 
-            }}, 1000L);
+            }}, 1000L, 1000L);
     }
     
     public void build(final UnitDescription desc, final String parentPath) {
