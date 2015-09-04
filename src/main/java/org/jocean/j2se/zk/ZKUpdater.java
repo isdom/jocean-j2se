@@ -8,6 +8,8 @@ import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 public class ZKUpdater{
     public interface Operator {
         public void doAdd(final String root, final TreeCacheEvent event) 
@@ -29,7 +31,13 @@ public class ZKUpdater{
             final Operator operator) {
         this._operator = operator;
         this._root = root;
-        this._zkCache = TreeCache.newBuilder(client, root).setCacheData(true).build();
+        this._zkCache = TreeCache.newBuilder(client, root)
+                .setCacheData(true)
+                .setExecutor(new ThreadFactoryBuilder()
+                    .setNameFormat("Curator-TreeCache-%d")
+                    .setDaemon(false)
+                    .build())
+                .build();
     }
     
     public void start() {

@@ -132,5 +132,7 @@ public class UnitBuilder {
     private UnitDescription _rootDesc = null;
     private Resource _location;
     private long _locationLastModified = 0;
-    private final Timer _timer = new Timer();
+    
+    //false means the associated thread should !NOT! run as a daemon.
+    private final Timer _timer = new Timer(false);
 }
