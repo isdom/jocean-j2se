@@ -1,9 +1,12 @@
 package org.jocean.j2se.zk;
 
+import java.util.concurrent.Executors;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.utils.CloseableExecutorService;
 import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,16 +31,25 @@ public class ZKUpdater{
     public ZKUpdater(
             final CuratorFramework client, 
             final String root, 
-            final Operator operator) {
+            final Operator operator) throws Exception {
         this._operator = operator;
         this._root = root;
-        this._zkCache = TreeCache.newBuilder(client, root)
-                .setCacheData(true)
-                .setExecutor(new ThreadFactoryBuilder()
+        final CloseableExecutorService executor = 
+            new CloseableExecutorService(
+                Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
                     .setNameFormat("Curator-TreeCache-%d")
                     .setDaemon(false)
-                    .build())
-                .build();
+                    .build()));
+        // wait for thread running
+        executor.submit(new Runnable() {
+            @Override
+            public void run() {
+                LOG.info("ZKUpdater Thread has running.");
+            }}).get();
+        this._zkCache = TreeCache.newBuilder(client, root)
+            .setCacheData(true)
+            .setExecutor(executor)
+            .build();
     }
     
     public void start() {
