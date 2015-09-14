@@ -148,6 +148,8 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
         try {
             return factory.getBean(requiredType);
         } catch (Exception e) {
+            LOG.warn("exception when get ({}) bean from ({}), detail:{}",
+                    requiredType, factory, ExceptionUtils.exception2detail(e));
             return null;
         }
     }
