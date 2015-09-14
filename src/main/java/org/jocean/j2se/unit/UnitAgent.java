@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
@@ -148,8 +149,10 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
         try {
             return factory.getBean(requiredType);
         } catch (Exception e) {
-            LOG.warn("exception when get ({}) bean from ({}), detail:{}",
-                    requiredType, factory, ExceptionUtils.exception2detail(e));
+            if (!(e instanceof NoSuchBeanDefinitionException)) {
+                LOG.warn("exception when get ({}) bean from ({}), detail:{}",
+                        requiredType, factory, ExceptionUtils.exception2detail(e));
+            }
             return null;
         }
     }
