@@ -26,4 +26,18 @@
     </bean>
     
     <import resource="classpath:unit/zkcore.xml"/>
+    
+    <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>
+    
+    <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"
+          lazy-init="false">
+        <property name="beans">
+            <map>
+                <entry key="org.jocean:type=zkclient" 
+                    value-ref="zkClient"/>
+                <entry key="org.jocean:type=directMemory"
+                    value-ref="directMemory"/>
+            </map>
+        </property>
+    </bean>
 </beans>
