@@ -857,7 +857,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     
     @Override
     public void setMBeanRegister(final MBeanRegister register) {
-        register.registerMBean("type=unitAgent", this);
+        register.registerMBean("name=unitAgent", this);
     }
     
     private String[] _sourcePatterns;
