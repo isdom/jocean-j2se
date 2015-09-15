@@ -25,6 +25,17 @@
         </constructor-arg>
     </bean>
     
+    <bean class="org.jocean.j2se.jmx.MBeanRegisterSetter">
+        <constructor-arg>
+		    <bean class="org.jocean.j2se.jmx.MBeanRegisterSupport">
+		        <constructor-arg value="org.jocean:top=root"/>
+		        <constructor-arg>
+		            <null/>
+		        </constructor-arg>
+		    </bean>
+        </constructor-arg>
+    </bean>
+    
     <import resource="classpath:unit/zkcore.xml"/>
     
     <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>

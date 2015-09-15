@@ -17,15 +17,5 @@
             </bean>
         </constructor-arg>
     </bean>
- 
-    <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"
-          lazy-init="false">
-        <property name="beans">
-            <map>
-                <entry key="org.jocean:type=unitAgent" 
-                    value-ref="unitAgent"/>
-            </map>
-        </property>
-    </bean>
      
 </beans>

@@ -25,6 +25,7 @@ import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.Visitor;
 import org.jocean.j2se.jmx.MBeanRegister;
+import org.jocean.j2se.jmx.MBeanRegisterAware;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.jocean.j2se.spring.BeanHolderBasedInjector;
@@ -48,7 +49,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ReflectionUtils;
 
-public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, SpringBeanHolder {
+public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, ApplicationContextAware, SpringBeanHolder {
 
     private final static String[] _DEFAULT_SOURCE_PATTERNS = new String[]{"**/units/**.xml"};
 
@@ -852,6 +853,11 @@ public class UnitAgent implements UnitAgentMXBean, ApplicationContextAware, Spri
         private final String _unitName;
         private final String[] _unitSource;
         private final Map<String, String>   _unitParameters;
+    }
+    
+    @Override
+    public void setMBeanRegister(final MBeanRegister register) {
+        register.registerMBean("type=unitAgent", this);
     }
     
     private String[] _sourcePatterns;
