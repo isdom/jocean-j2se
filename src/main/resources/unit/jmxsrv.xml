@@ -9,7 +9,7 @@
         <property name="serviceUrl" value="service:jmx:jmxmp://0.0.0.0:${jmxmp.port:0}" />
         <property name="threaded"   value="true" />
         <property name="daemon"     value="true" />
-        <property name="objectName" value="org.jocean:type=agent,name0=jmxmp" />
+        <property name="objectName" value="org.jocean:type=jmxmp,port=${jmxmp.port}" />
     </bean>
      
     <bean id="htmlAdaptorServer" class="org.jocean.jdmk.comm.HtmlAdaptorServer" 
