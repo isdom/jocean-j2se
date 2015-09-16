@@ -48,7 +48,7 @@
         </constructor-arg>
     </bean>
     
-    <import resource="classpath:unit/zkcore.xml"/>
+    <import resource="classpath:unit/zkunit.xml"/>
 
     <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>
     
