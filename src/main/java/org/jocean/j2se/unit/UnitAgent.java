@@ -64,7 +64,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     public UnitAgent() {
         this._sourcePatterns = _DEFAULT_SOURCE_PATTERNS;
         this._sourcesRegister = new MBeanRegisterSupport("org.jocean:type=unitSource", null);
-        this._unitsRegister = new MBeanRegisterSupport("org.jocean:type=units", null);
+        //this._unitsRegister = new MBeanRegisterSupport("org.jocean:type=units", null);
     }
 
     public void addUnitListener(final UnitListener listener) {
@@ -185,7 +185,6 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     }
 
     private void refreshSources() {
-        //this._unitsRegister.destroy();
         final Map<String, String[]> infos = getSourceInfo(this._sourcePatterns);
         for (Map.Entry<String, String[]> entry : infos.entrySet()) {
             final String[] placeholders = entry.getValue();
@@ -328,7 +327,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             final ClassPathXmlApplicationContext ctx =
                     createConfigurableApplicationContext(
                             parentCtx,
-                            "org.jocean:type=units,unit=" + unitName,
+                            genFullObjectNameOfUnit(unitName),
                             unitSource, 
                             configurer);
             ctx.setDisplayName(unitName);
@@ -544,9 +543,13 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     }
 
     private String genUnitSuffix(final String unitName) {
-        return "unit=" + unitName;
+        return this._rootApplicationContext.getDisplayName() + "=" + unitName;
     }
 
+    private String genFullObjectNameOfUnit(final String unitName) {
+        return _unitsRegister.getObjectNamePrefix() + "," + genUnitSuffix(unitName);
+    }
+    
     private boolean reserveRegistration(final String objectNameSuffix, final Object mock) {
         return this._unitsRegister.registerMBean(objectNameSuffix, mock);
     }
@@ -862,6 +865,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     @Override
     public void setMBeanRegister(final MBeanRegister register) {
         register.registerMBean("name=unitAgent", this);
+        this._unitsRegister = register;
     }
     
     private String[] _sourcePatterns;
@@ -872,7 +876,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
 
     private final MBeanRegister _sourcesRegister;
 
-    private final MBeanRegister _unitsRegister;
+    private MBeanRegister _unitsRegister;
 
     private final Map<String, Node> _units = new ConcurrentHashMap<>();
 
