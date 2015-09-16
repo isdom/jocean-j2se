@@ -4,7 +4,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
         
-    <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"/>
+    <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"
+        destroy-method="stop"/>
     
     <bean id="unitUpdater" class="org.jocean.j2se.zk.ZKUpdater"
         init-method="start" 

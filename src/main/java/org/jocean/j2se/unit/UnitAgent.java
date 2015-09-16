@@ -179,6 +179,10 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     public void init() {
         refreshSources();
     }
+    
+    public void stop() {
+        deleteAllUnit();
+    }
 
     private void refreshSources() {
         //this._unitsRegister.destroy();
