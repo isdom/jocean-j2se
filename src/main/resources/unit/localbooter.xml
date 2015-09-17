@@ -6,7 +6,19 @@
         
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
     
-    <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"/>
+    <bean class="org.jocean.j2se.jmx.MBeanRegisterSetter">
+        <constructor-arg>
+            <bean class="org.jocean.j2se.jmx.MBeanRegisterSupport">
+                <constructor-arg value="org.jocean:type=root"/>
+                <constructor-arg>
+                    <null/>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"
+        destroy-method="stop" />
     
     <bean id="unitBuilder" class="org.jocean.j2se.unit.model.UnitBuilder"
         init-method="start"
