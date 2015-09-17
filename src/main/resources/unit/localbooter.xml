@@ -33,8 +33,6 @@
           lazy-init="false">
         <property name="beans">
             <map>
-                <entry key="org.jocean:type=unitAgent" 
-                    value-ref="unitAgent"/>
                 <entry key="org.jocean:type=directMemory"
                     value-ref="directMemory"/>
             </map>
