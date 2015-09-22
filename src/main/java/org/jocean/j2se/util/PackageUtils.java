@@ -1,4 +1,4 @@
-package org.jocean.ext.util;
+package org.jocean.j2se.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

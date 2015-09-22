@@ -2,8 +2,8 @@ package org.jocean.ext.ebus.unit;
 
 import org.apache.commons.io.FilenameUtils;
 import org.jocean.ext.ebus.EventBus;
-import org.jocean.ext.util.PackageUtils;
 import org.jocean.idiom.ExceptionUtils;
+import org.jocean.j2se.util.PackageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

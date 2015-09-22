@@ -17,9 +17,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FilenameUtils;
-import org.jocean.ext.unit.ValueAwarePlaceholderConfigurer;
-import org.jocean.ext.util.PackageUtils;
-import org.jocean.ext.util.ant.SelectorUtils;
 import org.jocean.idiom.BeanHolder;
 import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
@@ -31,6 +28,8 @@ import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.jocean.j2se.spring.BeanHolderBasedInjector;
 import org.jocean.j2se.spring.BeanHolderSetter;
 import org.jocean.j2se.spring.SpringBeanHolder;
+import org.jocean.j2se.util.PackageUtils;
+import org.jocean.j2se.util.SelectorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
