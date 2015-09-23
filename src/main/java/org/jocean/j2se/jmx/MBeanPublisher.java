@@ -40,7 +40,7 @@ public class MBeanPublisher {
     }
     
     public Observable<MBeanStatus> watch(final ObjectName objectName) {
-        return Observable.create(genOnSubscribe(objectName));
+        return Observable.create(genOnSubscribe(objectName)).serialize();
     }
 
     private OnSubscribe<MBeanStatus> genOnSubscribe(final ObjectName objectName) {
