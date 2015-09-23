@@ -91,40 +91,6 @@ public class MBeanPublisher {
         };
     }
     
-    /*
-    private void processMBean(final ObjectName on) {
-        if (on.equals(_target)) {
-            final PlaceholderResolver placeholderResolver = genPlaceholderResolver();
-            final PropertyPlaceholderHelper placeholderReplacer = new PropertyPlaceholderHelper("{", "}");
-            LOG.debug("transform template:\n{}", 
-                placeholderReplacer.replacePlaceholders(on, _template, placeholderResolver, null));
-        }
-    }
-    
-    private PlaceholderResolver genPlaceholderResolver() {
-        return new PlaceholderResolver() {
-            @Override
-            public String resolvePlaceholder(final Object resolveContext,
-                    final String placeholderName) {
-                final ObjectName on = (ObjectName)resolveContext;
-                try {
-                    return _mbsc.getAttribute(on, placeholderName).toString();
-                } catch (AttributeNotFoundException e) {
-                    try {
-                        return _mbsc.invoke(on, placeholderName, null, null).toString();
-                    } catch (Exception e1) {
-                        LOG.warn("exception when invoke {}.{}, detail:{}",
-                                on, placeholderName, ExceptionUtils.exception2detail(e1));
-                    }
-                } catch (Exception e) {
-                    LOG.warn("exception when get attribute {}.{}, detail:{}",
-                            on, placeholderName, ExceptionUtils.exception2detail(e));
-                }
-                return null;
-            }};
-    }
-    */
-
     private final class MBeanStatusNotifyListener implements
             NotificationListener {
         private final ObjectName _objectName;
