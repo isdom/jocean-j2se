@@ -1,6 +1,7 @@
 package org.jocean.j2se.zk;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.CreateMode;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.PropertyPlaceholderHelper;
 import org.jocean.idiom.PropertyPlaceholderHelper.PlaceholderResolver;
@@ -48,6 +49,7 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
             try {
                 this._curator.create()
                     .creatingParentsIfNeeded()
+                    .withMode(CreateMode.EPHEMERAL)
                     .forPath(this._path, config.getBytes(Charsets.UTF_8));
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("create config for path {}, config\n{}", this._path, config);
