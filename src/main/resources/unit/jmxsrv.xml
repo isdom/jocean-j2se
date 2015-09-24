@@ -9,12 +9,12 @@
         <property name="serviceUrl" value="service:jmx:jmxmp://0.0.0.0:${jmxmp.port:0}" />
         <property name="threaded"   value="true" />
         <property name="daemon"     value="true" />
-        <property name="objectName" value="org.jocean:type=jmxmp,port=${jmxmp.port}" />
+        <property name="objectName" value="org.jocean:type=jmxmp" />
     </bean>
      
     <bean id="htmlAdaptorServer" class="org.jocean.jdmk.comm.HtmlAdaptorServer" 
         init-method="start" destroy-method="stop">
-        <property name="port" value="${jmxhtml.port}"/>
+        <property name="port" value="${jmxhtml.port:0}"/>
     </bean>
     
     <bean id="jmxsrvExporter" class="org.springframework.jmx.export.MBeanExporter"
