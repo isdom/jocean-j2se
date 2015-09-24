@@ -57,6 +57,7 @@ public class MBeanPublisher {
                             protected void doUnsubscribe() {
                                 try {
                                     _mbsc.removeNotificationListener(MBEANSERVER_DELEGATE, notificationListener);
+                                    subscriber.onCompleted();
                                 } catch (Exception e) {
                                     LOG.warn("exception when removeNotificationListener for {}, detail:{}",
                                             objectName, ExceptionUtils.exception2detail(e));

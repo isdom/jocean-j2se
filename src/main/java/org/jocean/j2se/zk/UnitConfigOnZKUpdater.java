@@ -25,6 +25,7 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
     @Override
     public void onCompleted() {
         LOG.info("Subscriber MBeanStatus for path {} onCompleted", this._path);
+        removeZKPath();
     }
 
     @Override
@@ -60,17 +61,21 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
             }
             
         } else if (mbeanStatus.isUnregistered()) {
-            try {
-                this._curator.delete()
-                    .deletingChildrenIfNeeded()
-                    .forPath(this._path);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("delete config for path {}", this._path);
-                }
-            } catch (Exception e) {
-                LOG.warn("exception when delete config for path {}, detail:{}",
-                        this._path, ExceptionUtils.exception2detail(e));
+            removeZKPath();
+        }
+    }
+
+    private void removeZKPath() {
+        try {
+            this._curator.delete()
+                .deletingChildrenIfNeeded()
+                .forPath(this._path);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("delete config for path {}", this._path);
             }
+        } catch (Exception e) {
+            LOG.warn("exception when delete config for path {}, detail:{}",
+                    this._path, ExceptionUtils.exception2detail(e));
         }
     }
 
