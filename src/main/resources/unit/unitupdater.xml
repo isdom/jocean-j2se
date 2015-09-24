@@ -4,21 +4,21 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
         
-    <bean id="unitcfg" 
-        class="org.jocean.j2se.zk.UnitConfigOnZKUpdater">
-        <constructor-arg ref="zkClient"/>
-        <property name="template" value="${template}" />
-        <property name="path" value="${path}" />
-    </bean>
-    
     <bean id="observable" 
         factory-bean="mbeanPublisher" 
         factory-method="watch" >
         <constructor-arg value="${mbean.name}"/>
+    </bean>
 
-    <bean id="subscription" 
-        factory-bean="observable" 
+    <bean factory-bean="observable" 
         factory-method="subscribe"
         destroy-method="unsubscribe" >
-        <constructor-arg ref="unitcfg"/>
+        <constructor-arg>
+		    <bean class="org.jocean.j2se.zk.UnitConfigOnZKUpdater">
+		        <constructor-arg ref="zkClient"/>
+		        <property name="template" value="${template}" />
+		        <property name="path" value="${path}" />
+		    </bean>
+        </constructor-arg>
+    </bean>
 </beans>
