@@ -1,5 +1,8 @@
 package org.jocean.j2se.zk;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.jocean.idiom.ExceptionUtils;
@@ -41,6 +44,10 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
                 @Override
                 public String resolvePlaceholder(final Object resolveContext,
                         final String placeholderName) {
+                    final String propertyValue = System.getProperty(placeholderName);
+                    if (null!=propertyValue) {
+                        return propertyValue;
+                    }
                     final Object value = mbeanStatus.getValue(placeholderName);
                     return null != value ? value.toString() : "";
                 }};
@@ -95,8 +102,21 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
      * @param path the _path to set
      */
     public void setPath(final String path) {
-        this._path = path;
+        this._path = path + _PATH_SUFFIX;
     }
+    
+    static {
+        String hostname = "unknown";
+        try {
+            hostname = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+        }
+        _PATH_SUFFIX = "." + hostname
+                + "." + System.getProperty("user.name") 
+                + "." + System.getProperty("app.name");
+    }
+    
+    private static final String _PATH_SUFFIX;
     
     private String _path;
     private String _currentPath = null;
