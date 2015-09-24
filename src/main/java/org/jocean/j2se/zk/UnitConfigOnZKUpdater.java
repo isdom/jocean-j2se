@@ -24,7 +24,7 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
     
     @Override
     public void onCompleted() {
-        
+        LOG.info("Subscriber MBeanStatus for path {} onCompleted", this._path);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
             try {
                 this._curator.create()
                     .creatingParentsIfNeeded()
-                    .withMode(CreateMode.EPHEMERAL)
+                    .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
                     .forPath(this._path, config.getBytes(Charsets.UTF_8));
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("create config for path {}, config\n{}", this._path, config);
@@ -74,6 +74,7 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
         }
     }
 
+    
     /**
      * @param template the _template to set
      */
