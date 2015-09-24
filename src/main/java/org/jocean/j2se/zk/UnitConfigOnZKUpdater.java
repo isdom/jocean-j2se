@@ -48,7 +48,7 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
             final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
             
             try {
-                this._curator.create()
+                this._currentPath = this._curator.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
                     .forPath(this._path, config.getBytes(Charsets.UTF_8));
@@ -66,16 +66,20 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
     }
 
     private void removeZKPath() {
-        try {
-            this._curator.delete()
-                .deletingChildrenIfNeeded()
-                .forPath(this._path);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("delete config for path {}", this._path);
+        if (null!=this._currentPath) {
+            try {
+                this._curator.delete()
+                    .deletingChildrenIfNeeded()
+                    .forPath(this._currentPath);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("delete config for path {}", this._path);
+                }
+            } catch (Exception e) {
+                LOG.warn("exception when delete config for path {}, detail:{}",
+                        this._path, ExceptionUtils.exception2detail(e));
+            } finally {
+                this._currentPath = null;
             }
-        } catch (Exception e) {
-            LOG.warn("exception when delete config for path {}, detail:{}",
-                    this._path, ExceptionUtils.exception2detail(e));
         }
     }
 
@@ -95,6 +99,7 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
     }
     
     private String _path;
+    private String _currentPath = null;
     private String _template;
     private final CuratorFramework _curator;
 }
