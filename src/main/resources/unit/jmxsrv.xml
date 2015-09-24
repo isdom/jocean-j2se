@@ -21,7 +21,7 @@
           lazy-init="false">
         <property name="beans">
             <map>
-                <entry key="org.jocean:type=htmladapter,port=${jmxhtml.port}" 
+                <entry key="org.jocean:type=htmladapter" 
                     value-ref="htmlAdaptorServer"/>
             </map>
         </property>
