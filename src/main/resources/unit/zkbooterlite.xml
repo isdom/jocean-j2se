@@ -13,6 +13,10 @@
         <property name="fileEncoding" value="UTF-8"/>
     </bean>
     
+    <bean class="org.jocean.j2se.spring.ApplicationContextNameSetter">
+        <property name="displayName" value="${app.name:root}"/>
+    </bean>
+    
     <bean id="zkClient" class="org.apache.curator.framework.CuratorFrameworkFactory"
         factory-method="newClient"
         init-method="start">

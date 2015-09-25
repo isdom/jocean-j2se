@@ -17,6 +17,10 @@
         </constructor-arg>
     </bean>
     
+    <bean class="org.jocean.j2se.spring.ApplicationContextNameSetter">
+        <property name="displayName" value="${app.name:root}"/>
+    </bean>
+    
     <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"
         destroy-method="stop" />
     
