@@ -58,7 +58,9 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
                 this._currentPath = this._curator.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-                    .forPath(this._path, config.getBytes(Charsets.UTF_8));
+                    .forPath(placeholderReplacer.replacePlaceholders(
+                            null, this._path, placeholderResolver, null), 
+                        config.getBytes(Charsets.UTF_8));
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("create config for path {}, config\n{}", this._path, config);
                 }
