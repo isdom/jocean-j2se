@@ -2,6 +2,10 @@ package org.jocean.j2se.zk;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.management.ObjectName;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
@@ -28,7 +32,7 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
     @Override
     public void onCompleted() {
         LOG.info("Subscriber MBeanStatus for path {} onCompleted", this._path);
-        removeZKPath();
+        removeAllZKPath();
     }
 
     @Override
@@ -55,12 +59,13 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
             final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
             
             try {
-                this._currentPath = this._curator.create()
-                    .creatingParentsIfNeeded()
-                    .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-                    .forPath(placeholderReplacer.replacePlaceholders(
-                            null, this._path, placeholderResolver, null), 
-                        config.getBytes(Charsets.UTF_8));
+                addZKPath(mbeanStatus.mbeanName(),
+                    this._curator.create()
+                        .creatingParentsIfNeeded()
+                        .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+                        .forPath(placeholderReplacer.replacePlaceholders(
+                                null, this._path, placeholderResolver, null), 
+                            config.getBytes(Charsets.UTF_8)));
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("create config for path {}, config\n{}", this._path, config);
                 }
@@ -70,25 +75,34 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
             }
             
         } else if (mbeanStatus.isUnregistered()) {
-            removeZKPath();
+            removeZKPath(mbeanStatus.mbeanName());
         }
     }
 
-    private void removeZKPath() {
-        if (null!=this._currentPath) {
+    private void addZKPath(final ObjectName mbeanName, final String createdPath) {
+        this._createdPaths.put(mbeanName, createdPath);
+    }
+
+    private void removeZKPath(final ObjectName mbeanName) {
+        final String path = this._createdPaths.remove(mbeanName);
+        if (null!=path) {
             try {
                 this._curator.delete()
                     .deletingChildrenIfNeeded()
-                    .forPath(this._currentPath);
+                    .forPath(path);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("delete config for path {}", this._path);
+                    LOG.debug("delete config for path {}", path);
                 }
             } catch (Exception e) {
                 LOG.warn("exception when delete config for path {}, detail:{}",
-                        this._path, ExceptionUtils.exception2detail(e));
-            } finally {
-                this._currentPath = null;
+                        path, ExceptionUtils.exception2detail(e));
             }
+        }
+    }
+    
+    private void removeAllZKPath() {
+        while (!this._createdPaths.keySet().isEmpty()) {
+            removeZKPath(this._createdPaths.keySet().iterator().next());
         }
     }
 
@@ -121,7 +135,8 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
     private static final String _PATH_SUFFIX;
     
     private String _path;
-    private String _currentPath = null;
     private String _template;
     private final CuratorFramework _curator;
+    private final Map<ObjectName,String> _createdPaths = 
+            new ConcurrentHashMap<>();
 }
