@@ -78,6 +78,47 @@ public class UnitDescription {
                 + _parameters + ", children=" + Arrays.toString(_children) + "]";
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + Arrays.hashCode(_children);
+        result = prime * result + ((_name == null) ? 0 : _name.hashCode());
+        result = prime * result
+                + ((_parameters == null) ? 0 : _parameters.hashCode());
+        return result;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        UnitDescription other = (UnitDescription) obj;
+        if (!Arrays.equals(_children, other._children))
+            return false;
+        if (_name == null) {
+            if (other._name != null)
+                return false;
+        } else if (!_name.equals(other._name))
+            return false;
+        if (_parameters == null) {
+            if (other._parameters != null)
+                return false;
+        } else if (!_parameters.equals(other._parameters))
+            return false;
+        return true;
+    }
+
     private String _name;
     private String _parameters;
     private UnitDescription[] _children = EMPTY_DESCRIPTIONS;
