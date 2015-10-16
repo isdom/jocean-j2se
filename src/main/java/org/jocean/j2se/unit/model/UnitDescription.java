@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Properties;
 
 import org.jocean.idiom.ExceptionUtils;
@@ -27,12 +28,23 @@ public class UnitDescription {
     private static final UnitDescription[] EMPTY_DESCRIPTIONS = 
             new UnitDescription[0];
     
+    private final Comparator<UnitDescription> DESC_COMPARATOR = 
+        new Comparator<UnitDescription>() {
+            @Override
+            public int compare(final UnitDescription o1, final UnitDescription o2) {
+                return o1._name.compareTo(o2._name);
+            }};
+    
     public void setName(final String name) {
         this._name = name;
     }
     
     public void setChildren(final UnitDescription[] children) {
-        this._children = null != children ? children : EMPTY_DESCRIPTIONS;
+        this._children = null != children 
+                ? children
+                : EMPTY_DESCRIPTIONS;
+        
+        Arrays.sort(this._children, DESC_COMPARATOR);
     }
     
     public void setParameters(final String parameters) {
