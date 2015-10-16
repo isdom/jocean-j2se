@@ -28,11 +28,11 @@ public class UnitDescription {
     private static final UnitDescription[] EMPTY_DESCRIPTIONS = 
             new UnitDescription[0];
     
-    private final Comparator<UnitDescription> DESC_COMPARATOR = 
+    private final Comparator<UnitDescription> DESC_COMPARATOR_ASC = 
         new Comparator<UnitDescription>() {
             @Override
             public int compare(final UnitDescription o1, final UnitDescription o2) {
-                return o1._name.compareTo(o2._name);
+                return o2._name.compareTo(o1._name);
             }};
     
     public void setName(final String name) {
@@ -44,7 +44,7 @@ public class UnitDescription {
                 ? children
                 : EMPTY_DESCRIPTIONS;
         
-        Arrays.sort(this._children, DESC_COMPARATOR);
+        Arrays.sort(this._children, DESC_COMPARATOR_ASC);
     }
     
     public void setParameters(final String parameters) {
