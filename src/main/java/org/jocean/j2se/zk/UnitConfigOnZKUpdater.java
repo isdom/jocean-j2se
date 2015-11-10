@@ -16,9 +16,9 @@ import org.jocean.j2se.jmx.MBeanStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rx.Subscriber;
-
 import com.google.common.base.Charsets;
+
+import rx.Subscriber;
 
 public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
     

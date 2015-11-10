@@ -1,10 +1,10 @@
 package org.jocean.ext.netty.initializer;
 
+import java.util.List;
+
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToByteEncoder;
-
-import java.util.List;
 
 public class TcpClientInitializer extends BaseInitializer {
     private String tcpResponseDecoder;

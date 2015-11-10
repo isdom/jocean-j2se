@@ -1,17 +1,19 @@
 package org.jocean.ext.netty.handler.codec.tcp;
 
-import com.alibaba.fastjson.JSON;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
+import java.util.List;
+import java.util.UUID;
+
 import org.jocean.ext.transport.protocol.pdu.PDUBean;
 import org.jocean.ext.transport.protocol.pdu.PDUHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.UUID;
+import com.alibaba.fastjson.JSON;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToByteEncoder;
 
 @ChannelHandler.Sharable
 public class NettyMixedTcpEncoder extends MessageToByteEncoder<PDUBean> {

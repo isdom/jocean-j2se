@@ -1,9 +1,10 @@
 package org.jocean.ext.netty.handler;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.UUID;
+
 import org.jocean.ext.netty.closure.Closure;
 import org.jocean.ext.transport.TransportUtils;
 import org.jocean.ext.transport.Validateable;
@@ -14,10 +15,10 @@ import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.UUID;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 @ChannelHandler.Sharable
 public class TcpRequestHandler extends ChannelInboundHandlerAdapter {

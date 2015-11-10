@@ -1,8 +1,8 @@
 package org.jocean.ext.ebus;
 
-import org.jocean.ext.util.ClosureEx;
-
 import java.util.concurrent.Executor;
+
+import org.jocean.ext.util.ClosureEx;
 
 public interface EventBus {
 

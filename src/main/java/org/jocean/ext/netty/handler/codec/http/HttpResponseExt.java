@@ -1,18 +1,19 @@
 package org.jocean.ext.netty.handler.codec.http;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.jocean.ext.Constants;
+import org.jocean.ext.netty.handler.codec.tcp.KVHeader;
+import org.jocean.ext.transport.protocol.pdu.PDUBean;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import org.jocean.ext.Constants;
-import org.jocean.ext.netty.handler.codec.tcp.KVHeader;
-import org.jocean.ext.transport.protocol.pdu.PDUBean;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 public class HttpResponseExt extends DefaultFullHttpResponse implements PDUBean {
     private String requestUri;

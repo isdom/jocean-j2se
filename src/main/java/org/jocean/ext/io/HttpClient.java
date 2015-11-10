@@ -1,16 +1,20 @@
 package org.jocean.ext.io;
 
-import org.apache.commons.io.IOUtils;
-import org.jocean.ext.utils.Encodes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLConnection;
 import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.jocean.ext.utils.Encodes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpClient {
     private static final Logger logger = LoggerFactory.getLogger(HttpClient.class);

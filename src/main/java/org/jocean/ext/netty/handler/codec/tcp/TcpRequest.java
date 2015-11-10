@@ -1,18 +1,21 @@
 package org.jocean.ext.netty.handler.codec.tcp;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.annotation.JSONType;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.HttpHeaders;
-import org.jocean.ext.Constants;
-import org.jocean.ext.transport.protocol.pdu.PDUBean;
-
-import javax.ws.rs.HttpMethod;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import javax.ws.rs.HttpMethod;
+
+import org.jocean.ext.Constants;
+import org.jocean.ext.transport.protocol.pdu.PDUBean;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONType;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.HttpHeaders;
 
 @JSONType(ignores = {"body", "jsonHeader", "identification", "path"})
 public abstract class TcpRequest implements PDUBean {

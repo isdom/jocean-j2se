@@ -1,13 +1,13 @@
 package org.jocean.ext.unit;
 
+import java.util.Arrays;
+
 import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.io.Resource;
-
-import java.util.Arrays;
 
 public class AppContextInitor {
 

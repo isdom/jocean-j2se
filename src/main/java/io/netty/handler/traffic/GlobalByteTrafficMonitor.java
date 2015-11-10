@@ -1,11 +1,11 @@
 package io.netty.handler.traffic;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * 统计字节流,AbstractTrafficShapingHandler的默认实现貌似有一堆问题,后续版本需要持续关注

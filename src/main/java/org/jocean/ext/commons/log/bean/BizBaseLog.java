@@ -1,8 +1,8 @@
 package org.jocean.ext.commons.log.bean;
 
-import com.alibaba.fastjson.annotation.JSONField;
-
 import java.util.Date;
+
+import com.alibaba.fastjson.annotation.JSONField;
 
 public class BizBaseLog {
     @JSONField(name = "tableName")

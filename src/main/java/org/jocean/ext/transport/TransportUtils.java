@@ -1,9 +1,10 @@
 package org.jocean.ext.transport;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.util.AttributeKey;
 import org.jocean.ext.transport.protocol.endpoint.Endpoint;
 import org.jocean.idiom.Propertyable;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 
 public class TransportUtils {
     private static final AttributeKey<Endpoint> TRANSPORT_ENDPOINT = AttributeKey.valueOf("TRANSPORT_ENDPOINT");

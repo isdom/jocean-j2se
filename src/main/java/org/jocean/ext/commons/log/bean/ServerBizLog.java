@@ -1,8 +1,9 @@
 package org.jocean.ext.commons.log.bean;
 
+import org.jocean.ext.netty.handler.codec.tcp.TcpRequest;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.jocean.ext.netty.handler.codec.tcp.TcpRequest;
 
 public class ServerBizLog extends TcpRequest {
 

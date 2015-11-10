@@ -1,12 +1,13 @@
 package org.jocean.ext.transport.endpoint;
 
-import io.netty.channel.Channel;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.jocean.ext.transport.protocol.endpoint.Endpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import io.netty.channel.Channel;
 
 public abstract class DefaultEndpointFactory implements EndpointFactory {
     private static final Logger logger =

@@ -1,17 +1,22 @@
 package org.jocean.ext.netty.handler.codec.http;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.jocean.ext.Constants;
+import org.jocean.ext.netty.handler.codec.tcp.KVHeader;
+import org.jocean.ext.transport.protocol.pdu.PDUBean;
+import org.jocean.idiom.Propertyable;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
-import org.jocean.ext.Constants;
-import org.jocean.ext.netty.handler.codec.tcp.KVHeader;
-import org.jocean.ext.transport.protocol.pdu.PDUBean;
-import org.jocean.idiom.Propertyable;
-
-import java.util.*;
 
 public class HttpRequestExt extends DefaultFullHttpRequest implements Propertyable, PDUBean {
     private Map<String, Object> properties = new HashMap<>();

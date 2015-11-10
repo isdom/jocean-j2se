@@ -1,5 +1,7 @@
 package org.jocean.ext.unit;
 
+import javax.management.ObjectName;
+
 import org.jocean.ext.ebus.unit.UnitGroupBooter;
 import org.jocean.ext.util.AppInfo;
 import org.jocean.ext.util.SimpleRegistry;
@@ -9,8 +11,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.jmx.export.MBeanExporter;
-
-import javax.management.ObjectName;
 
 public class JOceanServer {
     private static final Logger LOG = LoggerFactory.getLogger(JOceanServer.class);

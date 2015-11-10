@@ -1,7 +1,12 @@
 package org.jocean.ext.transport.endpoint;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
+import java.util.concurrent.BlockingQueue;
+
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+
 import org.jocean.ext.netty.closure.Closure;
 import org.jocean.ext.transport.Receiver;
 import org.jocean.ext.transport.TransportUtils;
@@ -9,11 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jmx.export.MBeanExporter;
 
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-import java.util.concurrent.BlockingQueue;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 
 public abstract class AbstractEndpoint<I> implements MutableEndpoint<I> {
 

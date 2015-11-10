@@ -1,16 +1,5 @@
 package org.jocean.ext.commons.redis;
 
-import com.alibaba.fastjson.JSON;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import redis.clients.jedis.BuilderFactory;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPubSub;
-import redis.clients.jedis.Tuple;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.management.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -19,6 +8,26 @@ import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSON;
+
+import redis.clients.jedis.BuilderFactory;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.Tuple;
 
 public class JedisUtil {
     private static final Logger logger = LoggerFactory.getLogger(JedisUtil.class);

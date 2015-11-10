@@ -1,12 +1,7 @@
 package org.jocean.ext.netty.initializer;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.traffic.TrafficCounterExt;
-import io.netty.util.internal.logging.InternalLoggerFactory;
-import io.netty.util.internal.logging.Slf4JLoggerFactory;
+import java.util.concurrent.TimeUnit;
+
 import org.jocean.ext.netty.handler.CloseOnIdleHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +9,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.util.concurrent.TimeUnit;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.traffic.TrafficCounterExt;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.Slf4JLoggerFactory;
 
 /**
  * 提供日志功能和统计功能

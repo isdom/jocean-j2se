@@ -1,9 +1,9 @@
 package org.jocean.ext.util;
 
+import java.util.concurrent.Executor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.Executor;
 
 public class FunctorAsync implements ClosureEx {
 

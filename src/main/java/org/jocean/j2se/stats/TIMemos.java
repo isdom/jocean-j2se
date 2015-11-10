@@ -3,9 +3,9 @@ package org.jocean.j2se.stats;
 import org.jocean.idiom.Emitter;
 import org.jocean.idiom.stats.TimeIntervalMemo;
 
-import rx.functions.Action1;
-
 import com.google.common.collect.Range;
+
+import rx.functions.Action1;
 
 public class TIMemos {
     public interface EmitableTIMemo extends TimeIntervalMemo, Emitter<String> {

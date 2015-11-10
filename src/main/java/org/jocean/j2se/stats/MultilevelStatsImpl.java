@@ -2,9 +2,10 @@ package org.jocean.j2se.stats;
 
 import java.util.Map;
 
-import org.jocean.idiom.Function;
 import org.jocean.idiom.SimpleCache;
 import org.jocean.idiom.stats.TimeIntervalMemo;
+
+import rx.functions.Func1;
 
 class MultilevelStatsImpl implements MultilevelStats{
     
@@ -16,10 +17,10 @@ class MultilevelStatsImpl implements MultilevelStats{
         this._cache = new SimpleCache<Object, Object>(genIfAbsent(levels-1));
     }
     
-    private Function<Object, Object> genIfAbsent(final int levels) {
-        return new Function<Object, Object>() {
+    private Func1<Object, Object> genIfAbsent(final int levels) {
+        return new Func1<Object, Object>() {
             @Override
-            public Object apply(final Object input) {
+            public Object call(final Object input) {
                 if ( 0 == levels ) {
                     return TIMemos.memo_10ms_30S();
                 } else {

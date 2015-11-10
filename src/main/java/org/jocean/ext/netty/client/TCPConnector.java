@@ -1,16 +1,5 @@
 package org.jocean.ext.netty.client;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import org.jocean.ext.netty.initializer.TcpClientInitializer;
-import org.jocean.ext.transport.TransportUtils;
-import org.jocean.ext.transport.endpoint.EndpointFactory;
-import org.jocean.ext.transport.protocol.endpoint.Endpoint;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +8,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.jocean.ext.netty.initializer.TcpClientInitializer;
+import org.jocean.ext.transport.TransportUtils;
+import org.jocean.ext.transport.endpoint.EndpointFactory;
+import org.jocean.ext.transport.protocol.endpoint.Endpoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 /**
  * 非线程安全

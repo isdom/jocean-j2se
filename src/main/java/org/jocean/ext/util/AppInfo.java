@@ -1,12 +1,12 @@
 package org.jocean.ext.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AppInfo {
     private static final Logger logger = LoggerFactory.getLogger(AppInfo.class);

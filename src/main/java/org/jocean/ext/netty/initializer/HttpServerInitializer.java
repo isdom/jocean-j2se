@@ -4,10 +4,6 @@ import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.ssl.SslHandler;
-//import org.jocean.restful.ssl.SecureChatSslContextFactory;
-
-import javax.net.ssl.SSLEngine;
 
 public abstract class HttpServerInitializer extends BaseInitializer {
     //一个HTTP请求提交的最大数据量,默认为1M

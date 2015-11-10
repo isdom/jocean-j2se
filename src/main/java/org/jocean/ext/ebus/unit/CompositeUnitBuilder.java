@@ -1,9 +1,9 @@
 package org.jocean.ext.ebus.unit;
 
-import org.jocean.idiom.Pair;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.jocean.idiom.Pair;
 
 public class CompositeUnitBuilder implements UnitBuilder {
 

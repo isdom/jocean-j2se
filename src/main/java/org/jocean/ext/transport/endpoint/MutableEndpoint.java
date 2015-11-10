@@ -1,9 +1,10 @@
 package org.jocean.ext.transport.endpoint;
 
-import io.netty.channel.Channel;
+import java.util.concurrent.BlockingQueue;
+
 import org.jocean.ext.transport.protocol.endpoint.Endpoint;
 
-import java.util.concurrent.BlockingQueue;
+import io.netty.channel.Channel;
 
 public interface MutableEndpoint<I> extends Endpoint<I> {
 	public void start();

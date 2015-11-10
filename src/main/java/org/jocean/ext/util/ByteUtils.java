@@ -1,9 +1,10 @@
 package org.jocean.ext.util;
 
-import com.google.common.primitives.Ints;
+import java.util.List;
+
 import org.apache.commons.lang3.ArrayUtils;
 
-import java.util.List;
+import com.google.common.primitives.Ints;
 
 public class ByteUtils {
 
