@@ -20,7 +20,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.jocean.idiom.BeanHolder;
 import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
-import org.jocean.idiom.Visitor;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterAware;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
@@ -47,6 +46,8 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ReflectionUtils;
+
+import rx.functions.Action1;
 
 public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, ApplicationContextAware, SpringBeanHolder {
 
@@ -352,9 +353,9 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             addLog(" newUnit(" + unitName + ") succeed.");
 
             if (!this._unitListenerSupport.isEmpty()) {
-                this._unitListenerSupport.foreachComponent(new Visitor<UnitListener> () {
+                this._unitListenerSupport.foreachComponent(new Action1<UnitListener> () {
                     @Override
-                    public void visit(final UnitListener listener) throws Exception {
+                    public void call(final UnitListener listener) {
                         listener.postUnitCreated(unitName, ctx);
                     }});
             }
@@ -621,9 +622,9 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             }
             final ConfigurableApplicationContext ctx = node._applicationContext;
             if (null != ctx && !this._unitListenerSupport.isEmpty()) {
-                this._unitListenerSupport.foreachComponent(new Visitor<UnitListener> () {
+                this._unitListenerSupport.foreachComponent(new Action1<UnitListener> () {
                     @Override
-                    public void visit(final UnitListener listener) throws Exception {
+                    public void call(final UnitListener listener) {
                         listener.beforeUnitClosed(unitName, ctx);
                     }});
             }
