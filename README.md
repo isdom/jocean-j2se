@@ -4,6 +4,7 @@ jocean-j2se
 jocean's J2SE util
 
 2015-11-21: release 0.0.3 版本:
+    
     1、增加 MBeanPublisher 工具类，实现监听特定MBean的创建及销毁，并以 Observable 方式暴露; 添加 MBeanPublisher & UnitConfigOnZKUpdater 对应的 Spring xml; 处理有多个 符合条件的 MBean 发布的情况
     2、根据 MBeanStatus 更新特定 ZooKeeper 上的Unit 配置信息功
     3、将 xharbor 统计实现类迁移到 jocean-j2se 中， 具体包括 10ms ~ 30s 用时区间统计类 
@@ -35,4 +36,5 @@ jocean's J2SE util
     25、使用 gradle 构建
 
 2014-08-20: release 0.0.2 版本：
+    
     合并jocean-ext到jocean-j2se
