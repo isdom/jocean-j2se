@@ -32,8 +32,8 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
                         final Object value = this._beanHoler.getBean(field.getType());
                         if (null!=value) {
                             field.set(bean, value);
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("inject {} to bean({})'s field({})", value, beanName, field);
+                            if (LOG.isInfoEnabled()) {
+                                LOG.info("inject {} to bean({})'s field({})", value, beanName, field);
                             }
                         }
                     }
