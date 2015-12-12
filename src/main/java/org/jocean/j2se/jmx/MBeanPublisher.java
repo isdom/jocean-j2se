@@ -12,12 +12,13 @@ import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
 import org.jocean.idiom.ExceptionUtils;
-import org.jocean.idiom.rx.OneshotSubscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
+import rx.functions.Action0;
+import rx.subscriptions.Subscriptions;
 import rx.Subscriber;
 
 public class MBeanPublisher {
@@ -52,9 +53,9 @@ public class MBeanPublisher {
                         final NotificationListener notificationListener = 
                                 new MBeanStatusNotifyListener(objectName, subscriber);
                         _mbsc.addNotificationListener(MBEANSERVER_DELEGATE, notificationListener, null, null );
-                        subscriber.add(new OneshotSubscription() {
+                        subscriber.add(Subscriptions.create(new Action0() {
                             @Override
-                            protected void doUnsubscribe() {
+                            public void call() {
                                 try {
                                     _mbsc.removeNotificationListener(MBEANSERVER_DELEGATE, notificationListener);
                                     subscriber.onCompleted();
@@ -62,7 +63,8 @@ public class MBeanPublisher {
                                     LOG.warn("exception when removeNotificationListener for {}, detail:{}",
                                             objectName, ExceptionUtils.exception2detail(e));
                                 }
-                            }});
+                            }
+                        }));
                     } catch (Exception e) {
                         LOG.warn("exception when addNotificationListener for {}, detail:{}",
                                 objectName, ExceptionUtils.exception2detail(e));
