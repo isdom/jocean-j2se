@@ -7,7 +7,7 @@ import org.jocean.idiom.stats.TimeIntervalMemo;
 
 import rx.functions.Func1;
 
-class MultilevelStatsImpl implements MultilevelStats{
+class MultilevelStatsImpl implements MultilevelStats {
     
     MultilevelStatsImpl(final int levels) {
         if (levels <= 0) {
