@@ -35,6 +35,9 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
                             if (LOG.isInfoEnabled()) {
                                 LOG.info("inject {} to bean({})'s field({})", value, beanName, field);
                             }
+                        } else {
+                            LOG.warn("NOT Found global bean for type {}, unable auto inject bean({})'s field({})!", 
+                                    field.getType(), beanName, field);
                         }
                     }
                 } catch (Exception e) {
