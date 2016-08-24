@@ -26,6 +26,7 @@ import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.jocean.j2se.spring.BeanHolderBasedInjector;
 import org.jocean.j2se.spring.BeanHolderSetter;
+import org.jocean.j2se.spring.PropertyPlaceholderConfigurerSetter;
 import org.jocean.j2se.spring.SpringBeanHolder;
 import org.jocean.j2se.util.PackageUtils;
 import org.jocean.j2se.util.SelectorUtils;
@@ -733,6 +734,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             public void postProcessBeanFactory(
                     final ConfigurableListableBeanFactory beanFactory)
                     throws BeansException {
+                beanFactory.addBeanPostProcessor(new PropertyPlaceholderConfigurerSetter(configurer));
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
                 beanFactory.addBeanPostProcessor(new BeanHolderSetter(UnitAgent.this));
                 beanFactory.addBeanPostProcessor(new BeanHolderBasedInjector(new BeanHolder(){
