@@ -26,6 +26,7 @@ import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.jocean.j2se.spring.BeanHolderBasedInjector;
 import org.jocean.j2se.spring.BeanHolderSetter;
+import org.jocean.j2se.spring.PropertiesResourceSetter;
 import org.jocean.j2se.spring.PropertyPlaceholderConfigurerSetter;
 import org.jocean.j2se.spring.SpringBeanHolder;
 import org.jocean.j2se.util.PackageUtils;
@@ -287,17 +288,18 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             throw new RuntimeException("can't reserve " + objectNameSuffix + ", may be already registered");
         }
 
+        final Properties properties = new Properties() {
+            private static final long serialVersionUID = 1L;
+
+            {
+                this.putAll(unitParameters);
+            }
+        };
+        
         final ValueAwarePlaceholderConfigurer configurer =
                 new ValueAwarePlaceholderConfigurer() {
                     {
-                        this.setProperties(new Properties() {
-                            private static final long serialVersionUID = 1L;
-
-                            {
-                                this.putAll(unitParameters);
-                            }
-                        });
-
+                        this.setProperties(properties);
                     }
                 };
 
@@ -330,7 +332,8 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                             parentCtx,
                             genFullObjectNameOfUnit(unitName),
                             unitSource, 
-                            configurer);
+                            configurer,
+                            properties);
             ctx.setDisplayName(unitName);
             if ( null != parentNode) {
                 parentNode.addChild(unitName);
@@ -686,7 +689,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                     };
 
             try {
-                createConfigurableApplicationContext(null, "", new String[]{source}, configurer);
+                createConfigurableApplicationContext(null, "", new String[]{source}, configurer, null);
             } catch (StopInitCtxException ignored) {
             }
             infos.put(unitSource, configurer.getTextedResolvedPlaceholdersAsStringArray());
@@ -715,13 +718,15 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
      * @param unitSource
      * @param unitSource2 
      * @param configurer
+     * @param properties 
      * @return
      */
     private ClassPathXmlApplicationContext createConfigurableApplicationContext(
             final ApplicationContext parentCtx,
             final String objectNameSuffix,
             final String[] unitSource, 
-            final PropertyPlaceholderConfigurer configurer) {
+            final PropertyPlaceholderConfigurer configurer, 
+            final Properties properties) {
         final MBeanRegister register = new MBeanRegisterSupport(objectNameSuffix, null);
         
         final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
@@ -734,6 +739,9 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             public void postProcessBeanFactory(
                     final ConfigurableListableBeanFactory beanFactory)
                     throws BeansException {
+                if (null != properties) {
+                    beanFactory.addBeanPostProcessor(new PropertiesResourceSetter(properties));
+                }
                 beanFactory.addBeanPostProcessor(new PropertyPlaceholderConfigurerSetter(configurer));
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
                 beanFactory.addBeanPostProcessor(new BeanHolderSetter(UnitAgent.this));
