@@ -38,7 +38,7 @@ dependencies {
     /** jocean */
     compile 'org.jocean:jocean-idiom:0.1.4-SNAPSHOT'
 
-    compile 'io.netty:netty-all:4.0.40.Final'
+    compile 'io.netty:netty-all:4.0.41.Final'
     
     // javax.inject
     compile 'javax.inject:javax.inject:1'
