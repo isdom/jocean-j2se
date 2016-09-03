@@ -34,29 +34,33 @@ public class ZKUpdater{
             final Operator operator) throws Exception {
         this._operator = operator;
         this._root = root;
-        final CloseableExecutorService executor = 
+        this._executor = 
             new CloseableExecutorService(
                 Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
                     .setNameFormat("Curator-TreeCache-%d")
                     .setDaemon(false)
                     .build()));
         // wait for thread running
-        executor.submit(new Runnable() {
+        this._executor.submit(new Runnable() {
             @Override
             public void run() {
                 LOG.info("ZKUpdater Thread has running.");
             }}).get();
         this._zkCache = TreeCache.newBuilder(client, root)
             .setCacheData(true)
-            .setExecutor(executor)
+            .setExecutor(this._executor)
             .build();
+    }
+    
+    public CloseableExecutorService executor() {
+    	return this._executor;
     }
     
     public void start() {
         this._zkCache.getListenable().addListener(new TreeCacheListener() {
 
             @Override
-            public void childEvent(CuratorFramework client, TreeCacheEvent event)
+            public void childEvent(final CuratorFramework client, final TreeCacheEvent event)
                     throws Exception {
                 switch (event.getType()) {
                 case NODE_ADDED:
@@ -126,6 +130,7 @@ public class ZKUpdater{
         }
     }
     
+    private final CloseableExecutorService _executor;
     private final String _root;
     private final TreeCache _zkCache;
     private final Operator _operator;
