@@ -1,8 +1,11 @@
 package org.jocean.j2se.zk;
 
+import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
@@ -13,25 +16,27 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-public class ZKUpdater{
-    public interface Operator {
-        public void doAdd(final String root, final TreeCacheEvent event) 
+import rx.functions.Action2;
+
+public class ZKAgent {
+    public interface Listener {
+        public void onAdded(final String root, final int version, final TreeCacheEvent event) 
                 throws Exception;
         
-        public void doUpdate(final String root, final TreeCacheEvent event) 
+        public void onUpdated(final String root, final int version, final TreeCacheEvent event) 
                 throws Exception;
         
-        public void doRemove(final String root, final TreeCacheEvent event) 
+        public void onRemoved(final String root, final int version, final TreeCacheEvent event) 
                 throws Exception;
     }
     
     private static final Logger LOG = LoggerFactory
-            .getLogger(ZKUpdater.class);
+            .getLogger(ZKAgent.class);
 
-    public ZKUpdater(
+    public ZKAgent(
             final CuratorFramework client, 
             final String root, 
-            final Operator operator) throws Exception {
+            final Listener operator) throws Exception {
         this._operator = operator;
         this._root = root;
         this._executor = 
@@ -58,10 +63,10 @@ public class ZKUpdater{
     
     public void start() {
         this._zkCache.getListenable().addListener(new TreeCacheListener() {
-
             @Override
             public void childEvent(final CuratorFramework client, final TreeCacheEvent event)
                     throws Exception {
+                _cacheVersion++;
                 switch (event.getType()) {
                 case NODE_ADDED:
                     nodeAdded(event);
@@ -87,6 +92,39 @@ public class ZKUpdater{
         }
     }
     
+    public int enumCurrentTree(final Action2<String, byte[]> onNode) {
+        try {
+            return this._executor.submit(new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception {
+                    enumChildren(_root, onNode);
+                    return _cacheVersion;
+                }}).get();
+        } catch (Exception e) {
+            LOG.error("exception when enumCurrentTree {}, detail:{}", 
+                    this._root, ExceptionUtils.exception2detail(e));
+            return -1;
+        }
+    }
+    
+    private void enumChildren(final String root, final Action2<String, byte[]> onNode) {
+    	final Map<String, ChildData> children = 
+    			this._zkCache.getCurrentChildren(root);
+    	if (null!= children) {
+        	for (Map.Entry<String, ChildData> entry : children.entrySet()) {
+        	    final String path= entry.getKey();
+        	    final ChildData data = entry.getValue();
+        	    try {
+        	        onNode.call(path, data.getData());
+        	    } catch (Exception e) {
+        	        LOG.warn("exception when onNode for {}/{}, detail: {}",
+        	                path, data.getData(), ExceptionUtils.exception2detail(e));
+        	    }
+        	    enumChildren(path, onNode);
+        	}
+    	}
+    }
+    
     public void stop() {
         this._zkCache.close();
     }
@@ -97,7 +135,7 @@ public class ZKUpdater{
                     event);
         }
         try {
-            this._operator.doAdd(this._root, event);
+            this._operator.onAdded(this._root, this._cacheVersion, event);
         } catch (Exception e) {
             LOG.warn("exception when doAdd for event({}), detail:{}",
                     event, ExceptionUtils.exception2detail(e));
@@ -110,7 +148,7 @@ public class ZKUpdater{
                     event);
         }
         try {
-            this._operator.doRemove(this._root, event);
+            this._operator.onRemoved(this._root, this._cacheVersion, event);
         } catch (Exception e) {
             LOG.warn("exception when doRemove for event({}), detail:{}",
                     event, ExceptionUtils.exception2detail(e));
@@ -123,7 +161,7 @@ public class ZKUpdater{
                     event);
         }
         try {
-            this._operator.doUpdate(this._root, event);
+            this._operator.onUpdated(this._root, this._cacheVersion, event);
         } catch (Exception e) {
             LOG.warn("exception when doUpdate for event({}), detail:{}",
                     event, ExceptionUtils.exception2detail(e));
@@ -133,5 +171,6 @@ public class ZKUpdater{
     private final CloseableExecutorService _executor;
     private final String _root;
     private final TreeCache _zkCache;
-    private final Operator _operator;
+    private int _cacheVersion = 0;
+    private final Listener _operator;
 }

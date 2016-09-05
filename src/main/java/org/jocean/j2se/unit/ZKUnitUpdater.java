@@ -12,7 +12,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
-import org.jocean.j2se.zk.ZKUpdater.Operator;
+import org.jocean.j2se.zk.ZKAgent.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,14 +22,14 @@ import com.google.common.collect.Maps;
  * @author isdom
  *
  */
-public class UnitOperator implements Operator {
+public class ZKUnitUpdater implements Listener {
 
     private static final Logger LOG = LoggerFactory
-            .getLogger(UnitOperator.class);
+            .getLogger(ZKUnitUpdater.class);
     
     private static final String SPRING_XML_KEY = "__spring.xml";
     
-    public UnitOperator(final UnitAgent unitAgent) {
+    public ZKUnitUpdater(final UnitAgent unitAgent) {
         this._unitAgent = unitAgent;
     }
     
@@ -54,8 +54,9 @@ public class UnitOperator implements Operator {
     }
     
     @Override
-    public void doAdd(
+    public void onAdded(
             final String root, 
+            final int version,
             final TreeCacheEvent event)
             throws Exception {
         final ChildData data = event.getData();
@@ -97,8 +98,9 @@ public class UnitOperator implements Operator {
     }
 
     @Override
-    public void doUpdate(
+    public void onUpdated(
             final String root, 
+            final int version,
             final TreeCacheEvent event)
             throws Exception {
         final ChildData data = event.getData();
@@ -130,8 +132,9 @@ public class UnitOperator implements Operator {
     }
     
     @Override
-    public void doRemove(
+    public void onRemoved(
             final String root, 
+            final int version,
             final TreeCacheEvent event)
             throws Exception {
         final ChildData data = event.getData();

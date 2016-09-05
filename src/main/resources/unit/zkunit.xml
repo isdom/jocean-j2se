@@ -7,13 +7,13 @@
     <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"
         destroy-method="stop"/>
     
-    <bean id="unitUpdater" class="org.jocean.j2se.zk.ZKUpdater"
+    <bean id="unitUpdater" class="org.jocean.j2se.zk.ZKAgent"
         init-method="start" 
         destroy-method="stop">
         <constructor-arg ref="zkClient"/>
         <constructor-arg value="${zk.units.path}"/>
         <constructor-arg>
-            <bean class="org.jocean.j2se.unit.UnitOperator">
+            <bean class="org.jocean.j2se.unit.ZKUnitUpdater">
                 <constructor-arg ref="unitAgent"/>
             </bean>
         </constructor-arg>
