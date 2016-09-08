@@ -9,8 +9,6 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
 import org.jocean.j2se.zk.ZKAgent.Listener;
 import org.slf4j.Logger;
@@ -31,6 +29,10 @@ public class ZKUnitUpdater implements Listener {
     
     public ZKUnitUpdater(final UnitAgent unitAgent) {
         this._unitAgent = unitAgent;
+    }
+    
+    public void setRoot(final String root) {
+        this._rootPath = root;
     }
     
     /**
@@ -55,18 +57,21 @@ public class ZKUnitUpdater implements Listener {
     
     @Override
     public void onAdded(
-            final String root, 
             final int version,
-            final TreeCacheEvent event)
+            final String path,
+            final byte[] data)
             throws Exception {
-        final ChildData data = event.getData();
-        final String pathName = parseSourceFromPath(root, data.getPath());
+        if (null == path) {
+            //  just ignore
+            return;
+        }
+        final String pathName = parseSourceFromPath(path);
         if ( null != pathName ) {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("creating unit named {}", pathName);
             }
             final String template = getTemplateFromFullPathName(pathName);
-            final Properties properties = loadProperties(data.getData());
+            final Properties properties = loadProperties(data);
             final String[] source = genSourceFrom(properties);
             
             UnitMXBean unit = null;
@@ -99,17 +104,20 @@ public class ZKUnitUpdater implements Listener {
 
     @Override
     public void onUpdated(
-            final String root, 
             final int version,
-            final TreeCacheEvent event)
+            final String path,
+            final byte[] data)
             throws Exception {
-        final ChildData data = event.getData();
-        final String pathName = parseSourceFromPath(root, data.getPath());
-        if ( null != pathName ) {
+        if (null == path) {
+            //  just ignore
+            return;
+        }
+        final String pathName = parseSourceFromPath(path);
+        if (null != pathName) {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("updating unit named {}", pathName);
             }
-            final Properties properties = loadProperties(data.getData());
+            final Properties properties = loadProperties(data);
             final String[] source = genSourceFrom(properties);
             
             UnitMXBean unit = null;
@@ -133,12 +141,14 @@ public class ZKUnitUpdater implements Listener {
     
     @Override
     public void onRemoved(
-            final String root, 
             final int version,
-            final TreeCacheEvent event)
+            final String path)
             throws Exception {
-        final ChildData data = event.getData();
-        final String pathName = parseSourceFromPath(root, data.getPath());
+        if (null == path) {
+            //  just ignore
+            return;
+        }
+        final String pathName = parseSourceFromPath(path);
         if (null != pathName) {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("removing unit for {}", pathName);
@@ -152,11 +162,11 @@ public class ZKUnitUpdater implements Listener {
         }
     }
 
-    private String parseSourceFromPath(final String root, final String path) {
-        if (path.length() <= root.length() ) {
+    private String parseSourceFromPath(final String path) {
+        if (path.length() <= this._rootPath.length() ) {
             return null;
         }
-        return path.substring(root.length() + ( !root.endsWith("/") ? 1 : 0 ));
+        return path.substring(this._rootPath.length() + ( !this._rootPath.endsWith("/") ? 1 : 0 ));
     }
 
     private String getTemplateFromFullPathName(final String fullPathName) {
@@ -172,4 +182,5 @@ public class ZKUnitUpdater implements Listener {
     }
     
     private final UnitAgent _unitAgent;
+    private String _rootPath;
 }
