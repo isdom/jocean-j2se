@@ -131,12 +131,7 @@ public class ZKAgent {
     private Runnable syncTreeAndAddListener(final Listener listener) {
         final DisabledListener disabledListener = new DisabledListener(listener);
         enumSubtreeOf(this._root, disabledListener);
-        try {
-            disabledListener.onAdded(this._cacheVersion, null, null);
-        } catch (Exception e) {
-            LOG.warn("exception when onAdded for sync cache version {}, detail: {}",
-                    this._cacheVersion, ExceptionUtils.exception2detail(e));
-        }
+        syncCacheVersionOnly(disabledListener);
         this._listenerSupport.addComponent(disabledListener);
         return new Runnable() {
             @Override
@@ -144,6 +139,15 @@ public class ZKAgent {
                 disabledListener.disable();
                 _listenerSupport.removeComponent(disabledListener);
             }};
+    }
+
+    private void syncCacheVersionOnly(final Listener listener) {
+        try {
+            listener.onAdded(this._cacheVersion, null, null);
+        } catch (Exception e) {
+            LOG.warn("exception when onAdded for sync cache version {}, detail: {}",
+                    this._cacheVersion, ExceptionUtils.exception2detail(e));
+        }
     }
     
     private class DisabledListener implements Listener {
