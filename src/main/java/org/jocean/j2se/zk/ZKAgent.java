@@ -21,11 +21,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import rx.functions.Action1;
 
 public class ZKAgent {
-    private static final Runnable NOP = new Runnable() {
-        @Override
-        public void run() {
-        }};
-        
     public interface Listener {
         public void onAdded(final int version, final String path, final byte[] data) 
                 throws Exception;
@@ -37,6 +32,24 @@ public class ZKAgent {
                 throws Exception;
     }
     
+    private static final Runnable NOP = new Runnable() {
+        @Override
+        public void run() {
+        }};
+        
+    private static final Listener NOP_LISTENER = new Listener() {
+        @Override
+        public void onAdded(int version, String path, byte[] data)
+                throws Exception {
+        }
+        @Override
+        public void onUpdated(int version, String path, byte[] data)
+                throws Exception {
+        }
+        @Override
+        public void onRemoved(int version, String path) throws Exception {
+        }};
+        
     private static final Logger LOG = LoggerFactory
             .getLogger(ZKAgent.class);
 
@@ -116,55 +129,46 @@ public class ZKAgent {
     }
     
     private Runnable syncTreeAndAddListener(final Listener listener) {
-        final WrappedListener wrappedListener = new WrappedListener(listener);
-        enumSubtreeOf(this._root, wrappedListener);
+        final DisabledListener disabledListener = new DisabledListener(listener);
+        enumSubtreeOf(this._root, disabledListener);
         try {
-            wrappedListener.onAdded(this._cacheVersion, null, null);
+            disabledListener.onAdded(this._cacheVersion, null, null);
         } catch (Exception e) {
             LOG.warn("exception when onAdded for sync cache version {}, detail: {}",
                     this._cacheVersion, ExceptionUtils.exception2detail(e));
         }
-        this._listenerSupport.addComponent(wrappedListener);
+        this._listenerSupport.addComponent(disabledListener);
         return new Runnable() {
             @Override
             public void run() {
-                wrappedListener.disable();
-                _listenerSupport.removeComponent(wrappedListener);
+                disabledListener.disable();
+                _listenerSupport.removeComponent(disabledListener);
             }};
     }
     
-    private class WrappedListener implements Listener {
+    private class DisabledListener implements Listener {
 
-        WrappedListener(final Listener listener) {
+        DisabledListener(final Listener listener) {
             this._listenerRef.set(listener);
         }
         
         @Override
         public void onAdded(int version, String path, byte[] data) throws Exception {
-            final Listener impl = this._listenerRef.get();
-            if (null!=impl) {
-                impl.onAdded(version, path, data);
-            }
+            this._listenerRef.get().onAdded(version, path, data);
         }
 
         @Override
         public void onUpdated(int version, String path, byte[] data) throws Exception {
-            final Listener impl = this._listenerRef.get();
-            if (null!=impl) {
-                impl.onUpdated(version, path, data);
-            }
+            this._listenerRef.get().onUpdated(version, path, data);
         }
 
         @Override
         public void onRemoved(int version, String path) throws Exception {
-            final Listener impl = this._listenerRef.get();
-            if (null!=impl) {
-                impl.onRemoved(version, path);
-            }
+            this._listenerRef.get().onRemoved(version, path);
         }
         
         void disable() {
-            this._listenerRef.set(null);
+            this._listenerRef.set(NOP_LISTENER);
         }
         
         private final AtomicReference<Listener> _listenerRef = 
@@ -259,7 +263,6 @@ public class ZKAgent {
     private final String _root;
     private final TreeCache _zkCache;
     private int _cacheVersion = 0;
-//    private final Listener _operator;
     private final COWCompositeSupport<Listener> _listenerSupport
         = new COWCompositeSupport<Listener>();
 }
