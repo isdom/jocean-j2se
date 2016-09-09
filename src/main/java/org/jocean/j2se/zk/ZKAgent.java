@@ -1,7 +1,6 @@
 package org.jocean.j2se.zk;
 
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -32,11 +31,35 @@ public class ZKAgent {
                 throws Exception;
     }
     
-    private static final Runnable NOP = new Runnable() {
-        @Override
-        public void run() {
-        }};
+    private static class DisabledListener implements Listener {
+
+        DisabledListener(final Listener listener) {
+            this._listenerRef.set(listener);
+        }
         
+        @Override
+        public void onAdded(int version, String path, byte[] data) throws Exception {
+            this._listenerRef.get().onAdded(version, path, data);
+        }
+
+        @Override
+        public void onUpdated(int version, String path, byte[] data) throws Exception {
+            this._listenerRef.get().onUpdated(version, path, data);
+        }
+
+        @Override
+        public void onRemoved(int version, String path) throws Exception {
+            this._listenerRef.get().onRemoved(version, path);
+        }
+        
+        void disable() {
+            this._listenerRef.set(NOP_LISTENER);
+        }
+        
+        private final AtomicReference<Listener> _listenerRef = 
+                new AtomicReference<>();
+    }
+    
     private static final Listener NOP_LISTENER = new Listener() {
         @Override
         public void onAdded(int version, String path, byte[] data)
@@ -115,30 +138,35 @@ public class ZKAgent {
     }
     
     public Runnable addListener(final Listener listener) {
+        final DisabledListener disabledListener = new DisabledListener(listener);
         try {
-            return this._executor.submit(new Callable<Runnable>() {
+            return new Runnable() {
                 @Override
-                public Runnable call() throws Exception {
-                    return syncTreeAndAddListener(listener);
-                }}).get();
-        } catch (Exception e) {
-            LOG.error("exception when syncCurrentTree {}, detail:{}", 
-                    this._root, ExceptionUtils.exception2detail(e));
-            return NOP;
+                public void run() {
+                    disabledListener.disable();
+                    removeListener(disabledListener);
+                }};
+        } finally {
+            syncTreeAndAddListener(disabledListener);
         }
     }
     
-    private Runnable syncTreeAndAddListener(final Listener listener) {
-        final DisabledListener disabledListener = new DisabledListener(listener);
-        enumSubtreeOf(this._root, disabledListener);
-        syncCacheVersionOnly(disabledListener);
-        this._listenerSupport.addComponent(disabledListener);
-        return new Runnable() {
+    private void removeListener(final Listener listener) {
+        this._executor.submit(new Runnable() {
             @Override
             public void run() {
-                disabledListener.disable();
-                _listenerSupport.removeComponent(disabledListener);
-            }};
+                _listenerSupport.removeComponent(listener);
+            }});
+    }
+
+    private void syncTreeAndAddListener(final Listener listener) {
+        this._executor.submit(new Runnable() {
+            @Override
+            public void run() {
+                enumSubtreeOf(_root, listener);
+                syncCacheVersionOnly(listener);
+                _listenerSupport.addComponent(listener);
+            }});
     }
 
     private void syncCacheVersionOnly(final Listener listener) {
@@ -148,35 +176,6 @@ public class ZKAgent {
             LOG.warn("exception when onAdded for sync cache version {}, detail: {}",
                     this._cacheVersion, ExceptionUtils.exception2detail(e));
         }
-    }
-    
-    private class DisabledListener implements Listener {
-
-        DisabledListener(final Listener listener) {
-            this._listenerRef.set(listener);
-        }
-        
-        @Override
-        public void onAdded(int version, String path, byte[] data) throws Exception {
-            this._listenerRef.get().onAdded(version, path, data);
-        }
-
-        @Override
-        public void onUpdated(int version, String path, byte[] data) throws Exception {
-            this._listenerRef.get().onUpdated(version, path, data);
-        }
-
-        @Override
-        public void onRemoved(int version, String path) throws Exception {
-            this._listenerRef.get().onRemoved(version, path);
-        }
-        
-        void disable() {
-            this._listenerRef.set(NOP_LISTENER);
-        }
-        
-        private final AtomicReference<Listener> _listenerRef = 
-                new AtomicReference<>();
     }
     
     private void enumSubtreeOf(final String parent, final Listener listener) {
