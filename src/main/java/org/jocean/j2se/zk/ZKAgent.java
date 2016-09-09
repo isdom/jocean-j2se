@@ -79,6 +79,7 @@ public class ZKAgent {
     public ZKAgent(
             final CuratorFramework client, 
             final String root) throws Exception {
+        this._client = client;
         this._root = root;
         this._executor = 
             new CloseableExecutorService(
@@ -98,6 +99,13 @@ public class ZKAgent {
             .build();
     }
     
+    /**
+     * @return the CuratorFramework client
+     */
+    public CuratorFramework client() {
+        return this._client;
+    }
+
     public String root() {
         return this._root;
     }
@@ -262,6 +270,7 @@ public class ZKAgent {
         }
     }
     
+    private final CuratorFramework _client;
     private final CloseableExecutorService _executor;
     private final String _root;
     private final TreeCache _zkCache;
