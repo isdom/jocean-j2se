@@ -187,21 +187,22 @@ public class ZKAgent {
     }
     
     private void enumSubtreeOf(final String parent, final Listener listener) {
-    	final Map<String, ChildData> children = 
-    			this._zkCache.getCurrentChildren(parent);
-    	if (null!= children) {
-        	for (Map.Entry<String, ChildData> entry : children.entrySet()) {
-        	    final String path= entry.getKey();
-        	    final ChildData data = entry.getValue();
-        	    try {
-        	        listener.onAdded(-1, path, data.getData());
-        	    } catch (Exception e) {
-        	        LOG.warn("exception when onAdded for {}/{}, detail: {}",
-        	                path, data.getData(), ExceptionUtils.exception2detail(e));
-        	    }
-        	    enumSubtreeOf(path, listener);
-        	}
-    	}
+        final ChildData data = this._zkCache.getCurrentData(parent);
+        if (null != data) {
+            try {
+                listener.onAdded(-1, data.getPath(), data.getData());
+            } catch (Exception e) {
+                LOG.warn("exception when onAdded for {}/{}, detail: {}",
+                        data.getPath(), data.getData(), ExceptionUtils.exception2detail(e));
+            }
+            final Map<String, ChildData> children = 
+                    this._zkCache.getCurrentChildren(parent);
+            if (null!= children) {
+                for (Map.Entry<String, ChildData> entry : children.entrySet()) {
+                    enumSubtreeOf(entry.getValue().getPath(), listener);
+                }
+            }
+        }
     }
     
     public void stop() {
