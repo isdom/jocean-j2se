@@ -1,5 +1,8 @@
 package org.jocean.j2se.zk;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -198,8 +201,13 @@ public class ZKAgent {
             final Map<String, ChildData> children = 
                     this._zkCache.getCurrentChildren(parent);
             if (null!= children) {
+                final List<String> childrenPaths = new ArrayList<>();
                 for (Map.Entry<String, ChildData> entry : children.entrySet()) {
-                    enumSubtreeOf(entry.getValue().getPath(), listener);
+                    childrenPaths.add(entry.getValue().getPath());
+                }
+                Collections.sort(childrenPaths);
+                for (String path : childrenPaths) {
+                    enumSubtreeOf(path, listener);
                 }
             }
         }
