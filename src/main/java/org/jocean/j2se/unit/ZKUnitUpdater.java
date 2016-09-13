@@ -57,14 +57,9 @@ public class ZKUnitUpdater implements Listener {
     
     @Override
     public void onAdded(
-            final int version,
             final String path,
             final byte[] data)
             throws Exception {
-        if (null == path) {
-            //  just ignore
-            return;
-        }
         final String pathName = parseSourceFromPath(path);
         if ( null != pathName ) {
             if ( LOG.isDebugEnabled()) {
@@ -104,14 +99,9 @@ public class ZKUnitUpdater implements Listener {
 
     @Override
     public void onUpdated(
-            final int version,
             final String path,
             final byte[] data)
             throws Exception {
-        if (null == path) {
-            //  just ignore
-            return;
-        }
         final String pathName = parseSourceFromPath(path);
         if (null != pathName) {
             if ( LOG.isDebugEnabled()) {
@@ -141,13 +131,8 @@ public class ZKUnitUpdater implements Listener {
     
     @Override
     public void onRemoved(
-            final int version,
             final String path)
             throws Exception {
-        if (null == path) {
-            //  just ignore
-            return;
-        }
         final String pathName = parseSourceFromPath(path);
         if (null != pathName) {
             if ( LOG.isDebugEnabled()) {

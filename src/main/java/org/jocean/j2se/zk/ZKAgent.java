@@ -24,16 +24,29 @@ import rx.functions.Action1;
 
 public class ZKAgent {
     public interface Listener {
-        public void onAdded(final int version, final String path, final byte[] data) 
+        public void onAdded(final String path, final byte[] data) 
                 throws Exception;
         
-        public void onUpdated(final int version, final String path, final byte[] data) 
+        public void onUpdated(final String path, final byte[] data) 
                 throws Exception;
         
-        public void onRemoved(final int version, final String path) 
+        public void onRemoved(final String path) 
                 throws Exception;
     }
     
+    private static final Listener NOP_LISTENER = new Listener() {
+        @Override
+        public void onAdded(String path, byte[] data)
+                throws Exception {
+        }
+        @Override
+        public void onUpdated(String path, byte[] data)
+                throws Exception {
+        }
+        @Override
+        public void onRemoved(String path) throws Exception {
+        }};
+        
     private static class DisabledListener implements Listener {
 
         DisabledListener(final Listener listener) {
@@ -41,18 +54,18 @@ public class ZKAgent {
         }
         
         @Override
-        public void onAdded(int version, String path, byte[] data) throws Exception {
-            this._listenerRef.get().onAdded(version, path, data);
+        public void onAdded(final String path, final byte[] data) throws Exception {
+            this._listenerRef.get().onAdded(path, data);
         }
 
         @Override
-        public void onUpdated(int version, String path, byte[] data) throws Exception {
-            this._listenerRef.get().onUpdated(version, path, data);
+        public void onUpdated(final String path, final byte[] data) throws Exception {
+            this._listenerRef.get().onUpdated(path, data);
         }
 
         @Override
-        public void onRemoved(int version, String path) throws Exception {
-            this._listenerRef.get().onRemoved(version, path);
+        public void onRemoved(final String path) throws Exception {
+            this._listenerRef.get().onRemoved(path);
         }
         
         void disable() {
@@ -63,19 +76,6 @@ public class ZKAgent {
                 new AtomicReference<>();
     }
     
-    private static final Listener NOP_LISTENER = new Listener() {
-        @Override
-        public void onAdded(int version, String path, byte[] data)
-                throws Exception {
-        }
-        @Override
-        public void onUpdated(int version, String path, byte[] data)
-                throws Exception {
-        }
-        @Override
-        public void onRemoved(int version, String path) throws Exception {
-        }};
-        
     private static final Logger LOG = LoggerFactory
             .getLogger(ZKAgent.class);
 
@@ -122,7 +122,6 @@ public class ZKAgent {
             @Override
             public void childEvent(final CuratorFramework client, final TreeCacheEvent event)
                     throws Exception {
-                _cacheVersion++;
                 switch (event.getType()) {
                 case NODE_ADDED:
                     nodeAdded(event);
@@ -175,25 +174,15 @@ public class ZKAgent {
             @Override
             public void run() {
                 enumSubtreeOf(_root, listener);
-                syncCacheVersionOnly(listener);
                 _listenerSupport.addComponent(listener);
             }});
     }
 
-    private void syncCacheVersionOnly(final Listener listener) {
-        try {
-            listener.onAdded(this._cacheVersion, null, null);
-        } catch (Exception e) {
-            LOG.warn("exception when onAdded for sync cache version {}, detail: {}",
-                    this._cacheVersion, ExceptionUtils.exception2detail(e));
-        }
-    }
-    
     private void enumSubtreeOf(final String parent, final Listener listener) {
         final ChildData data = this._zkCache.getCurrentData(parent);
         if (null != data) {
             try {
-                listener.onAdded(-1, data.getPath(), data.getData());
+                listener.onAdded(data.getPath(), data.getData());
             } catch (Exception e) {
                 LOG.warn("exception when onAdded for {}/{}, detail: {}",
                         data.getPath(), data.getData(), ExceptionUtils.exception2detail(e));
@@ -227,7 +216,7 @@ public class ZKAgent {
                 @Override
                 public void call(final Listener listener) {
                     try {
-                        listener.onAdded(_cacheVersion, 
+                        listener.onAdded(
                                 event.getData().getPath(), 
                                 event.getData().getData());
                     } catch (Exception e) {
@@ -248,8 +237,7 @@ public class ZKAgent {
                 @Override
                 public void call(final Listener listener) {
                     try {
-                        listener.onRemoved(_cacheVersion, 
-                                event.getData().getPath());
+                        listener.onRemoved(event.getData().getPath());
                     } catch (Exception e) {
                         LOG.warn("exception when doRemoved for event({}), detail:{}",
                                 event, ExceptionUtils.exception2detail(e));
@@ -268,7 +256,7 @@ public class ZKAgent {
                 @Override
                 public void call(final Listener listener) {
                     try {
-                        listener.onUpdated(_cacheVersion, 
+                        listener.onUpdated(
                                 event.getData().getPath(), 
                                 event.getData().getData());
                     } catch (Exception e) {
@@ -283,7 +271,6 @@ public class ZKAgent {
     private final CloseableExecutorService _executor;
     private final String _root;
     private final TreeCache _zkCache;
-    private int _cacheVersion = 0;
     private final COWCompositeSupport<Listener> _listenerSupport
         = new COWCompositeSupport<Listener>();
 }
