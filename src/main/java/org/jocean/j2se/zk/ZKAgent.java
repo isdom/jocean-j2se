@@ -69,6 +69,7 @@ public class ZKAgent {
         }
         
         void disable() {
+            LOG.info("disable listener: {} ", this._listenerRef.get());
             this._listenerRef.set(NOP_LISTENER);
         }
         
@@ -166,6 +167,7 @@ public class ZKAgent {
             @Override
             public void run() {
                 _listenerSupport.removeComponent(listener);
+                LOG.info("remove listener: {} ", listener);
             }});
     }
 
