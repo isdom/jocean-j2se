@@ -60,6 +60,9 @@ public class ZKUnitUpdater implements Listener {
             final String path,
             final byte[] data)
             throws Exception {
+        if (!isUnitPath(path)) {
+            return;
+        }
         final String pathName = parseSourceFromPath(path);
         if ( null != pathName ) {
             if ( LOG.isDebugEnabled()) {
@@ -91,17 +94,14 @@ public class ZKUnitUpdater implements Listener {
         }
     }
 
-    private static String[] genSourceFrom(final Properties properties) {
-        final String value = properties.getProperty(SPRING_XML_KEY);
-        properties.remove(SPRING_XML_KEY);
-        return null!=value ? value.split(",") : null;
-    }
-
     @Override
     public void onUpdated(
             final String path,
             final byte[] data)
             throws Exception {
+        if (!isUnitPath(path)) {
+            return;
+        }
         final String pathName = parseSourceFromPath(path);
         if (null != pathName) {
             if ( LOG.isDebugEnabled()) {
@@ -133,6 +133,9 @@ public class ZKUnitUpdater implements Listener {
     public void onRemoved(
             final String path)
             throws Exception {
+        if (!isUnitPath(path)) {
+            return;
+        }
         final String pathName = parseSourceFromPath(path);
         if (null != pathName) {
             if ( LOG.isDebugEnabled()) {
@@ -145,6 +148,16 @@ public class ZKUnitUpdater implements Listener {
                 LOG.info("remove unit {} failure", pathName);
             }
         }
+    }
+
+    private boolean isUnitPath(final String path) {
+        return path.startsWith(this._rootPath);
+    }
+
+    private static String[] genSourceFrom(final Properties properties) {
+        final String value = properties.getProperty(SPRING_XML_KEY);
+        properties.remove(SPRING_XML_KEY);
+        return null!=value ? value.split(",") : null;
     }
 
     private String parseSourceFromPath(final String path) {
