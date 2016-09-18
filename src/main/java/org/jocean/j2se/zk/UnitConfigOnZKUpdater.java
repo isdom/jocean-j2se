@@ -52,6 +52,10 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
                     if (null!=propertyValue) {
                         return propertyValue;
                     }
+                    final String envValue = System.getenv(placeholderName);  
+                    if (null!=envValue) {
+                        return envValue;
+                    }
                     final Object value = mbeanStatus.getValue(placeholderName);
                     return null != value ? value.toString() : "";
                 }};
