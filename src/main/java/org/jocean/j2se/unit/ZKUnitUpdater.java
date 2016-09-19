@@ -151,7 +151,8 @@ public class ZKUnitUpdater implements Listener {
     }
 
     private boolean isUnitPath(final String path) {
-        return path.startsWith(this._rootPath);
+        return path.equals(this._rootPath) ||
+                path.startsWith(this._rootPath + "/");
     }
 
     private static String[] genSourceFrom(final Properties properties) {
