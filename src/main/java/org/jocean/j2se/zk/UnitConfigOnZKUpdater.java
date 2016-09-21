@@ -133,7 +133,8 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
         }
         _PATH_SUFFIX = "." + hostname
                 + "." + System.getProperty("user.name") 
-                + "." + System.getProperty("app.name");
+                + "." + System.getProperty("app.name")
+                + ".";
     }
     
     private static final String _PATH_SUFFIX;
