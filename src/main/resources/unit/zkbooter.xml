@@ -64,6 +64,8 @@
                     value-ref="zkClient"/>
                 <entry key="org.jocean:type=directMemory"
                     value-ref="directMemory"/>
+                <entry key="org.jocean:type=serviceInfo"
+                    value-ref="serviceInfo"/>
             </map>
         </property>
     </bean>
