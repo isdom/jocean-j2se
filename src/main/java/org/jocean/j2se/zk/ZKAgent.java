@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import rx.functions.Action0;
 import rx.functions.Action1;
 
 public class ZKAgent {
@@ -148,12 +149,12 @@ public class ZKAgent {
         }
     }
     
-    public Runnable addListener(final Listener listener) {
+    public Action0 addListener(final Listener listener) {
         final DisabledListener disabledListener = new DisabledListener(listener);
         try {
-            return new Runnable() {
+            return new Action0() {
                 @Override
-                public void run() {
+                public void call() {
                     disabledListener.disable();
                     removeListener(disabledListener);
                 }};

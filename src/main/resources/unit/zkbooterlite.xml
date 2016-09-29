@@ -44,6 +44,18 @@
     
     <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>
     
+    <bean id="serviceInfo" 
+        class="org.jocean.j2se.ModuleInfo" >
+        <constructor-arg value="${user.dir}/bin/${app.name}.jar"/>
+    </bean>
+     
+    <bean class="java.lang.System" factory-method="setProperty">
+        <constructor-arg value="service.buildno"/>
+        <constructor-arg>
+            <bean factory-bean="serviceInfo" factory-method="getModuleBuildNo"/>
+        </constructor-arg>
+    </bean>
+    
     <bean class="org.springframework.jmx.export.MBeanExporter"
           lazy-init="false">
         <property name="beans">

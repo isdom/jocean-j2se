@@ -15,24 +15,12 @@
     </bean>
 
     <bean factory-bean="zkAgent" factory-method="addListener"
-        destroy-method="run">
+        destroy-method="call">
         <constructor-arg>
             <bean class="org.jocean.j2se.unit.ZKUnitUpdater">
                 <constructor-arg ref="unitAgent"/>
                 <property name="root" value="${zk.units.path}"/>
             </bean>
-        </constructor-arg>
-    </bean>
-
-    <bean id="serviceInfo" 
-        class="org.jocean.j2se.ModuleInfo" >
-        <constructor-arg value="${user.dir}/bin/${app.name}.jar"/>
-    </bean>
-     
-    <bean class="java.lang.System" factory-method="setProperty">
-        <constructor-arg value="service.buildno"/>
-        <constructor-arg>
-            <bean factory-bean="serviceInfo" factory-method="getModuleBuildNo"/>
         </constructor-arg>
     </bean>
 </beans>
