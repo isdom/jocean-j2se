@@ -11,12 +11,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jocean.idiom.SimpleCache;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterAware;
-import org.jocean.j2se.stats.TIMemos.EmitableTIMemo;
+import org.jocean.j2se.stats.TIMemos.CounterableTIMemo;
+import org.jocean.j2se.stats.TIMemos.OnCounter;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
 import rx.functions.Action1;
+import rx.functions.Action2;
 import rx.functions.Func1;
 
 public class ApiStats implements ApisMXBean, MBeanRegisterAware {
@@ -39,7 +42,7 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
     }
     
     @Override
-    public String[] getApis() {
+    public String[] getApisAsText() {
         final List<String> apis = new ArrayList<>();
         for ( Map.Entry<String, Collection<String>> entry 
                 : this._apis.asMap().entrySet()) {
@@ -54,12 +57,22 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
                 sb.append(method);
                 sb.append("/");
             }
-            fetchExecutedInterval(path, new Action1<String>() {
+            final AtomicInteger idx = new AtomicInteger(1);
+            fetchExecutedInterval(path, new Action2<String, Action1<OnCounter>>() {
                 @Override
-                public void call(final String ttl) {
+                public void call(final String reason, Action1<OnCounter> memo) {
                     sb.append('\n');
                     sb.append('\t');
-                    sb.append(ttl);
+                    sb.append("(" + Integer.toString(idx.getAndIncrement()) + ")." + reason + ":");
+                    memo.call(new OnCounter() {
+                        @Override
+                        public void call(final String name, final Integer counter) {
+                            sb.append('\n');
+                            sb.append("\t\t");
+                            sb.append(name);
+                            sb.append(':');
+                            sb.append(counter);
+                        }});
                 }});
             apis.add(sb.toString());
         }
@@ -67,6 +80,39 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
         final String[] apisAsArray = apis.toArray(new String[0]);
         Arrays.sort(apisAsArray, DESC_COMPARATOR);
         return apisAsArray;
+    }
+    
+    @Override
+    public Map<String, Object> getApis() {
+        final Map<String, Object> apis = Maps.newHashMap();
+        for ( Map.Entry<String, Collection<String>> entry 
+                : this._apis.asMap().entrySet()) {
+            final String path = entry.getKey();
+            final Map<String, Object> counters = Maps.newHashMap();
+            apis.put(path, counters);
+            
+            //  total count
+            final StringBuilder sb = new StringBuilder();
+            for (String method : entry.getValue()) {
+                sb.append("/");
+                sb.append(method);
+            }
+            counters.put(sb.toString(), getExecutedCount(path));
+            
+            fetchExecutedInterval(path, new Action2<String, Action1<OnCounter>>() {
+                @Override
+                public void call(final String reason, final Action1<OnCounter> memo) {
+                    final Map<String, Integer> ttlCounters = Maps.newHashMap();
+                    counters.put(reason, ttlCounters);
+                    memo.call(new OnCounter() {
+                        @Override
+                        public void call(final String name, final Integer counter) {
+                            ttlCounters.put(name, counter);
+                        }});
+                }});
+        }
+        
+        return apis;
     }
     
     public int incExecutedCount(final String path) {
@@ -81,12 +127,12 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
         this._executedTIMemos.recordInterval(interval, path, endreason);
     }
     
-    private void fetchExecutedInterval(final String path, final Action1<String> receptor) {
-        final Map<String, EmitableTIMemo> snapshot = this._executedTIMemos.fetchStatsSnapshot(path);
-        int idx = 1;
-        for (Map.Entry<String, EmitableTIMemo> entry : snapshot.entrySet()) {
-            receptor.call( "(" + Integer.toString(idx++) + ")." + entry.getKey() + ":");
-            entry.getValue().emit(receptor);
+    private void fetchExecutedInterval(final String path, 
+            final Action2<String, Action1<OnCounter>> receptor) {
+        final Map<String, CounterableTIMemo> snapshot = 
+                this._executedTIMemos.fetchStatsSnapshot(path);
+        for (Map.Entry<String, CounterableTIMemo> entry : snapshot.entrySet()) {
+            receptor.call(entry.getKey(), entry.getValue());
         }
     }
 

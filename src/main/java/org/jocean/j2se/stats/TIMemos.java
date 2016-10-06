@@ -1,27 +1,29 @@
 package org.jocean.j2se.stats;
 
-import org.jocean.idiom.Emitter;
 import org.jocean.idiom.stats.TimeIntervalMemo;
 
 import com.google.common.collect.Range;
 
 import rx.functions.Action1;
+import rx.functions.Action2;
 
 public class TIMemos {
-    public interface EmitableTIMemo extends TimeIntervalMemo, Emitter<String> {
+    public interface OnCounter extends Action2<String,Integer> {}
+    
+    public interface CounterableTIMemo extends TimeIntervalMemo, Action1<OnCounter> {
     }
     
-    private static class EmitableTIMemoImpl extends TIMemoImplOfRanges 
-        implements EmitableTIMemo {
+    private static class CounterableTIMemoImpl extends TIMemoImplOfRanges 
+        implements CounterableTIMemo {
 
-        public EmitableTIMemoImpl(final String[] rangeNames, final Range<Long>[] ranges) {
+        public CounterableTIMemoImpl(final String[] rangeNames, final Range<Long>[] ranges) {
             super(rangeNames, ranges);
         }
         
         @Override
-        public void emit(final Action1<String> receptor) {
+        public void call(final OnCounter receptor) {
             for ( int idx = 0; idx < this._names.length; idx++ ) {
-                receptor.call(this._names[idx] +":"+ this._counters[idx].get());
+                receptor.call(this._names[idx], this._counters[idx].get());
             }
         }
     }
@@ -36,8 +38,8 @@ public class TIMemos {
     private static final Range<Long> LT10MS = Range.closedOpen(0L, 10L);
     
     @SuppressWarnings("unchecked")
-    public static EmitableTIMemo memo_10ms_30S() {
-        return new EmitableTIMemoImpl(new String[]{
+    public static CounterableTIMemo memo_10ms_30S() {
+        return new CounterableTIMemoImpl(new String[]{
                 "lt10ms",
                 "lt100ms",
                 "lt500ms",

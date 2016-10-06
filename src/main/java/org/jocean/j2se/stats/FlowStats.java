@@ -12,12 +12,15 @@ import org.jocean.idiom.Pair;
 import org.jocean.idiom.SimpleCache;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterAware;
-import org.jocean.j2se.stats.TIMemos.EmitableTIMemo;
+import org.jocean.j2se.stats.TIMemos.CounterableTIMemo;
+import org.jocean.j2se.stats.TIMemos.OnCounter;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
 import rx.functions.Action1;
+import rx.functions.Action2;
 import rx.functions.Func1;
 
 public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
@@ -43,7 +46,7 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
     }
     
     @Override
-    public String[] getFlows() {
+    public String[] getFlowsAsText() {
         final List<String> flows = new ArrayList<>();
         for ( Map.Entry<String, Collection<Pair<String, Class<Object>>>> entry 
                 : this._apis.asMap().entrySet()) {
@@ -59,12 +62,22 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
                 sb.append("/");
             }
             sb.append(cls);
-            fetchExecutedInterval(cls, new Action1<String>() {
+            final AtomicInteger idx = new AtomicInteger(1);
+            fetchExecutedInterval(cls, new Action2<String, Action1<OnCounter>>() {
                 @Override
-                public void call(final String ttl) {
+                public void call(final String reason, Action1<OnCounter> memo) {
                     sb.append('\n');
                     sb.append('\t');
-                    sb.append(ttl);
+                    sb.append("(" + Integer.toString(idx.getAndIncrement()) + ")." + reason + ":");
+                    memo.call(new OnCounter() {
+                        @Override
+                        public void call(final String name, final Integer counter) {
+                            sb.append('\n');
+                            sb.append("\t\t");
+                            sb.append(name);
+                            sb.append(':');
+                            sb.append(counter);
+                        }});
                 }});
             flows.add(sb.toString());
         }
@@ -72,6 +85,40 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
         final String[] flowsAsArray = flows.toArray(new String[0]);
         Arrays.sort(flowsAsArray, DESC_COMPARATOR);
         return flowsAsArray;
+    }
+    
+    @Override
+    public Map<String, Object> getFlows() {
+        final Map<String, Object> flows = Maps.newHashMap();
+        for ( Map.Entry<String, Collection<Pair<String, Class<Object>>>> entry 
+                : this._apis.asMap().entrySet()) {
+            final Class<Object> cls = entry.getValue().iterator().next().getSecond();
+            final Map<String, Object> counters = Maps.newHashMap();
+            flows.put(entry.getKey(), counters);
+            
+            //  total count
+            final StringBuilder sb = new StringBuilder();
+            sb.append(cls);
+            for (Pair<String, Class<Object>> pair : entry.getValue()) {
+                sb.append("/");
+                sb.append(pair.getFirst());
+            }
+            counters.put(sb.toString(), getExecutedCount(cls));
+            
+            fetchExecutedInterval(cls, new Action2<String, Action1<OnCounter>>() {
+                @Override
+                public void call(final String reason, final Action1<OnCounter> memo) {
+                    final Map<String, Integer> ttlCounters = Maps.newHashMap();
+                    counters.put(reason, ttlCounters);
+                    memo.call(new OnCounter() {
+                        @Override
+                        public void call(final String name, final Integer counter) {
+                            ttlCounters.put(name, counter);
+                        }});
+                }});
+        }
+        
+        return flows;
     }
     
     public int incExecutedCount(final Class<?> cls) {
@@ -86,12 +133,12 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
         this._executedTIMemos.recordInterval(interval, cls, endreason);
     }
     
-    private void fetchExecutedInterval(final Class<?> cls, final Action1<String> receptor) {
-        final Map<String, EmitableTIMemo> snapshot = this._executedTIMemos.fetchStatsSnapshot(cls);
-        int idx = 1;
-        for (Map.Entry<String, EmitableTIMemo> entry : snapshot.entrySet()) {
-            receptor.call( "(" + Integer.toString(idx++) + ")." + entry.getKey() + ":");
-            entry.getValue().emit(receptor);
+    private void fetchExecutedInterval(final Class<?> cls, 
+            final Action2<String, Action1<OnCounter>> receptor) {
+        final Map<String, CounterableTIMemo> snapshot = 
+                this._executedTIMemos.fetchStatsSnapshot(cls);
+        for (Map.Entry<String, CounterableTIMemo> entry : snapshot.entrySet()) {
+            receptor.call(entry.getKey(), entry.getValue());
         }
     }
 
