@@ -88,12 +88,12 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
     }
     
     @Override
-    public Map<String, Object> getFlows() {
-        final Map<String, Object> flows = Maps.newHashMap();
+    public Map<String, Map<String,Map<String, Integer>>> getFlows() {
+        final Map<String, Map<String,Map<String, Integer>>> flows = Maps.newHashMap();
         for ( Map.Entry<String, Collection<Pair<String, Class<Object>>>> entry 
                 : this._apis.asMap().entrySet()) {
             final Class<Object> cls = entry.getValue().iterator().next().getSecond();
-            final Map<String, Object> counters = Maps.newHashMap();
+            final Map<String, Map<String, Integer>> counters = Maps.newHashMap();
             flows.put(entry.getKey(), counters);
             
             //  total count
@@ -103,7 +103,9 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
                 sb.append("/");
                 sb.append(pair.getFirst());
             }
-            counters.put(sb.toString(), getExecutedCount(cls));
+            final Map<String, Integer> total = Maps.newHashMap();
+            total.put(sb.toString(), getExecutedCount(cls));
+            counters.put("_TOTAL_", total);
             
             fetchExecutedInterval(cls, new Action2<String, Action1<OnCounter>>() {
                 @Override

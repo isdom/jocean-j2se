@@ -6,5 +6,5 @@ public interface FlowsMXBean {
     
     public String[] getFlowsAsText();
 
-    public Map<String, Object> getFlows();
+    public Map<String, Map<String,Map<String, Integer>>> getFlows();
 }

@@ -83,12 +83,12 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
     }
     
     @Override
-    public Map<String, Object> getApis() {
-        final Map<String, Object> apis = Maps.newHashMap();
+    public Map<String, Map<String,Map<String, Integer>>> getApis() {
+        final Map<String, Map<String,Map<String, Integer>>> apis = Maps.newHashMap();
         for ( Map.Entry<String, Collection<String>> entry 
                 : this._apis.asMap().entrySet()) {
             final String path = entry.getKey();
-            final Map<String, Object> counters = Maps.newHashMap();
+            final Map<String,Map<String, Integer>> counters = Maps.newHashMap();
             apis.put(path, counters);
             
             //  total count
@@ -97,7 +97,9 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
                 sb.append("/");
                 sb.append(method);
             }
-            counters.put(sb.toString(), getExecutedCount(path));
+            final Map<String, Integer> total = Maps.newHashMap();
+            total.put(sb.toString(), getExecutedCount(path));
+            counters.put("_TOTAL_", total);
             
             fetchExecutedInterval(path, new Action2<String, Action1<OnCounter>>() {
                 @Override

@@ -6,5 +6,5 @@ public interface ApisMXBean {
     
     public String[] getApisAsText();
 
-    public Map<String, Object> getApis();
+    public Map<String, Map<String,Map<String, Integer>>> getApis();
 }
