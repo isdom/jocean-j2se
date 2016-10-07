@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jocean.idiom.SimpleCache;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterAware;
+import org.jocean.j2se.jmx.MBeanUtil;
 import org.jocean.j2se.stats.TIMemos.CounterableTIMemo;
 import org.jocean.j2se.stats.TIMemos.OnCounter;
 
@@ -22,7 +23,7 @@ import rx.functions.Action1;
 import rx.functions.Action2;
 import rx.functions.Func1;
 
-public class ApiStats implements ApisMXBean, MBeanRegisterAware {
+public class ApiStats implements ApisMBean, MBeanRegisterAware {
     
      private static final String FLOWS_OBJECTNAME_SUFFIX = "name=apis";
 
@@ -34,7 +35,9 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
         
     @Override
     public void setMBeanRegister(final MBeanRegister register) {
-        register.registerMBean(FLOWS_OBJECTNAME_SUFFIX, this);
+        register.registerMBean(FLOWS_OBJECTNAME_SUFFIX, 
+                MBeanUtil.createAndConfigureMBean(this));
+        this._register = register;
     }
         
     public void addApi(final String path, final String method) {
@@ -83,23 +86,33 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
     }
     
     @Override
-    public Map<String, Map<String,Map<String, Integer>>> getApis() {
-        final Map<String, Map<String,Map<String, Integer>>> apis = Maps.newHashMap();
+    public Map<String, String> getApiInfo() {
+        final Map<String, String> infos = Maps.newHashMap();
+        
         for ( Map.Entry<String, Collection<String>> entry 
                 : this._apis.asMap().entrySet()) {
-            final String path = entry.getKey();
-            final Map<String,Map<String, Integer>> counters = Maps.newHashMap();
-            apis.put(path, counters);
             
-            //  total count
             final StringBuilder sb = new StringBuilder();
             for (String method : entry.getValue()) {
                 sb.append("/");
                 sb.append(method);
             }
-            final Map<String, Integer> total = Maps.newHashMap();
-            total.put(sb.toString(), getExecutedCount(path));
-            counters.put("_TOTAL_", total);
+            infos.put(entry.getKey(), sb.toString());
+        }
+        
+        return infos;
+    }
+    
+    @Override
+    public Map<String, Map<String,Object>> getApiStats() {
+        final Map<String, Map<String,Object>> apis = Maps.newHashMap();
+        for ( Map.Entry<String, Collection<String>> entry 
+                : this._apis.asMap().entrySet()) {
+            final String path = entry.getKey();
+            final Map<String,Object> counters = Maps.newHashMap();
+            apis.put(path, counters);
+            
+            counters.put("_TOTAL_", getExecutedCount(path));
             
             fetchExecutedInterval(path, new Action2<String, Action1<OnCounter>>() {
                 @Override
@@ -126,6 +139,7 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
     }
     
     public void recordExecutedInterval(final String path, final String endreason, final long interval) {
+        CURRENT_RECORDPATH.set(path);
         this._executedTIMemos.recordInterval(interval, path, endreason);
     }
     
@@ -138,6 +152,7 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
         }
     }
 
+    private MBeanRegister _register;
     private final SimpleCache<String, AtomicInteger> _executedCounters = new SimpleCache<>(
             new Func1<String, AtomicInteger>() {
         @Override
@@ -145,6 +160,17 @@ public class ApiStats implements ApisMXBean, MBeanRegisterAware {
             return new AtomicInteger(0);
         }});
     
-    private final MultilevelStats _executedTIMemos = MultilevelStats.Util.buildStats(2);
-    private final Multimap<String, String> _apis = ArrayListMultimap.create(); 
+    private final MultilevelStats _executedTIMemos = MultilevelStats.Util.buildStats(2,
+        new Action2<Object, Object>() {
+            @Override
+            public void call(final Object key, final Object cacheOrTIMemo) {
+                if (cacheOrTIMemo instanceof TIMemoImplOfRanges) {
+                    _register.registerMBean(FLOWS_OBJECTNAME_SUFFIX 
+                            + ",path=" + CURRENT_RECORDPATH.get()
+                            + ",reason=" + key, 
+                        ((TIMemoImplOfRanges)cacheOrTIMemo).createMBean());
+                }
+            }});
+    private final Multimap<String, String> _apis = ArrayListMultimap.create();
+    private static final ThreadLocal<String> CURRENT_RECORDPATH = new ThreadLocal<>();
 }

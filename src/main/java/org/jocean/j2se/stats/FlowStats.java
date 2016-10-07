@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jocean.idiom.Pair;
 import org.jocean.idiom.SimpleCache;
-import org.jocean.idiom.stats.TimeIntervalMemo;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterAware;
 import org.jocean.j2se.jmx.MBeanUtil;
@@ -177,16 +176,14 @@ public class FlowStats implements FlowsMBean, MBeanRegisterAware {
         new Action2<Object, Object>() {
             @Override
             public void call(final Object key, final Object cacheOrTIMemo) {
-                if (cacheOrTIMemo instanceof TimeIntervalMemo) {
-                    if ( cacheOrTIMemo instanceof TIMemoImplOfRanges) {
-                        _register.registerMBean(FLOWS_OBJECTNAME_SUFFIX 
-                                + ",path=" + _cls2path.get(CURRENT_RECORDCLS.get())
-                                + ",reason=" + key, 
-                            ((TIMemoImplOfRanges)cacheOrTIMemo).createMBean());
-                    }
+                if ( cacheOrTIMemo instanceof TIMemoImplOfRanges) {
+                    _register.registerMBean(FLOWS_OBJECTNAME_SUFFIX 
+                            + ",path=" + _cls2path.get(CURRENT_RECORDCLS.get())
+                            + ",reason=" + key, 
+                        ((TIMemoImplOfRanges)cacheOrTIMemo).createMBean());
                 }
             }});
     private final Multimap<String, Pair<String,Class<Object>>> _apis = ArrayListMultimap.create(); 
     
-    private static final ThreadLocal<Class<?>> CURRENT_RECORDCLS = new ThreadLocal<Class<?>>();
+    private static final ThreadLocal<Class<?>> CURRENT_RECORDCLS = new ThreadLocal<>();
 }
