@@ -5,6 +5,7 @@ import java.util.Map;
 import org.jocean.idiom.SimpleCache;
 import org.jocean.idiom.stats.TimeIntervalMemo;
 
+import rx.functions.Action2;
 import rx.functions.Func1;
 
 class MultilevelStatsImpl implements MultilevelStats {
@@ -14,17 +15,26 @@ class MultilevelStatsImpl implements MultilevelStats {
             throw new RuntimeException("invalid cache level, must >= 1");
         }
         
-        this._cache = new SimpleCache<Object, Object>(genIfAbsent(levels-1));
+        this._cache = new SimpleCache<Object, Object>(genIfAbsent(levels-1, null));
     }
     
-    private Func1<Object, Object> genIfAbsent(final int levels) {
+    MultilevelStatsImpl(final int levels, final Action2<Object, Object> ifAssociated) {
+        if (levels <= 0) {
+            throw new RuntimeException("invalid cache level, must >= 1");
+        }
+        
+        this._cache = new SimpleCache<Object, Object>(genIfAbsent(levels-1, ifAssociated), ifAssociated);
+    }
+    
+    private Func1<Object, Object> genIfAbsent(final int levels, final Action2<Object,Object> ifAssociated) {
         return new Func1<Object, Object>() {
             @Override
             public Object call(final Object input) {
                 if ( 0 == levels ) {
                     return TIMemos.memo_10ms_30S();
                 } else {
-                    return new SimpleCache<Object, Object>(genIfAbsent(levels-1));
+                    return new SimpleCache<Object, Object>(
+                            genIfAbsent(levels-1, ifAssociated), ifAssociated);
                 }
             }};
     }

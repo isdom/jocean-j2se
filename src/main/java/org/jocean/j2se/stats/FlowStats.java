@@ -6,14 +6,25 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.management.JMException;
+import javax.management.MBeanException;
+import javax.management.modelmbean.ModelMBean;
+import javax.management.modelmbean.ModelMBeanInfo;
+import javax.management.modelmbean.RequiredModelMBean;
 
 import org.jocean.idiom.Pair;
 import org.jocean.idiom.SimpleCache;
+import org.jocean.idiom.stats.TimeIntervalMemo;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterAware;
 import org.jocean.j2se.stats.TIMemos.CounterableTIMemo;
 import org.jocean.j2se.stats.TIMemos.OnCounter;
+import org.springframework.jmx.export.MBeanExportException;
+import org.springframework.jmx.export.assembler.MBeanInfoAssembler;
+import org.springframework.jmx.export.assembler.SimpleReflectiveMBeanInfoAssembler;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
@@ -23,19 +34,54 @@ import rx.functions.Action1;
 import rx.functions.Action2;
 import rx.functions.Func1;
 
-public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
+public class FlowStats implements FlowsMBean, MBeanRegisterAware {
     
-     private static final String FLOWS_OBJECTNAME_SUFFIX = "name=flows";
+    private static final String FLOWS_OBJECTNAME_SUFFIX = "name=flows";
 
+    private final static MBeanInfoAssembler _ASSEMBLER = 
+            new SimpleReflectiveMBeanInfoAssembler();
+    
     private static final Comparator<String> DESC_COMPARATOR = new Comparator<String>() {
         @Override
         public int compare(final String o1, final String o2) {
             return o2.compareTo(o1);
         }};
         
+    private static ModelMBeanInfo getMBeanInfo(final Object managedBean, final String beanKey) 
+            throws JMException {
+        final ModelMBeanInfo info = _ASSEMBLER.getMBeanInfo(managedBean, beanKey);
+//        if (logger.isWarnEnabled() && ObjectUtils.isEmpty(info.getAttributes()) &&
+//                ObjectUtils.isEmpty(info.getOperations())) {
+//            logger.warn("Bean with key '" + beanKey +
+//                    "' has been registered as an MBean but has no exposed attributes or operations");
+//        }
+        return info;
+    }
+        
+    private static ModelMBean createModelMBean() throws MBeanException {
+        return new RequiredModelMBean();
+//        return (this.exposeManagedResourceClassLoader ? new SpringModelMBean() : new RequiredModelMBean());
+    }
+    
+    private static ModelMBean createAndConfigureMBean(final Object managedResource, String beanKey)
+            throws MBeanExportException {
+        try {
+            final ModelMBean mbean = createModelMBean();
+            mbean.setModelMBeanInfo(getMBeanInfo(managedResource, beanKey));
+            mbean.setManagedResource(managedResource, "ObjectReference");
+            return mbean;
+        }
+        catch (Exception ex) {
+            throw new MBeanExportException("Could not create ModelMBean for managed resource [" +
+                    managedResource + "] with key '" + beanKey + "'", ex);
+        }
+    }
+    
     @Override
     public void setMBeanRegister(final MBeanRegister register) {
-        register.registerMBean(FLOWS_OBJECTNAME_SUFFIX, this);
+        register.registerMBean(FLOWS_OBJECTNAME_SUFFIX, 
+                createAndConfigureMBean(this, this.getClass().getName()));
+        this._register = register;
     }
         
     public void addFlows(final String path, final String method, final Class<Object> flowcls) {
@@ -43,6 +89,7 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
         if ( !methodAndFlows.contains(Pair.of(method, flowcls)) ) {
             this._apis.put(path, Pair.of(method, flowcls));
         }
+        this._cls2path.putIfAbsent(flowcls, path);
     }
     
     @Override
@@ -88,24 +135,35 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
     }
     
     @Override
-    public Map<String, Map<String,Map<String, Integer>>> getFlows() {
-        final Map<String, Map<String,Map<String, Integer>>> flows = Maps.newHashMap();
+    public Map<String, String> getFlowInfo() {
+        final Map<String, String> infos = Maps.newHashMap();
+        
         for ( Map.Entry<String, Collection<Pair<String, Class<Object>>>> entry 
                 : this._apis.asMap().entrySet()) {
             final Class<Object> cls = entry.getValue().iterator().next().getSecond();
-            final Map<String, Map<String, Integer>> counters = Maps.newHashMap();
-            flows.put(entry.getKey(), counters);
             
-            //  total count
             final StringBuilder sb = new StringBuilder();
-            sb.append(cls);
+            sb.append(cls.getName());
             for (Pair<String, Class<Object>> pair : entry.getValue()) {
                 sb.append("/");
                 sb.append(pair.getFirst());
             }
-            final Map<String, Integer> total = Maps.newHashMap();
-            total.put(sb.toString(), getExecutedCount(cls));
-            counters.put("_TOTAL_", total);
+            infos.put(entry.getKey(), sb.toString());
+        }
+        
+        return infos;
+    }
+    
+    @Override
+    public Map<String, Map<String,Object>> getFlowStats() {
+        final Map<String, Map<String,Object>> flows = Maps.newHashMap();
+        for ( Map.Entry<String, Collection<Pair<String, Class<Object>>>> entry 
+                : this._apis.asMap().entrySet()) {
+            final Class<Object> cls = entry.getValue().iterator().next().getSecond();
+            final Map<String, Object> counters = Maps.newHashMap();
+            flows.put(entry.getKey(), counters);
+            
+            counters.put("_TOTAL_", getExecutedCount(cls));
             
             fetchExecutedInterval(cls, new Action2<String, Action1<OnCounter>>() {
                 @Override
@@ -144,6 +202,9 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
         }
     }
 
+    private MBeanRegister _register;
+    private final ConcurrentMap<Class<?>,String>  _cls2path = Maps.newConcurrentMap();
+    
     private final SimpleCache<Class<?>, AtomicInteger> _executedCounters = new SimpleCache<>(
             new Func1<Class<?>, AtomicInteger>() {
         @Override
@@ -151,6 +212,22 @@ public class FlowStats implements FlowsMXBean, MBeanRegisterAware {
             return new AtomicInteger(0);
         }});
     
-    private final MultilevelStats _executedTIMemos = MultilevelStats.Util.buildStats(2);
+    private final MultilevelStats _executedTIMemos = MultilevelStats.Util.buildStats(2, 
+        new Action2<Object, Object>() {
+            @Override
+            public void call(final Object key, final Object cacheOrTIMemo) {
+                if (cacheOrTIMemo instanceof TimeIntervalMemo) {
+                    if ( cacheOrTIMemo instanceof TIMemoImplOfRanges) {
+                        _register.registerMBean(FLOWS_OBJECTNAME_SUFFIX 
+                                + ",path=" + _cls2path.get(CURRENT_FLOWCLS.get())
+                                + ",reason=" + key, 
+                            ((TIMemoImplOfRanges)cacheOrTIMemo).createMBean());
+                    }
+                } else {
+                    CURRENT_FLOWCLS.set((Class<?>)key);
+                }
+            }});
     private final Multimap<String, Pair<String,Class<Object>>> _apis = ArrayListMultimap.create(); 
+    
+    private static final ThreadLocal<Class<?>> CURRENT_FLOWCLS = new ThreadLocal<Class<?>>();
 }
