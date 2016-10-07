@@ -190,6 +190,7 @@ public class FlowStats implements FlowsMBean, MBeanRegisterAware {
     }
     
     public void recordExecutedInterval(final Class<?> cls, final String endreason, final long interval) {
+        CURRENT_RECORDCLS.set(cls);
         this._executedTIMemos.recordInterval(interval, cls, endreason);
     }
     
@@ -219,15 +220,13 @@ public class FlowStats implements FlowsMBean, MBeanRegisterAware {
                 if (cacheOrTIMemo instanceof TimeIntervalMemo) {
                     if ( cacheOrTIMemo instanceof TIMemoImplOfRanges) {
                         _register.registerMBean(FLOWS_OBJECTNAME_SUFFIX 
-                                + ",path=" + _cls2path.get(CURRENT_FLOWCLS.get())
+                                + ",path=" + _cls2path.get(CURRENT_RECORDCLS.get())
                                 + ",reason=" + key, 
                             ((TIMemoImplOfRanges)cacheOrTIMemo).createMBean());
                     }
-                } else {
-                    CURRENT_FLOWCLS.set((Class<?>)key);
                 }
             }});
     private final Multimap<String, Pair<String,Class<Object>>> _apis = ArrayListMultimap.create(); 
     
-    private static final ThreadLocal<Class<?>> CURRENT_FLOWCLS = new ThreadLocal<Class<?>>();
+    private static final ThreadLocal<Class<?>> CURRENT_RECORDCLS = new ThreadLocal<Class<?>>();
 }
