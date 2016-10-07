@@ -9,22 +9,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.management.JMException;
-import javax.management.MBeanException;
-import javax.management.modelmbean.ModelMBean;
-import javax.management.modelmbean.ModelMBeanInfo;
-import javax.management.modelmbean.RequiredModelMBean;
-
 import org.jocean.idiom.Pair;
 import org.jocean.idiom.SimpleCache;
 import org.jocean.idiom.stats.TimeIntervalMemo;
 import org.jocean.j2se.jmx.MBeanRegister;
 import org.jocean.j2se.jmx.MBeanRegisterAware;
+import org.jocean.j2se.jmx.MBeanUtil;
 import org.jocean.j2se.stats.TIMemos.CounterableTIMemo;
 import org.jocean.j2se.stats.TIMemos.OnCounter;
-import org.springframework.jmx.export.MBeanExportException;
-import org.springframework.jmx.export.assembler.MBeanInfoAssembler;
-import org.springframework.jmx.export.assembler.SimpleReflectiveMBeanInfoAssembler;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
@@ -38,49 +30,17 @@ public class FlowStats implements FlowsMBean, MBeanRegisterAware {
     
     private static final String FLOWS_OBJECTNAME_SUFFIX = "name=flows";
 
-    private final static MBeanInfoAssembler _ASSEMBLER = 
-            new SimpleReflectiveMBeanInfoAssembler();
-    
     private static final Comparator<String> DESC_COMPARATOR = new Comparator<String>() {
         @Override
         public int compare(final String o1, final String o2) {
             return o2.compareTo(o1);
         }};
         
-    private static ModelMBeanInfo getMBeanInfo(final Object managedBean, final String beanKey) 
-            throws JMException {
-        final ModelMBeanInfo info = _ASSEMBLER.getMBeanInfo(managedBean, beanKey);
-//        if (logger.isWarnEnabled() && ObjectUtils.isEmpty(info.getAttributes()) &&
-//                ObjectUtils.isEmpty(info.getOperations())) {
-//            logger.warn("Bean with key '" + beanKey +
-//                    "' has been registered as an MBean but has no exposed attributes or operations");
-//        }
-        return info;
-    }
-        
-    private static ModelMBean createModelMBean() throws MBeanException {
-        return new RequiredModelMBean();
-//        return (this.exposeManagedResourceClassLoader ? new SpringModelMBean() : new RequiredModelMBean());
-    }
-    
-    private static ModelMBean createAndConfigureMBean(final Object managedResource, String beanKey)
-            throws MBeanExportException {
-        try {
-            final ModelMBean mbean = createModelMBean();
-            mbean.setModelMBeanInfo(getMBeanInfo(managedResource, beanKey));
-            mbean.setManagedResource(managedResource, "ObjectReference");
-            return mbean;
-        }
-        catch (Exception ex) {
-            throw new MBeanExportException("Could not create ModelMBean for managed resource [" +
-                    managedResource + "] with key '" + beanKey + "'", ex);
-        }
-    }
     
     @Override
     public void setMBeanRegister(final MBeanRegister register) {
         register.registerMBean(FLOWS_OBJECTNAME_SUFFIX, 
-                createAndConfigureMBean(this, this.getClass().getName()));
+                MBeanUtil.createAndConfigureMBean(this));
         this._register = register;
     }
         
