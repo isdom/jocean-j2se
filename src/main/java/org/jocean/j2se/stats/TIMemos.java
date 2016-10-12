@@ -40,14 +40,14 @@ public class TIMemos {
     @SuppressWarnings("unchecked")
     public static CounterableTIMemo memo_10ms_30S() {
         return new CounterableTIMemoImpl(new String[]{
-                "lt10ms",
-                "lt100ms",
-                "lt500ms",
-                "lt1s",
-                "lt5s",
-                "lt10s",
-                "lt30s",
-                "mt30s",
+                "1_lt10ms",
+                "2_lt100ms",
+                "3_lt500ms",
+                "4_lt1s",
+                "5_lt5s",
+                "6_lt10s",
+                "7_lt30s",
+                "8_mt30s",
                 },
                 new Range[]{
                 LT10MS,

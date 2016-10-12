@@ -118,9 +118,11 @@ public class TIMemoImplOfRanges implements TimeIntervalMemo {
                 private OpenMBeanAttributeInfoSupport createCountAttribute(
                         final int idx ) {
                     return new OpenMBeanAttributeInfoSupport(
-                        Integer.toString(idx) + "_" + _names[idx], 
                         _names[idx], 
-                        SimpleType.INTEGER, true, false, 
+                        _names[idx], 
+                        SimpleType.INTEGER, 
+                        true, 
+                        false, 
                         false);
                 }}.toArray(new OpenMBeanAttributeInfoSupport[0]);
              
