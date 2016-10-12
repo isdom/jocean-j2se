@@ -151,7 +151,16 @@ public class TIMemoImplOfRanges implements TimeIntervalMemo {
     }
     
     private AtomicInteger name2Integer(final String name) {
-        return this._counters[Integer.parseInt( name.substring(0, name.indexOf('_')))];
+        return this._counters[name2idx(name)];
+    }
+
+    private int name2idx(final String name) {
+        for (int idx = 0; idx < this._names.length; idx++) {
+            if (this._names[idx].equals(name)) {
+                return idx;
+            }
+        }
+        return -1;
     }
     
     protected final String[] _names;
