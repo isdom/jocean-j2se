@@ -28,7 +28,7 @@ dependencies {
     /* for yaml */
     compile 'org.yaml:snakeyaml:1.16'
     
-    compile 'com.google.guava:guava:19.0'
+    compile 'com.google.guava:guava:20.0'
     compile 'com.alibaba:fastjson:1.2.17'
     compile 'javax.ws.rs:javax.ws.rs-api:2.0'
     compile 'org.apache.curator:curator-recipes:2.7.1'
