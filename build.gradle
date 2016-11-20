@@ -10,8 +10,7 @@ configurations {
 
 dependencies {
     /* log */
-    compile "org.slf4j:jcl-over-slf4j:1.7.7"
-    compile "ch.qos.logback:logback-classic:1.1.2"
+    compile 'org.slf4j:jcl-over-slf4j:1.7.21'
     optional("org.logback-extensions:logback-ext-spring:0.1.2") { transitive = false }
 
     /* basics */
@@ -45,4 +44,5 @@ dependencies {
     compile 'javax.inject:javax.inject:1'
     
     testCompile 'junit:junit:4.12'
+    testCompile "ch.qos.logback:logback-classic:1.1.7"
 }
