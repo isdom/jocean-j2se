@@ -10,7 +10,7 @@ configurations {
 
 dependencies {
     /* log */
-    compile 'org.slf4j:jcl-over-slf4j:1.7.21'
+    compile 'org.slf4j:jcl-over-slf4j:1.7.7'
     optional("org.logback-extensions:logback-ext-spring:0.1.2") { transitive = false }
 
     /* basics */
