@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -12,7 +13,6 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
-import org.apache.curator.utils.CloseableExecutorService;
 import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
@@ -87,11 +87,13 @@ public class ZKAgent {
         this._client = client;
         this._root = root;
         this._executor = 
-            new CloseableExecutorService(
+//            new CloseableExecutorService(
                 Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
                     .setNameFormat("Curator-TreeCache-%d")
                     .setDaemon(false)
-                    .build()));
+                    .build())
+//                )
+        ;
         // wait for thread running
         this._executor.submit(new Runnable() {
             @Override
@@ -115,7 +117,7 @@ public class ZKAgent {
         return this._root;
     }
     
-    public CloseableExecutorService executor() {
+    public ExecutorService executor() {
     	return this._executor;
     }
     
@@ -271,7 +273,8 @@ public class ZKAgent {
     }
     
     private final CuratorFramework _client;
-    private final CloseableExecutorService _executor;
+//    private final CloseableExecutorService _executor;
+    private final ExecutorService _executor;
     private final String _root;
     private final TreeCache _zkCache;
     private final COWCompositeSupport<Listener> _listenerSupport

@@ -31,7 +31,7 @@ dependencies {
     compile 'com.google.guava:guava:21.0'
     compile 'com.alibaba:fastjson:1.2.21'
     compile 'javax.ws.rs:javax.ws.rs-api:2.0'
-    compile 'org.apache.curator:curator-recipes:2.7.1'
+    compile 'org.apache.curator:curator-recipes:2.11.1'
     optional 'redis.clients:jedis:2.5.2'
     optional 'com.jolbox:bonecp:0.8.0.RELEASE'
 
