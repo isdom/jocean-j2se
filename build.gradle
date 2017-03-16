@@ -29,7 +29,7 @@ dependencies {
     compile 'org.yaml:snakeyaml:1.16'
     
     compile 'com.google.guava:guava:20.0'
-    compile 'com.alibaba:fastjson:1.2.21'
+    compile 'com.alibaba:fastjson:1.2.28'
     compile 'javax.ws.rs:javax.ws.rs-api:2.0'
     compile 'org.apache.curator:curator-recipes:2.11.1'
     optional 'redis.clients:jedis:2.5.2'
