@@ -39,7 +39,7 @@ dependencies {
     compile 'javax.inject:javax.inject:1'
     
     // jolokia-agent
-    runtimeCompile 'org.jolokia:jolokia-spring:1.3.6'
+    runtime 'org.jolokia:jolokia-spring:1.3.6'
     
     testCompile 'junit:junit:4.12'
 }
