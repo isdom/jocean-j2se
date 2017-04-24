@@ -33,7 +33,7 @@ dependencies {
     compile 'com.alibaba:fastjson:1.2.31'
     compile 'javax.ws.rs:javax.ws.rs-api:2.0'
     compile 'org.apache.curator:curator-recipes:3.3.0'
-    runtime 'com.jolbox:bonecp:0.8.0.RELEASE'
+    compile 'com.jolbox:bonecp:0.8.0.RELEASE'
 
 
     /** jocean */
