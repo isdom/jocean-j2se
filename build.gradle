@@ -47,7 +47,7 @@ dependencies {
     runtime 'org.jolokia:jolokia-spring:1.3.6'
     
     // dbpool
-    runtime 'com.jolbox:bonecp:0.8.0.RELEASE'
+    compile 'com.jolbox:bonecp:0.8.0.RELEASE'
     
     testCompile 'junit:junit:4.12'
     testCompile 'org.apache.curator:curator-examples:2.12.0'
