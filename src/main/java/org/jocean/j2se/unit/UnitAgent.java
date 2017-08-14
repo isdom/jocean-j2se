@@ -112,14 +112,14 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     public <T> T getBean(final Class<T> requiredType) {
         T bean = null;
         if (null != this._rootApplicationContext) {
-            bean = getBeanOf(this._rootApplicationContext, requiredType);
+            bean = getBeanOf(this._rootApplicationContext, requiredType, false);
         }
         if (null != bean) {
             return bean;
         }
         for ( Node node : this._units.values()) {
             if (null != node._applicationContext) {
-                bean = getBeanOf(node._applicationContext, requiredType);
+                bean = getBeanOf(node._applicationContext, requiredType, true);
                 if (null != bean) {
                     return bean;
                 }
@@ -132,14 +132,14 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     public <T> T getBean(final String name, final Class<T> requiredType) {
         T bean = null;
         if (null != this._rootApplicationContext) {
-            bean = getBeanOf(this._rootApplicationContext, name, requiredType);
+            bean = getBeanOf(this._rootApplicationContext, name, requiredType, false);
         }
         if (null != bean) {
             return bean;
         }
         for ( Node node : this._units.values()) {
             if (null != node._applicationContext) {
-                bean = getBeanOf(node._applicationContext, name, requiredType);
+                bean = getBeanOf(node._applicationContext, name, requiredType, true);
                 if (null != bean) {
                     return bean;
                 }
@@ -148,16 +148,19 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         return null;
     }
     
-    private static <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType) {
+    private static <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType, 
+            final boolean lookupViaUnitAgent) {
         try {
             return factory.getBean(requiredType);
         } catch (Exception e) {
             if (e instanceof NoSuchBeanDefinitionException) {
-                try {
-                    final UnitAgent agent = factory.getBean(UnitAgent.class);
-                    return agent.getBean(requiredType);
-                } catch (Exception e1) {
-                    return null;
+                if (lookupViaUnitAgent) {
+                    try {
+                        final UnitAgent agent = factory.getBean(UnitAgent.class);
+                        return agent.getBean(requiredType);
+                    } catch (Exception e1) {
+                        return null;
+                    }
                 }
             } else {
                 LOG.warn("exception when get ({}) bean from ({}), detail:{}",
@@ -167,16 +170,19 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
     }
     
-    private static <T> T getBeanOf(final BeanFactory factory, final String name, final Class<T> requiredType) {
+    private static <T> T getBeanOf(final BeanFactory factory, final String name, final Class<T> requiredType,
+            final boolean lookupViaUnitAgent) {
         try {
             return factory.getBean(name, requiredType);
         } catch (Exception e) {
             if (e instanceof NoSuchBeanDefinitionException) {
-                try {
-                    final UnitAgent agent = factory.getBean(UnitAgent.class);
-                    return agent.getBean(name, requiredType);
-                } catch (Exception e1) {
-                    return null;
+                if (lookupViaUnitAgent) {
+                    try {
+                        final UnitAgent agent = factory.getBean(UnitAgent.class);
+                        return agent.getBean(name, requiredType);
+                    } catch (Exception e1) {
+                        return null;
+                    }
                 }
             } else {
                 LOG.warn("exception when get ({}/{}) bean from ({}), detail:{}",
