@@ -29,6 +29,7 @@ import org.jocean.j2se.spring.BeanHolderSetter;
 import org.jocean.j2se.spring.PropertiesResourceSetter;
 import org.jocean.j2se.spring.PropertyPlaceholderConfigurerSetter;
 import org.jocean.j2se.spring.SpringBeanHolder;
+import org.jocean.j2se.spring.UnitAgentAware;
 import org.jocean.j2se.util.PackageUtils;
 import org.jocean.j2se.util.SelectorUtils;
 import org.slf4j.Logger;
@@ -112,14 +113,20 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     public <T> T getBean(final Class<T> requiredType) {
         T bean = null;
         if (null != this._rootApplicationContext) {
-            bean = getBeanOf(this._rootApplicationContext, requiredType, false);
+            bean = getBeanOf(this._rootApplicationContext, requiredType);
         }
         if (null != bean) {
             return bean;
         }
         for ( Node node : this._units.values()) {
             if (null != node._applicationContext) {
-                bean = getBeanOf(node._applicationContext, requiredType, true);
+                bean = getBeanOf(node._applicationContext, requiredType);
+                if (null != bean) {
+                    return bean;
+                }
+            }
+            if (null != node._unitAgent) {
+                bean = node._unitAgent.getBean(requiredType);
                 if (null != bean) {
                     return bean;
                 }
@@ -132,14 +139,20 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     public <T> T getBean(final String name, final Class<T> requiredType) {
         T bean = null;
         if (null != this._rootApplicationContext) {
-            bean = getBeanOf(this._rootApplicationContext, name, requiredType, false);
+            bean = getBeanOf(this._rootApplicationContext, name, requiredType);
         }
         if (null != bean) {
             return bean;
         }
         for ( Node node : this._units.values()) {
             if (null != node._applicationContext) {
-                bean = getBeanOf(node._applicationContext, name, requiredType, true);
+                bean = getBeanOf(node._applicationContext, name, requiredType);
+                if (null != bean) {
+                    return bean;
+                }
+            }
+            if (null != node._unitAgent) {
+                bean = node._unitAgent.getBean(name, requiredType);
                 if (null != bean) {
                     return bean;
                 }
@@ -148,25 +161,11 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         return null;
     }
     
-    private <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType, 
-            final boolean lookupViaUnitAgent) {
+    private static <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType) {
         try {
             return factory.getBean(requiredType);
         } catch (Exception e) {
-            if (e instanceof NoSuchBeanDefinitionException) {
-                if (lookupViaUnitAgent) {
-                    try {
-                        final UnitAgent agent = factory.getBean(UnitAgent.class);
-                        if (this == agent) {
-                            LOG.warn("get the self:{}, skip");
-                            return null;
-                        }
-                        return agent.getBean(requiredType);
-                    } catch (Exception e1) {
-                        return null;
-                    }
-                }
-            } else {
+            if (!(e instanceof NoSuchBeanDefinitionException)) {
                 LOG.warn("exception when get ({}) bean from ({}), detail:{}",
                         requiredType, factory, ExceptionUtils.exception2detail(e));
             }
@@ -174,25 +173,11 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
     }
     
-    private <T> T getBeanOf(final BeanFactory factory, final String name, final Class<T> requiredType,
-            final boolean lookupViaUnitAgent) {
+    private static <T> T getBeanOf(final BeanFactory factory, final String name, final Class<T> requiredType) {
         try {
             return factory.getBean(name, requiredType);
         } catch (Exception e) {
-            if (e instanceof NoSuchBeanDefinitionException) {
-                if (lookupViaUnitAgent) {
-                    try {
-                        final UnitAgent agent = factory.getBean(UnitAgent.class);
-                        if (this == agent) {
-                            LOG.warn("get the self:{}, skip");
-                            return null;
-                        }
-                        return agent.getBean(name, requiredType);
-                    } catch (Exception e1) {
-                        return null;
-                    }
-                }
-            } else {
+            if (!(e instanceof NoSuchBeanDefinitionException)) {
                 LOG.warn("exception when get ({}/{}) bean from ({}), detail:{}",
                         name, requiredType, factory, ExceptionUtils.exception2detail(e));
             }
@@ -359,18 +344,20 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             return null;
         }
         try {
+            final UnitAgentAware unitAgentAware = new UnitAgentAware();
             final ClassPathXmlApplicationContext ctx =
                     createConfigurableApplicationContext(
                             parentCtx,
                             genFullObjectNameOfUnit(unitName),
                             unitSource, 
                             configurer,
-                            properties);
+                            properties,
+                            unitAgentAware);
             ctx.setDisplayName(unitName);
             if ( null != parentNode) {
                 parentNode.addChild(unitName);
             }
-            final Node node = new Node(ctx, unitName, unitSource, unitParameters);
+            final Node node = new Node(ctx, unitName, unitSource, unitParameters, unitAgentAware.getUnitAgent());
             this._units.put(unitName, node);
             
             final UnitMXBean unit =
@@ -450,7 +437,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         if ( null != parentNode) {
             parentNode.addChild(unitName);
         }
-        final Node node = new Node(null, unitName, unitSource, unitParameters);
+        final Node node = new Node(null, unitName, unitSource, unitParameters, null);
         this._units.put(unitName, node);
         
         final UnitMXBean unit =
@@ -721,7 +708,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                     };
 
             try {
-                createConfigurableApplicationContext(null, "", new String[]{source}, configurer, null);
+                createConfigurableApplicationContext(null, "", new String[]{source}, configurer, null, null);
             } catch (StopInitCtxException ignored) {
             }
             infos.put(unitSource, configurer.getTextedResolvedPlaceholdersAsStringArray());
@@ -758,13 +745,15 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             final String objectNameSuffix,
             final String[] unitSource, 
             final PropertyPlaceholderConfigurer configurer, 
-            final Properties properties) {
+            final Properties properties,
+            final UnitAgentAware unitAgentAware) {
         final MBeanRegister register = new MBeanRegisterSupport(objectNameSuffix, null);
         
         final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
                     unitSource,
                     false,
                     parentCtx);
+        
         ctx.addBeanFactoryPostProcessor(configurer);
         ctx.addBeanFactoryPostProcessor(new BeanFactoryPostProcessor() {
             @Override
@@ -797,6 +786,9 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         }
                         return UnitAgent.this.getBean(name, requiredType);
                     }}));
+                if (null!=unitAgentAware) {
+                    beanFactory.addBeanPostProcessor(unitAgentAware);
+                }
             }});
         ctx.addApplicationListener(new ApplicationListener<ApplicationContextEvent>() {
             @Override
@@ -856,11 +848,14 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         Node(final ConfigurableApplicationContext applicationContext,
             final String unitName,
             final String[] unitSource, 
-            final Map<String, String> unitParameters) {
+            final Map<String, String> unitParameters,
+            final UnitAgent unitAgent
+            ) {
             this._applicationContext = applicationContext;
             this._unitName = unitName;
             this._unitSource = unitSource;
             this._unitParameters = Collections.unmodifiableMap(unitParameters);
+            this._unitAgent = unitAgent;
         }
         
         ApplicationContext applicationContext() {
@@ -902,6 +897,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         private final String _unitName;
         private final String[] _unitSource;
         private final Map<String, String>   _unitParameters;
+        private final UnitAgent _unitAgent;
     }
     
     @Override
