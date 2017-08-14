@@ -148,7 +148,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         return null;
     }
     
-    private static <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType, 
+    private <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType, 
             final boolean lookupViaUnitAgent) {
         try {
             return factory.getBean(requiredType);
@@ -157,6 +157,10 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 if (lookupViaUnitAgent) {
                     try {
                         final UnitAgent agent = factory.getBean(UnitAgent.class);
+                        if (this == agent) {
+                            LOG.warn("get the self:{}, skip");
+                            return null;
+                        }
                         return agent.getBean(requiredType);
                     } catch (Exception e1) {
                         return null;
@@ -170,7 +174,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
     }
     
-    private static <T> T getBeanOf(final BeanFactory factory, final String name, final Class<T> requiredType,
+    private <T> T getBeanOf(final BeanFactory factory, final String name, final Class<T> requiredType,
             final boolean lookupViaUnitAgent) {
         try {
             return factory.getBean(name, requiredType);
@@ -179,6 +183,10 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 if (lookupViaUnitAgent) {
                     try {
                         final UnitAgent agent = factory.getBean(UnitAgent.class);
+                        if (this == agent) {
+                            LOG.warn("get the self:{}, skip");
+                            return null;
+                        }
                         return agent.getBean(name, requiredType);
                     } catch (Exception e1) {
                         return null;
