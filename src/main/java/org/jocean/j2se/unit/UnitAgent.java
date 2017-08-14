@@ -152,7 +152,14 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         try {
             return factory.getBean(requiredType);
         } catch (Exception e) {
-            if (!(e instanceof NoSuchBeanDefinitionException)) {
+            if (e instanceof NoSuchBeanDefinitionException) {
+                try {
+                    final UnitAgent agent = factory.getBean(UnitAgent.class);
+                    return agent.getBean(requiredType);
+                } catch (Exception e1) {
+                    return null;
+                }
+            } else {
                 LOG.warn("exception when get ({}) bean from ({}), detail:{}",
                         requiredType, factory, ExceptionUtils.exception2detail(e));
             }
@@ -164,6 +171,17 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         try {
             return factory.getBean(name, requiredType);
         } catch (Exception e) {
+            if (e instanceof NoSuchBeanDefinitionException) {
+                try {
+                    final UnitAgent agent = factory.getBean(UnitAgent.class);
+                    return agent.getBean(name, requiredType);
+                } catch (Exception e1) {
+                    return null;
+                }
+            } else {
+                LOG.warn("exception when get ({}/{}) bean from ({}), detail:{}",
+                        name, requiredType, factory, ExceptionUtils.exception2detail(e));
+            }
             return null;
         }
     }
