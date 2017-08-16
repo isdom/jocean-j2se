@@ -29,16 +29,11 @@ public class ZKNodeRef implements UnitKeeperAware {
         this._cache.getListenable().addListener(new NodeCacheListener() {
             @Override
             public void nodeChanged() throws Exception {
-                final ChildData data = _cache.getCurrentData();
-                LOG.debug("nodeChanged with current data {}", data);
-                if (null != data) {
-                    onUpdated(data.getData());
-                } else {
-                    onRemoved();
-                }
+                processUnitByData();
             }});
         this._cache.start(true);
         LOG.debug("ZKNodeRef {} start", this);
+        processUnitByData();
     }
     
     public void stop() {
@@ -89,6 +84,16 @@ public class ZKNodeRef implements UnitKeeperAware {
         this._unitKeeper = keeper;
     }
     
+    private void processUnitByData() {
+        final ChildData data = this._cache.getCurrentData();
+        LOG.debug("process unit with current data {}", data);
+        if (null != data) {
+            onUpdated(data.getData());
+        } else {
+            onRemoved();
+        }
+    }
+
     @Inject
     private CuratorFramework _client;
     

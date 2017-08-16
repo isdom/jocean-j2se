@@ -416,7 +416,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 final Node impl = name2node(fullname);
                 if (null != parent && null != impl) {
                     parent._implApplicationContext = impl._applicationContext;
-                    updateDescendantUnitsOf(parentName);
+//                    updateDescendantUnitsOf(parentName);
                 }
             }
 
