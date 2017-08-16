@@ -30,6 +30,7 @@ import org.jocean.j2se.spring.PropertiesResourceSetter;
 import org.jocean.j2se.spring.PropertyPlaceholderConfigurerSetter;
 import org.jocean.j2se.spring.SpringBeanHolder;
 import org.jocean.j2se.spring.UnitAgentAware;
+import org.jocean.j2se.spring.UnitKeeperSetter;
 import org.jocean.j2se.util.PackageUtils;
 import org.jocean.j2se.util.SelectorUtils;
 import org.slf4j.Logger;
@@ -328,7 +329,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         final Node parentNode = getParentNode(unitName);
         final ApplicationContext parentCtx = 
                 null != parentNode 
-                    ? parentNode.applicationContext() 
+                    ? parentNode.rootApplicationContext() 
                     : this._rootApplicationContext;
         
         if (null == parentCtx) {
@@ -345,6 +346,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
         try {
             final UnitAgentAware unitAgentAware = new UnitAgentAware();
+            final UnitKeeper unitKeepr = buildUnitKeeper(unitName); 
             final ClassPathXmlApplicationContext ctx =
                     createConfigurableApplicationContext(
                             parentCtx,
@@ -352,7 +354,8 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                             unitSource, 
                             configurer,
                             properties,
-                            unitAgentAware);
+                            unitAgentAware,
+                            unitKeepr);
             ctx.setDisplayName(unitName);
             if ( null != parentNode) {
                 parentNode.addChild(unitName);
@@ -400,13 +403,36 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
     }
 
+    private UnitKeeper buildUnitKeeper(final String parentName) {
+        return new UnitKeeper() {
+            @Override
+            public void createOrUpdateUnit(
+                    final String implname, 
+                    final String[] source, 
+                    final Map<String, String> unitParameters) {
+                final String fullname = parentName + "/" + implname;
+                createOrUpdateUnitWithSource(fullname, source, unitParameters);
+                final Node parent = name2node(parentName);
+                final Node impl = name2node(fullname);
+                if (null != parent && null != impl) {
+                    parent._implApplicationContext = impl._applicationContext;
+                    updateDescendantUnitsOf(parentName);
+                }
+            }
+
+            @Override
+            public void deleteUnit(final String implname) {
+                UnitAgent.this.deleteUnit(parentName + "/" + implname);
+            }};
+    }
+
     /**
      * @param unitName
      * @return
      */
     private Node getParentNode(final String unitName) {
         final String parentPath = FilenameUtils.getPathNoEndSeparator(unitName);
-        final Node parentNode = "".equals(parentPath) ? null : this._units.get(parentPath);
+        final Node parentNode = "".equals(parentPath) ? null : name2node(parentPath);
         if (LOG.isDebugEnabled()) {
             if (null != parentNode) {
                 LOG.debug("found parent node {} for path {} ", parentNode, parentPath);
@@ -454,11 +480,34 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         this._unitsRegister.replaceRegisteredMBean(objectNameSuffix, mock, unit);
     }
 
+    public UnitMXBean createOrUpdateUnitWithSource(
+            final String unitName,
+            final String[] newSource,
+            final Map<String, String> newUnitParameters) {
+        if (null == name2node(unitName)) {
+            return createUnitWithSource(unitName, newSource, newUnitParameters);
+        } else {
+            return updateUnitWithSource(unitName, newSource, newUnitParameters);
+        }
+    }
+    
+    public UnitMXBean createOrUpdateUnit(
+            final String unitName,
+            final String[] patterns,
+            final Map<String, String> newUnitParameters,
+            final boolean usingFirstWhenMatchedMultiSource) {
+        if (null == name2node(unitName)) {
+            return createUnit(unitName, patterns, newUnitParameters, usingFirstWhenMatchedMultiSource);
+        } else {
+            return updateUnit(unitName, newUnitParameters);
+        }
+    }
+    
     public UnitMXBean updateUnitWithSource(
             final String unitName,
             final String[] newSource,
             final Map<String, String> newUnitParameters) {
-        if (null == this._units.get(unitName)) {
+        if (null == name2node(unitName)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("can't found unit named {}, update failed.", unitName);
             }
@@ -477,7 +526,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     public UnitMXBean updateUnit(
             final String unitName,
             final Map<String, String> newUnitParameters) {
-        if (null == this._units.get(unitName)) {
+        if (null == name2node(unitName)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("can't found unit named {}, update failed.", unitName);
             }
@@ -491,6 +540,26 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             doCreateUnit(node._unitName, node._unitSource, node._unitParameters);
         }
         return mbean;
+    }
+    
+    private void updateDescendantUnitsOf(final String unitName) {
+        final Node parent = name2node(unitName);
+        if (null != parent) {
+            final List<Node> descendants = new ArrayList<>();
+            for (String child : parent.childrenUnitsAsArray()) {
+                final List<Node> nodesDeleted = doDeleteUnit(child);
+                if (null != nodesDeleted) {
+                    descendants.addAll(nodesDeleted);
+                }
+            }
+            for (Node node : descendants) {
+                doCreateUnit(node._unitName, node._unitSource, node._unitParameters);
+            }
+        }
+    }
+
+    private Node name2node(final String unitName) {
+        return this._units.get(unitName);
     }
     
     /**
@@ -708,7 +777,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                     };
 
             try {
-                createConfigurableApplicationContext(null, "", new String[]{source}, configurer, null, null);
+                createConfigurableApplicationContext(null, "", new String[]{source}, configurer, null, null, null);
             } catch (StopInitCtxException ignored) {
             }
             infos.put(unitSource, configurer.getTextedResolvedPlaceholdersAsStringArray());
@@ -738,6 +807,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
      * @param unitSource2 
      * @param configurer
      * @param properties 
+     * @param unitKeepr 
      * @return
      */
     private ClassPathXmlApplicationContext createConfigurableApplicationContext(
@@ -746,7 +816,8 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             final String[] unitSource, 
             final PropertyPlaceholderConfigurer configurer, 
             final Properties properties,
-            final UnitAgentAware unitAgentAware) {
+            final UnitAgentAware unitAgentAware, 
+            final UnitKeeper unitKeepr) {
         final MBeanRegister register = new MBeanRegisterSupport(objectNameSuffix, null);
         
         final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
@@ -765,6 +836,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 }
                 beanFactory.addBeanPostProcessor(new PropertyPlaceholderConfigurerSetter(configurer));
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
+                beanFactory.addBeanPostProcessor(new UnitKeeperSetter(unitKeepr));
                 beanFactory.addBeanPostProcessor(new BeanHolderSetter(UnitAgent.this));
                 beanFactory.addBeanPostProcessor(new BeanHolderBasedInjector(new BeanHolder(){
                     @Override
@@ -858,8 +930,10 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             this._unitAgent = unitAgent;
         }
         
-        ApplicationContext applicationContext() {
-            return this._applicationContext;
+        ApplicationContext rootApplicationContext() {
+            return null != this._implApplicationContext
+                    ? this._implApplicationContext
+                    : this._applicationContext;
         }
         
         ConfigurableApplicationContext closeApplicationContext() {
@@ -894,6 +968,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
 
         private final List<String> _children = new ArrayList<>();
         private final ConfigurableApplicationContext _applicationContext;
+        private ConfigurableApplicationContext _implApplicationContext = null;
         private final String _unitName;
         private final String[] _unitSource;
         private final Map<String, String>   _unitParameters;

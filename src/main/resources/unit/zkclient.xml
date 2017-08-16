@@ -6,7 +6,8 @@
         
     <bean id="zkClient" class="org.apache.curator.framework.CuratorFrameworkFactory"
         factory-method="newClient"
-        init-method="start">
+        init-method="start"
+        destroy-method="close">
         <constructor-arg value="${zk.address}"/>
         <constructor-arg>
             <bean class="org.apache.curator.retry.ExponentialBackoffRetry">
