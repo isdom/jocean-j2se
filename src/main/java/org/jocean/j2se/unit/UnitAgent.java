@@ -30,7 +30,7 @@ import org.jocean.j2se.spring.PropertiesResourceSetter;
 import org.jocean.j2se.spring.PropertyPlaceholderConfigurerSetter;
 import org.jocean.j2se.spring.SpringBeanHolder;
 import org.jocean.j2se.spring.UnitAgentAware;
-import org.jocean.j2se.spring.UnitKeeperSetter;
+import org.jocean.j2se.spring.UnitKeeperAwareHolder;
 import org.jocean.j2se.util.PackageUtils;
 import org.jocean.j2se.util.SelectorUtils;
 import org.slf4j.Logger;
@@ -346,7 +346,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
         try {
             final UnitAgentAware unitAgentAware = new UnitAgentAware();
-            final UnitKeeper unitKeepr = buildUnitKeeper(unitName); 
+            final UnitKeeperAwareHolder unitKeeprAwareHolder = new UnitKeeperAwareHolder();
             final ClassPathXmlApplicationContext ctx =
                     createConfigurableApplicationContext(
                             parentCtx,
@@ -355,7 +355,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                             configurer,
                             properties,
                             unitAgentAware,
-                            unitKeepr);
+                            unitKeeprAwareHolder);
             ctx.setDisplayName(unitName);
             if ( null != parentNode) {
                 parentNode.addChild(unitName);
@@ -384,6 +384,10 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                     public void call(final UnitListener listener) {
                         listener.postUnitCreated(unitName, ctx);
                     }});
+            }
+            
+            if (null != unitKeeprAwareHolder.getUnitKeeperAware()) {
+                unitKeeprAwareHolder.getUnitKeeperAware().setUnitKeeper(buildUnitKeeper(unitName));
             }
             
             return unit;
@@ -815,7 +819,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
      * @param unitSource2 
      * @param configurer
      * @param properties 
-     * @param unitKeepr 
+     * @param unitKeeprAwareHolder 
      * @return
      */
     private ClassPathXmlApplicationContext createConfigurableApplicationContext(
@@ -825,7 +829,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             final PropertyPlaceholderConfigurer configurer, 
             final Properties properties,
             final UnitAgentAware unitAgentAware, 
-            final UnitKeeper unitKeepr) {
+            final UnitKeeperAwareHolder unitKeeprAwareHolder) {
         final MBeanRegister register = new MBeanRegisterSupport(objectNameSuffix, null);
         
         final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
@@ -844,7 +848,6 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 }
                 beanFactory.addBeanPostProcessor(new PropertyPlaceholderConfigurerSetter(configurer));
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
-                beanFactory.addBeanPostProcessor(new UnitKeeperSetter(unitKeepr));
                 beanFactory.addBeanPostProcessor(new BeanHolderSetter(UnitAgent.this));
                 beanFactory.addBeanPostProcessor(new BeanHolderBasedInjector(new BeanHolder(){
                     @Override
@@ -867,6 +870,9 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                     }}));
                 if (null!=unitAgentAware) {
                     beanFactory.addBeanPostProcessor(unitAgentAware);
+                }
+                if (null!=unitKeeprAwareHolder) {
+                    beanFactory.addBeanPostProcessor(unitKeeprAwareHolder);
                 }
             }});
         ctx.addApplicationListener(new ApplicationListener<ApplicationContextEvent>() {

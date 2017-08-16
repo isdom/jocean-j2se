@@ -1,5 +1,6 @@
 package org.jocean.j2se.unit;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -17,17 +18,10 @@ public class LocalRef implements UnitKeeperAware {
         this._location = location;
     }
 
-    public void start() throws Exception {
-        try (final InputStream is = this._location.getInputStream()) {
-            final Properties props = new Properties();
-            props.load(is);
-            final String[] source = genSourceFrom(props);
-            this._unitKeeper.createOrUpdateUnit("#", source, Maps.fromProperties(props));
-        }
-    }
-    
     public void stop() {
-        this._unitKeeper.deleteUnit("#");
+        if (null != this._unitKeeper) {
+            this._unitKeeper.deleteUnit("#");
+        }
     }
     
     private static String[] genSourceFrom(final Properties properties) {
@@ -39,6 +33,13 @@ public class LocalRef implements UnitKeeperAware {
     @Override
     public void setUnitKeeper(final UnitKeeper keeper) {
         this._unitKeeper = keeper;
+        try (final InputStream is = this._location.getInputStream()) {
+            final Properties props = new Properties();
+            props.load(is);
+            final String[] source = genSourceFrom(props);
+            this._unitKeeper.createOrUpdateUnit("#", source, Maps.fromProperties(props));
+        } catch (IOException e) {
+        }
     }
     
     private Resource _location;

@@ -5,7 +5,6 @@
         http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean class="org.jocean.j2se.unit.LocalRef"
-        init-method="start"
         destroy-method="stop">
         <property name="location" value="${ref.location}"/>
     </bean>
