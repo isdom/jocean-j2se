@@ -416,12 +416,16 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 final Node impl = name2node(fullname);
                 if (null != parent && null != impl) {
                     parent._implApplicationContext = impl._applicationContext;
-//                    updateDescendantUnitsOf(parentName);
+                    updateDescendantUnitsOf(parentName, fullname);
                 }
             }
 
             @Override
             public void deleteUnit(final String implname) {
+                final Node parent = name2node(parentName);
+                if (null != parent) {
+                    parent._implApplicationContext = null;
+                }
                 UnitAgent.this.deleteUnit(parentName + "/" + implname);
             }};
     }
@@ -542,14 +546,18 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         return mbean;
     }
     
-    private void updateDescendantUnitsOf(final String unitName) {
+    private void updateDescendantUnitsOf(final String unitName, final String skipName) {
         final Node parent = name2node(unitName);
         if (null != parent) {
             final List<Node> descendants = new ArrayList<>();
             for (String child : parent.childrenUnitsAsArray()) {
-                final List<Node> nodesDeleted = doDeleteUnit(child);
-                if (null != nodesDeleted) {
-                    descendants.addAll(nodesDeleted);
+                if (!child.equals(skipName)) {
+                    final List<Node> nodesDeleted = doDeleteUnit(child);
+                    if (null != nodesDeleted) {
+                        descendants.addAll(nodesDeleted);
+                    }
+                } else {
+                    LOG.info("skip child unit {}, DO NOT update.", child);
                 }
             }
             for (Node node : descendants) {
