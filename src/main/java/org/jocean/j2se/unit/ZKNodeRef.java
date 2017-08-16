@@ -11,32 +11,41 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 
 public class ZKNodeRef implements UnitKeeperAware {
+    private static final Logger LOG =
+            LoggerFactory.getLogger(ZKNodeRef.class);
 
     public void setPath(final String path) {
         this._path = path;
     }
 
-    public void start() {
+    public void start() throws Exception {
         this._cache = new NodeCache(this._client, this._path);
         this._cache.getListenable().addListener(new NodeCacheListener() {
             @Override
             public void nodeChanged() throws Exception {
                 final ChildData data = _cache.getCurrentData();
+                LOG.debug("nodeChanged with current data {}", data);
                 if (null != data) {
                     onUpdated(data.getData());
                 } else {
                     onRemoved();
                 }
             }});
+        this._cache.start(true);
+        LOG.debug("ZKNodeRef {} start", this);
     }
     
     public void stop() {
         try {
+            LOG.debug("ZKNodeRef {} closing", this);
             this._cache.close();
+            LOG.debug("ZKNodeRef {} closed", this);
         } catch (IOException e) {
         }
     }
