@@ -11,6 +11,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
+import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,14 +25,20 @@ public class ZKNodeRef implements UnitKeeperAware {
         this._path = path;
     }
 
-    public void start() throws Exception {
+    private void start() {
         this._cache = new NodeCache(this._client, this._path);
         this._cache.getListenable().addListener(new NodeCacheListener() {
             @Override
             public void nodeChanged() throws Exception {
                 processUnitByData();
             }});
-        this._cache.start(true);
+        try {
+            this._cache.start(true);
+        } catch (Exception e) {
+            LOG.warn("exception when NodeCache.start for path {}, detail: {}", 
+                    this._path,
+                    ExceptionUtils.exception2detail(e));
+        }
         LOG.debug("ZKNodeRef {} start", this);
         processUnitByData();
     }
@@ -45,6 +52,16 @@ public class ZKNodeRef implements UnitKeeperAware {
         }
     }
     
+    private void processUnitByData() {
+        final ChildData data = this._cache.getCurrentData();
+        LOG.debug("process unit with current data {}", data);
+        if (null != data) {
+            onUpdated(data.getData());
+        } else {
+            onRemoved();
+        }
+    }
+
     private void onUpdated(final byte[] data) {
         final Properties properties = loadProperties(data);
         final String[] source = genSourceFrom(properties);
@@ -82,18 +99,9 @@ public class ZKNodeRef implements UnitKeeperAware {
     @Override
     public void setUnitKeeper(final UnitKeeper keeper) {
         this._unitKeeper = keeper;
+        start();
     }
     
-    private void processUnitByData() {
-        final ChildData data = this._cache.getCurrentData();
-        LOG.debug("process unit with current data {}", data);
-        if (null != data) {
-            onUpdated(data.getData());
-        } else {
-            onRemoved();
-        }
-    }
-
     @Inject
     private CuratorFramework _client;
     

@@ -4,15 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
 import com.google.common.collect.Maps;
 
 public class LocalRef implements UnitKeeperAware {
-    private static final Logger LOG =
-            LoggerFactory.getLogger(LocalRef.class);
 
     public void setLocation(final Resource location) {
         this._location = location;
