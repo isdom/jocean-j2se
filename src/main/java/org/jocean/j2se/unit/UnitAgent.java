@@ -856,7 +856,6 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         }
                         return UnitAgent.this.getBean(requiredType);
                     }
-
                     @Override
                     public <T> T getBean(final String name, final Class<T> requiredType) {
                         try {
