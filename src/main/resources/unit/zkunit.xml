@@ -4,6 +4,9 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
         
+    <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"
+        destroy-method="stop"/>
+        
     <bean id="__zkagent" class="org.jocean.j2se.zk.ZKAgent"
         init-method="start" 
         destroy-method="stop">
@@ -15,10 +18,7 @@
         destroy-method="call">
         <constructor-arg>
             <bean class="org.jocean.j2se.unit.ZKUnitUpdater">
-                <constructor-arg name="unitAgent">
-                    <bean class="org.jocean.j2se.unit.UnitAgent"
-                        destroy-method="stop"/>
-                </constructor-arg>
+                <constructor-arg name="unitAgent" ref="unitAgent"/>
             </bean>
         </constructor-arg>
     </bean>

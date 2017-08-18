@@ -148,6 +148,9 @@ public class ZKUnitUpdater implements Listener {
     }
 
     private String parseSourceFromPath(final String root, final String path) {
+        if (path.equals(root)) {
+            return null;
+        }
         return path.substring(root.length() + ( !root.endsWith("/") ? 1 : 0 ));
     }
 
