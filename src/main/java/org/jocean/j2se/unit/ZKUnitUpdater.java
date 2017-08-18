@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import org.apache.commons.io.FilenameUtils;
 import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
+import org.jocean.j2se.zk.ZKAgent;
 import org.jocean.j2se.zk.ZKAgent.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +30,6 @@ public class ZKUnitUpdater implements Listener {
     
     public ZKUnitUpdater(final UnitAgent unitAgent) {
         this._unitAgent = unitAgent;
-    }
-    
-    public void setRoot(final String root) {
-        this._rootPath = root;
     }
     
     /**
@@ -57,13 +54,11 @@ public class ZKUnitUpdater implements Listener {
     
     @Override
     public void onAdded(
+            final ZKAgent agent,
             final String path,
             final byte[] data)
             throws Exception {
-        if (!isUnitPath(path)) {
-            return;
-        }
-        final String pathName = parseSourceFromPath(path);
+        final String pathName = parseSourceFromPath(agent.root(), path);
         if ( null != pathName ) {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("creating unit named {}", pathName);
@@ -96,13 +91,11 @@ public class ZKUnitUpdater implements Listener {
 
     @Override
     public void onUpdated(
+            final ZKAgent agent,
             final String path,
             final byte[] data)
             throws Exception {
-        if (!isUnitPath(path)) {
-            return;
-        }
-        final String pathName = parseSourceFromPath(path);
+        final String pathName = parseSourceFromPath(agent.root(), path);
         if (null != pathName) {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("updating unit named {}", pathName);
@@ -131,12 +124,10 @@ public class ZKUnitUpdater implements Listener {
     
     @Override
     public void onRemoved(
+            final ZKAgent agent,
             final String path)
             throws Exception {
-        if (!isUnitPath(path)) {
-            return;
-        }
-        final String pathName = parseSourceFromPath(path);
+        final String pathName = parseSourceFromPath(agent.root(), path);
         if (null != pathName) {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("removing unit for {}", pathName);
@@ -150,22 +141,14 @@ public class ZKUnitUpdater implements Listener {
         }
     }
 
-    private boolean isUnitPath(final String path) {
-        return path.equals(this._rootPath) ||
-                path.startsWith(this._rootPath + "/");
-    }
-
     private static String[] genSourceFrom(final Properties properties) {
         final String value = properties.getProperty(SPRING_XML_KEY);
         properties.remove(SPRING_XML_KEY);
         return null!=value ? value.split(",") : null;
     }
 
-    private String parseSourceFromPath(final String path) {
-        if (path.length() <= this._rootPath.length() ) {
-            return null;
-        }
-        return path.substring(this._rootPath.length() + ( !this._rootPath.endsWith("/") ? 1 : 0 ));
+    private String parseSourceFromPath(final String root, final String path) {
+        return path.substring(root.length() + ( !root.endsWith("/") ? 1 : 0 ));
     }
 
     private String getTemplateFromFullPathName(final String fullPathName) {
@@ -181,5 +164,4 @@ public class ZKUnitUpdater implements Listener {
     }
     
     private final UnitAgent _unitAgent;
-    private String _rootPath;
 }

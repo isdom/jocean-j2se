@@ -4,22 +4,21 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
         
-    <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"
-        destroy-method="stop"/>
-    
-    <bean id="zkAgent" class="org.jocean.j2se.zk.ZKAgent"
+    <bean id="__zkagent" class="org.jocean.j2se.zk.ZKAgent"
         init-method="start" 
         destroy-method="stop">
-        <constructor-arg ref="zkClient"/>
-        <constructor-arg value="${zk.root.path:/}"/>
+        <constructor-arg name="client" ref="zkClient"/>
+        <constructor-arg name="root" value="${zk.units.path}"/>
     </bean>
 
-    <bean factory-bean="zkAgent" factory-method="addListener"
+    <bean factory-bean="__zkagent" factory-method="addListener"
         destroy-method="call">
         <constructor-arg>
             <bean class="org.jocean.j2se.unit.ZKUnitUpdater">
-                <constructor-arg ref="unitAgent"/>
-                <property name="root" value="${zk.units.path}"/>
+                <constructor-arg name="unitAgent">
+                    <bean class="org.jocean.j2se.unit.UnitAgent"
+                        destroy-method="stop"/>
+                </constructor-arg>
             </bean>
         </constructor-arg>
     </bean>

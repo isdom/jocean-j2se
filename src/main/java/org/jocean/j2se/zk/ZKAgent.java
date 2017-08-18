@@ -25,27 +25,27 @@ import rx.functions.Action1;
 
 public class ZKAgent {
     public interface Listener {
-        public void onAdded(final String path, final byte[] data) 
+        public void onAdded(final ZKAgent agent, final String path, final byte[] data) 
                 throws Exception;
         
-        public void onUpdated(final String path, final byte[] data) 
+        public void onUpdated(final ZKAgent agent, final String path, final byte[] data) 
                 throws Exception;
         
-        public void onRemoved(final String path) 
+        public void onRemoved(final ZKAgent agent, final String path) 
                 throws Exception;
     }
     
     private static final Listener NOP_LISTENER = new Listener() {
         @Override
-        public void onAdded(String path, byte[] data)
+        public void onAdded(final ZKAgent agent, String path, byte[] data)
                 throws Exception {
         }
         @Override
-        public void onUpdated(String path, byte[] data)
+        public void onUpdated(final ZKAgent agent, String path, byte[] data)
                 throws Exception {
         }
         @Override
-        public void onRemoved(String path) throws Exception {
+        public void onRemoved(final ZKAgent agent, String path) throws Exception {
         }};
         
     private static class DisabledListener implements Listener {
@@ -55,18 +55,18 @@ public class ZKAgent {
         }
         
         @Override
-        public void onAdded(final String path, final byte[] data) throws Exception {
-            this._listenerRef.get().onAdded(path, data);
+        public void onAdded(final ZKAgent agent, final String path, final byte[] data) throws Exception {
+            this._listenerRef.get().onAdded(agent, path, data);
         }
 
         @Override
-        public void onUpdated(final String path, final byte[] data) throws Exception {
-            this._listenerRef.get().onUpdated(path, data);
+        public void onUpdated(final ZKAgent agent, final String path, final byte[] data) throws Exception {
+            this._listenerRef.get().onUpdated(agent, path, data);
         }
 
         @Override
-        public void onRemoved(final String path) throws Exception {
-            this._listenerRef.get().onRemoved(path);
+        public void onRemoved(final ZKAgent agent, final String path) throws Exception {
+            this._listenerRef.get().onRemoved(agent, path);
         }
         
         void disable() {
@@ -86,14 +86,10 @@ public class ZKAgent {
             final String root) throws Exception {
         this._client = client;
         this._root = root;
-        this._executor = 
-//            new CloseableExecutorService(
-                Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
-                    .setNameFormat("Curator-TreeCache-%d")
-                    .setDaemon(false)
-                    .build())
-//                )
-        ;
+        this._executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
+            .setNameFormat("Curator-TreeCache-%d")
+            .setDaemon(false)
+            .build());
         // wait for thread running
         this._executor.submit(new Runnable() {
             @Override
@@ -187,7 +183,7 @@ public class ZKAgent {
         final ChildData data = this._zkCache.getCurrentData(parent);
         if (null != data) {
             try {
-                listener.onAdded(data.getPath(), data.getData());
+                listener.onAdded(this, data.getPath(), data.getData());
             } catch (Exception e) {
                 LOG.warn("exception when onAdded for {}/{}, detail: {}",
                         data.getPath(), data.getData(), ExceptionUtils.exception2detail(e));
@@ -221,7 +217,7 @@ public class ZKAgent {
                 @Override
                 public void call(final Listener listener) {
                     try {
-                        listener.onAdded(
+                        listener.onAdded(ZKAgent.this,
                                 event.getData().getPath(), 
                                 event.getData().getData());
                     } catch (Exception e) {
@@ -242,7 +238,7 @@ public class ZKAgent {
                 @Override
                 public void call(final Listener listener) {
                     try {
-                        listener.onRemoved(event.getData().getPath());
+                        listener.onRemoved(ZKAgent.this, event.getData().getPath());
                     } catch (Exception e) {
                         LOG.warn("exception when doRemoved for event({}), detail:{}",
                                 event, ExceptionUtils.exception2detail(e));
@@ -261,7 +257,7 @@ public class ZKAgent {
                 @Override
                 public void call(final Listener listener) {
                     try {
-                        listener.onUpdated(
+                        listener.onUpdated(ZKAgent.this,
                                 event.getData().getPath(), 
                                 event.getData().getData());
                     } catch (Exception e) {
@@ -273,7 +269,6 @@ public class ZKAgent {
     }
     
     private final CuratorFramework _client;
-//    private final CloseableExecutorService _executor;
     private final ExecutorService _executor;
     private final String _root;
     private final TreeCache _zkCache;
