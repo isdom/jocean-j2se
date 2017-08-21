@@ -1,7 +1,7 @@
 package org.jocean.j2se.zk;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -9,7 +9,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
@@ -18,6 +17,7 @@ import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import rx.functions.Action0;
@@ -96,8 +96,8 @@ public class ZKAgent {
             public void run() {
                 LOG.info("ZKUpdater Thread has running.");
             }}).get();
-        this._zkCache = TreeCache.newBuilder(client, root)
-            .setCacheData(true)
+        this._treecache = TreeCache.newBuilder(client, root)
+            .setCacheData(false)
             .setExecutor(this._executor)
             .build();
     }
@@ -118,7 +118,7 @@ public class ZKAgent {
     }
     
     public void start() {
-        this._zkCache.getListenable().addListener(new TreeCacheListener() {
+        this._treecache.getListenable().addListener(new TreeCacheListener() {
             @Override
             public void childEvent(final CuratorFramework client, final TreeCacheEvent event)
                     throws Exception {
@@ -140,10 +140,10 @@ public class ZKAgent {
                 }
             }});
         try {
-            this._zkCache.start();
+            this._treecache.start();
         } catch (Exception e) {
             LOG.error("exception when TreeCache({})'s start, detail:{}", 
-                    this._zkCache, ExceptionUtils.exception2detail(e));
+                    this._treecache, ExceptionUtils.exception2detail(e));
         }
     }
     
@@ -174,37 +174,33 @@ public class ZKAgent {
         this._executor.submit(new Runnable() {
             @Override
             public void run() {
-                enumSubtreeOf(_root, listener);
+                syncCurrentNodes(listener);
                 _listenerSupport.addComponent(listener);
             }});
     }
 
-    private void enumSubtreeOf(final String parent, final Listener listener) {
-        final ChildData data = this._zkCache.getCurrentData(parent);
-        if (null != data) {
+    private static final Comparator<Map.Entry<String, byte[]>> ASC_BY_PATH = new Comparator<Map.Entry<String, byte[]>>() {
+        @Override
+        public int compare(final Map.Entry<String, byte[]> o1, final Map.Entry<String, byte[]> o2) {
+            return o1.getKey().compareTo(o2.getKey());
+        }};
+    
+    private void syncCurrentNodes(final Listener listener) {
+        final List<Map.Entry<String, byte[]>> nodes = Lists.newArrayList(this._nodes.entrySet());
+        nodes.sort(ASC_BY_PATH);
+        for (Map.Entry<String, byte[]> node : nodes) {
             try {
-                listener.onAdded(this, data.getPath(), data.getData());
+                LOG.info("sync current node({}): ", node.getKey());
+                listener.onAdded(this, node.getKey(), node.getValue());
             } catch (Exception e) {
                 LOG.warn("exception when onAdded for {}/{}, detail: {}",
-                        data.getPath(), data.getData(), ExceptionUtils.exception2detail(e));
-            }
-            final Map<String, ChildData> children = 
-                    this._zkCache.getCurrentChildren(parent);
-            if (null!= children) {
-                final List<String> childrenPaths = new ArrayList<>();
-                for (Map.Entry<String, ChildData> entry : children.entrySet()) {
-                    childrenPaths.add(entry.getValue().getPath());
-                }
-                Collections.sort(childrenPaths);
-                for (String path : childrenPaths) {
-                    enumSubtreeOf(path, listener);
-                }
+                        node.getKey(), node.getValue(), ExceptionUtils.exception2detail(e));
             }
         }
     }
     
     public void stop() {
-        this._zkCache.close();
+        this._treecache.close();
     }
 
     private void nodeAdded(final TreeCacheEvent event) throws Exception {
@@ -212,6 +208,9 @@ public class ZKAgent {
             LOG.debug("handle event ({}), try to add or update operator", 
                     event);
         }
+        // update local cached nodes
+        this._nodes.put(event.getData().getPath(), event.getData().getData());
+        
         if (!this._listenerSupport.isEmpty()) {
             this._listenerSupport.foreachComponent(new Action1<Listener> () {
                 @Override
@@ -233,6 +232,9 @@ public class ZKAgent {
             LOG.debug("handle event ({}), try to remove operator", 
                     event);
         }
+        // update local cached nodes
+        this._nodes.remove(event.getData().getPath());
+        
         if (!this._listenerSupport.isEmpty()) {
             this._listenerSupport.foreachComponent(new Action1<Listener> () {
                 @Override
@@ -252,6 +254,9 @@ public class ZKAgent {
             LOG.debug("handle event ({}), try to update operator", 
                     event);
         }
+        // update local cached nodes
+        this._nodes.put(event.getData().getPath(), event.getData().getData());
+        
         if (!this._listenerSupport.isEmpty()) {
             this._listenerSupport.foreachComponent(new Action1<Listener> () {
                 @Override
@@ -271,7 +276,8 @@ public class ZKAgent {
     private final CuratorFramework _client;
     private final ExecutorService _executor;
     private final String _root;
-    private final TreeCache _zkCache;
+    private final TreeCache _treecache;
+    private final Map<String, byte[]> _nodes = new HashMap<>();
     private final COWCompositeSupport<Listener> _listenerSupport
         = new COWCompositeSupport<Listener>();
 }
