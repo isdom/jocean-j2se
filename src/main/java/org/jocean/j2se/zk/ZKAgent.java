@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -147,6 +148,24 @@ public class ZKAgent {
         }
     }
     
+    public void stop() {
+        if (this._isActive.compareAndSet(true, false)) {
+            this._treecache.close();
+            this._executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    _listenerSupport.foreachComponent(new Action1<Listener>() {
+                        @Override
+                        public void call(final Listener listener) {
+                            syncNodesOnRemoved(listener);
+                        }});
+                    _listenerSupport.clear();
+                }});
+        } else {
+            LOG.warn("ZKAgent has already stopped.");
+        }
+    }
+
     public Action0 addListener(final Listener listener) {
         final DisabledListener disabledListener = new DisabledListener(listener);
         try {
@@ -166,6 +185,7 @@ public class ZKAgent {
             @Override
             public void run() {
                 _listenerSupport.removeComponent(listener);
+                syncNodesOnRemoved(listener);
                 LOG.info("remove listener: {} ", listener);
             }});
     }
@@ -174,23 +194,31 @@ public class ZKAgent {
         this._executor.submit(new Runnable() {
             @Override
             public void run() {
-                syncCurrentNodes(listener);
+                syncNodesOnAdded(listener);
                 _listenerSupport.addComponent(listener);
             }});
     }
 
-    private static final Comparator<Map.Entry<String, byte[]>> ASC_BY_PATH = new Comparator<Map.Entry<String, byte[]>>() {
+    private static final Comparator<Map.Entry<String, byte[]>> ASC_BY_PATH = 
+            new Comparator<Map.Entry<String, byte[]>>() {
         @Override
         public int compare(final Map.Entry<String, byte[]> o1, final Map.Entry<String, byte[]> o2) {
             return o1.getKey().compareTo(o2.getKey());
         }};
     
-    private void syncCurrentNodes(final Listener listener) {
+    private static final Comparator<Map.Entry<String, byte[]>> DESC_BY_PATH = 
+            new Comparator<Map.Entry<String, byte[]>>() {
+        @Override
+        public int compare(final Map.Entry<String, byte[]> o1, final Map.Entry<String, byte[]> o2) {
+            return o2.getKey().compareTo(o1.getKey());
+        }};
+            
+    private void syncNodesOnAdded(final Listener listener) {
         final List<Map.Entry<String, byte[]>> nodes = Lists.newArrayList(this._nodes.entrySet());
         nodes.sort(ASC_BY_PATH);
         for (Map.Entry<String, byte[]> node : nodes) {
             try {
-                LOG.info("sync current node({}): ", node.getKey());
+                LOG.info("sync node({}) onAdded ", node.getKey());
                 listener.onAdded(this, node.getKey(), node.getValue());
             } catch (Exception e) {
                 LOG.warn("exception when onAdded for {}/{}, detail: {}",
@@ -199,10 +227,20 @@ public class ZKAgent {
         }
     }
     
-    public void stop() {
-        this._treecache.close();
+    private void syncNodesOnRemoved(final Listener listener) {
+        final List<Map.Entry<String, byte[]>> nodes = Lists.newArrayList(this._nodes.entrySet());
+        nodes.sort(DESC_BY_PATH);
+        for (Map.Entry<String, byte[]> node : nodes) {
+            try {
+                LOG.info("sync node({}) onRemoved ", node.getKey());
+                listener.onRemoved(this, node.getKey());
+            } catch (Exception e) {
+                LOG.warn("exception when onRemoved for {}, detail: {}",
+                        node.getKey(), ExceptionUtils.exception2detail(e));
+            }
+        }
     }
-
+    
     private void nodeAdded(final TreeCacheEvent event) throws Exception {
         if (LOG.isDebugEnabled()) {
             LOG.debug("handle event ({}), try to add or update operator", 
@@ -273,6 +311,7 @@ public class ZKAgent {
         }
     }
     
+    private final AtomicBoolean _isActive = new AtomicBoolean(true);
     private final CuratorFramework _client;
     private final ExecutorService _executor;
     private final String _root;
