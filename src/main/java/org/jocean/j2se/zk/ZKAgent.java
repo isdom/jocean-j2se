@@ -150,7 +150,6 @@ public class ZKAgent {
     
     public void stop() {
         if (this._isActive.compareAndSet(true, false)) {
-            this._treecache.close();
             this._executor.submit(new Runnable() {
                 @Override
                 public void run() {
@@ -160,6 +159,7 @@ public class ZKAgent {
                             syncNodesOnRemoved(listener);
                         }});
                     _listenerSupport.clear();
+                    _treecache.close();
                 }});
         } else {
             LOG.warn("ZKAgent has already stopped.");
