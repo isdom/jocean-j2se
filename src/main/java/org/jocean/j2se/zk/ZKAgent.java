@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -15,6 +14,7 @@ import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
+import org.jocean.idiom.InterfaceSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.functions.ActionN;
 
 public class ZKAgent {
     public interface Listener {
@@ -149,24 +150,35 @@ public class ZKAgent {
     }
     
     public void stop() {
-        if (this._isActive.compareAndSet(true, false)) {
-            this._executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    _listenerSupport.foreachComponent(new Action1<Listener>() {
-                        @Override
-                        public void call(final Listener listener) {
-                            syncNodesOnRemoved(listener);
-                        }});
-                    _listenerSupport.clear();
-                    _treecache.close();
-                }});
-        } else {
-            LOG.warn("ZKAgent has already stopped.");
-        }
+        this._op.stop(this);
+    }
+    
+    //  TODO, simplify these code
+    private static final ActionN DO_STOP = new ActionN() {
+        @Override
+        public void call(final Object... args) {
+            ((ZKAgent)args[0]).stopWhenActive();
+        }};
+        
+    private void stopWhenActive() {
+        this._executor.submit(new Runnable() {
+            @Override
+            public void run() {
+                _listenerSupport.foreachComponent(new Action1<Listener>() {
+                    @Override
+                    public void call(final Listener listener) {
+                        syncNodesOnRemoved(listener);
+                    }});
+                _listenerSupport.clear();
+                _treecache.close();
+            }});
     }
 
     public Action0 addListener(final Listener listener) {
+        return this._op.addListener(this, listener);
+    }
+    
+    private Action0 addListenerWhenActive(final Listener listener) {
         final DisabledListener disabledListener = new DisabledListener(listener);
         try {
             return new Action0() {
@@ -311,7 +323,38 @@ public class ZKAgent {
         }
     }
     
-    private final AtomicBoolean _isActive = new AtomicBoolean(true);
+    protected interface Op {
+        public Action0 addListener(final ZKAgent zka, final Listener listener);
+        public void stop(final ZKAgent zka);
+    }
+    
+    private static final Op OP_ACTIVE = new Op() {
+        @Override
+        public Action0 addListener(final ZKAgent zka, final Listener listener) {
+            return zka.addListenerWhenActive(listener);
+        }
+        @Override
+        public void stop(final ZKAgent zka) {
+            zka._selector.destroyAndSubmit(DO_STOP, zka);
+        }
+    };
+    
+    private static final Op OP_UNACTIVE = new Op() {
+
+        @Override
+        public Action0 addListener(final ZKAgent zka, final Listener listener) {
+            throw new RuntimeException("ZKAgent({}) has stopped, can't addListener");
+        }
+        
+        @Override
+        public void stop(final ZKAgent zka) {
+            LOG.warn("ZKAgent({}) has already stopped.", zka);
+        }
+    };
+    
+    private final InterfaceSelector _selector = new InterfaceSelector();
+    private final Op _op = this._selector.build(Op.class, OP_ACTIVE, OP_UNACTIVE);
+    
     private final CuratorFramework _client;
     private final ExecutorService _executor;
     private final String _root;
