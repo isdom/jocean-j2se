@@ -164,13 +164,15 @@ public class ZKAgent {
         this._executor.submit(new Runnable() {
             @Override
             public void run() {
+                // close tree cache first and no more task accepted by executor
+                _treecache.close();
+                
                 _listenerSupport.foreachComponent(new Action1<Listener>() {
                     @Override
                     public void call(final Listener listener) {
                         syncNodesOnRemoved(listener);
                     }});
                 _listenerSupport.clear();
-                _treecache.close();
             }});
     }
 
@@ -178,39 +180,40 @@ public class ZKAgent {
         return this._op.addListener(this, listener);
     }
     
-    private Action0 addListenerWhenActive(final Listener listener) {
+    private Action0 addListenerWhenActive(Listener listener) {
         final DisabledListener disabledListener = new DisabledListener(listener);
         try {
             return new Action0() {
                 @Override
                 public void call() {
                     disabledListener.disable();
-                    removeListener(disabledListener);
+                    _executor.submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            _op.removeListenerAndRemoveTree(ZKAgent.this, disabledListener);
+                        }});
                 }};
         } finally {
-            syncTreeAndAddListener(disabledListener);
+            this._executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    _op.addTreeAndAddListener(ZKAgent.this, disabledListener);
+                }});
         }
     }
     
-    private void removeListener(final Listener listener) {
-        this._executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                _listenerSupport.removeComponent(listener);
-                syncNodesOnRemoved(listener);
-                LOG.info("remove listener: {} ", listener);
-            }});
+    private void doAddTreeAndAddListener(final Listener listener) {
+        syncNodesOnAdded(listener);
+        _listenerSupport.addComponent(listener);
+        LOG.info("add listener: {} ", listener);
     }
 
-    private void syncTreeAndAddListener(final Listener listener) {
-        this._executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                syncNodesOnAdded(listener);
-                _listenerSupport.addComponent(listener);
-            }});
+    private void doRemoveListenerAndRemoveTree(final Listener listener) {
+        _listenerSupport.removeComponent(listener);
+        syncNodesOnRemoved(listener);
+        LOG.info("remove listener: {} ", listener);
     }
-
+    
     private static final Comparator<Map.Entry<String, byte[]>> ASC_BY_PATH = 
             new Comparator<Map.Entry<String, byte[]>>() {
         @Override
@@ -325,6 +328,8 @@ public class ZKAgent {
     
     protected interface Op {
         public Action0 addListener(final ZKAgent zka, final Listener listener);
+        public void addTreeAndAddListener(final ZKAgent zka, final Listener listener);
+        public void removeListenerAndRemoveTree(final ZKAgent zka, final Listener listener);
         public void stop(final ZKAgent zka);
     }
     
@@ -332,6 +337,14 @@ public class ZKAgent {
         @Override
         public Action0 addListener(final ZKAgent zka, final Listener listener) {
             return zka.addListenerWhenActive(listener);
+        }
+        @Override
+        public void addTreeAndAddListener(final ZKAgent zka, final Listener listener) {
+            zka.doAddTreeAndAddListener(listener);
+        }
+        @Override
+        public void removeListenerAndRemoveTree(final ZKAgent zka, final Listener listener) {
+            zka.doRemoveListenerAndRemoveTree(listener);
         }
         @Override
         public void stop(final ZKAgent zka) {
@@ -345,7 +358,12 @@ public class ZKAgent {
         public Action0 addListener(final ZKAgent zka, final Listener listener) {
             throw new RuntimeException("ZKAgent({}) has stopped, can't addListener");
         }
-        
+        @Override
+        public void addTreeAndAddListener(final ZKAgent zka, final Listener listener) {
+        }
+        @Override
+        public void removeListenerAndRemoveTree(final ZKAgent zka, final Listener listener) {
+        }
         @Override
         public void stop(final ZKAgent zka) {
             LOG.warn("ZKAgent({}) has already stopped.", zka);
