@@ -35,7 +35,7 @@ dependencies {
     
     compile 'com.google.guava:guava:20.0'
     compile 'com.alibaba:fastjson:1.2.32'
-    compile 'javax.ws.rs:javax.ws.rs-api:2.0'
+    compile 'javax.ws.rs:javax.ws.rs-api:2.1'
     compile 'org.apache.curator:curator-recipes:2.12.0'
 
     // javax.inject
