@@ -162,6 +162,32 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         return null;
     }
     
+    @Override
+    public Object getBean(String name) {
+        Object bean = null;
+        if (null != this._rootApplicationContext) {
+            bean = getBeanOf(this._rootApplicationContext, name);
+        }
+        if (null != bean) {
+            return bean;
+        }
+        for ( Node node : this._units.values()) {
+            if (null != node._applicationContext) {
+                bean = getBeanOf(node._applicationContext, name);
+                if (null != bean) {
+                    return bean;
+                }
+            }
+            if (null != node._unitAgent) {
+                bean = node._unitAgent.getBean(name);
+                if (null != bean) {
+                    return bean;
+                }
+            }
+        }
+        return null;
+    }
+    
     private static <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType) {
         try {
             return factory.getBean(requiredType);
@@ -186,6 +212,18 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
     }
     
+    private static Object getBeanOf(final BeanFactory factory, final String name) {
+        try {
+            return factory.getBean(name);
+        } catch (Exception e) {
+            if (!(e instanceof NoSuchBeanDefinitionException)) {
+                LOG.warn("exception when get ({}) bean from ({}), detail:{}",
+                        name, factory, ExceptionUtils.exception2detail(e));
+            }
+            return null;
+        }
+    }
+
     @Override
     public ConfigurableListableBeanFactory[] allBeanFactory() {
         final List<ConfigurableListableBeanFactory> factorys = new ArrayList<>();
@@ -867,6 +905,15 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                             LOG.info("can't found {}/{} locally, try find global.", name, requiredType);
                         }
                         return UnitAgent.this.getBean(name, requiredType);
+                    }
+                    @Override
+                    public Object getBean(final String name) {
+                        try {
+                            return ctx.getBean(name);
+                        } catch (Exception e) {
+                            LOG.info("can't found {} locally, try find global.", name);
+                        }
+                        return UnitAgent.this.getBean(name);
                     }}));
                 if (null!=unitAgentAware) {
                     beanFactory.addBeanPostProcessor(unitAgentAware);

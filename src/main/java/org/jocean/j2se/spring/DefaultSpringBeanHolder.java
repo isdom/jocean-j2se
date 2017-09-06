@@ -23,6 +23,11 @@ public class DefaultSpringBeanHolder implements SpringBeanHolder, BeanFactoryAwa
     }
 
     @Override
+    public Object getBean(final String name) {
+        return this._beanFactory.getBean(name);
+    }
+    
+    @Override
     public ConfigurableListableBeanFactory[] allBeanFactory() {
         return ( this._beanFactory instanceof ConfigurableListableBeanFactory)
                 ? new ConfigurableListableBeanFactory[]{(ConfigurableListableBeanFactory)this._beanFactory}
