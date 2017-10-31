@@ -3,6 +3,7 @@ package org.jocean.j2se.spring;
 import java.lang.reflect.Field;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.jocean.idiom.BeanHolder;
 import org.jocean.idiom.ExceptionUtils;
@@ -29,7 +30,7 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
             for (Field field : fields) {
                 try {
                     if (null==field.get(bean)) {
-                        final Object value = this._beanHoler.getBean(field.getType());
+                        final Object value = getValue(field);
                         if (null!=value) {
                             field.set(bean, value);
                             if (LOG.isInfoEnabled()) {
@@ -47,6 +48,14 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
             }
         }
         return bean;
+    }
+
+    private Object getValue(final Field field) {
+        final Named named = field.getAnnotation(Named.class);
+        if (named != null && !named.value().equals("")) {
+            return this._beanHoler.getBean(named.value(), field.getType());
+        }
+        return this._beanHoler.getBean(field.getType());
     }
 
     @Override
