@@ -23,7 +23,7 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
             LoggerFactory.getLogger(BeanHolderBasedInjector.class);
 
     public BeanHolderBasedInjector(final BeanHolder beanHolder) {
-        this._beanHoler = beanHolder;
+        this._beanHolder = beanHolder;
     }
     
     @Override
@@ -42,7 +42,7 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
         for (Field field : fields) {
             try {
                 if (null == field.get(bean)) {
-                    final Object value = BeanHolders.getBean(this._beanHoler, field.getType(),
+                    final Object value = BeanHolders.getBean(this._beanHolder, field.getType(),
                             field.getAnnotation(namedCls));
                     if (null != value) {
                         field.set(bean, value);
@@ -67,5 +67,5 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
         return bean;
     }
 
-    private final BeanHolder _beanHoler;
+    private final BeanHolder _beanHolder;
 }
