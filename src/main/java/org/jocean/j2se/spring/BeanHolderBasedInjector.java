@@ -43,7 +43,7 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
             try {
                 if (null == field.get(bean)) {
                     final Object value = BeanHolders.getBean(this._beanHolder, field.getType(),
-                            field.getAnnotation(namedCls));
+                            field.getAnnotation(namedCls), bean);
                     if (null != value) {
                         field.set(bean, value);
                         if (LOG.isInfoEnabled()) {

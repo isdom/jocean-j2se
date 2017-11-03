@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 public class PackageUtils {
 
-    private static final Logger logger = LoggerFactory
+    private static final Logger LOG = LoggerFactory
             .getLogger(PackageUtils.class);
 
     private static final List<String> EMPTY_LIST = new ArrayList<>();
@@ -30,21 +30,21 @@ public class PackageUtils {
     public static Map<URL, String[]> getAllCPResourceAsPathlike() throws IOException {
         final Map<URL, String[]> vResult = new HashMap<>();
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        if (logger.isDebugEnabled()) {
-            logger.debug("using classloader: " + cl);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("using classloader: " + cl);
         }
         {
             //	for file classpath
             final Enumeration<URL> dirs = cl.getResources("");
-            if (logger.isDebugEnabled()) {
-                logger.debug("PackageUtils: get file resources: " + dirs
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("PackageUtils: get file resources: " + dirs
                         + ", hasMoreElements:" + dirs.hasMoreElements());
             }
             while (dirs.hasMoreElements()) {
                 final URL url = dirs.nextElement();
                 final String protocol = url.getProtocol();
-                if (logger.isDebugEnabled()) {
-                    logger.debug("PackageUtils: url: " + url);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("PackageUtils: url: " + url);
                 }
 
                 if ("file".equals(protocol)) {
@@ -64,8 +64,8 @@ public class PackageUtils {
             while (jars.hasMoreElements()) {
                 final URL url = jars.nextElement();
                 final String protocol = url.getProtocol();
-                if (logger.isDebugEnabled()) {
-                    logger.debug("PackageUtils: url: " + url);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("PackageUtils: url: " + url);
                 }
 
                 if ("jar".equals(protocol)) {
@@ -129,19 +129,19 @@ public class PackageUtils {
         final List<String> vResult = new ArrayList<>();
         final String packageDirName = packageOnly.replace('.', '/');
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        if (logger.isDebugEnabled()) {
-            logger.debug("using classloader: " + cl);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("using classloader: " + cl);
         }
         final Enumeration<URL> dirs = cl.getResources(packageDirName);
-        if (logger.isDebugEnabled()) {
-            logger.debug("PackageUtils: getResources: " + dirs
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("PackageUtils: getResources: " + dirs
                     + ", hasMoreElements:" + dirs.hasMoreElements());
         }
         while (dirs.hasMoreElements()) {
             final URL url = dirs.nextElement();
             final String protocol = url.getProtocol();
-            if (logger.isDebugEnabled()) {
-                logger.debug("PackageUtils: url: " + url);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("PackageUtils: url: " + url);
             }
 
             if ("file".equals(protocol)) {
@@ -220,19 +220,19 @@ public class PackageUtils {
         List<String> vResult = new ArrayList<>();
         String packageDirName = packageOnly.replace('.', '/');
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        if (logger.isDebugEnabled()) {
-            logger.debug("using classloader: " + cl);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("using classloader: " + cl);
         }
         Enumeration<URL> dirs = cl.getResources(packageDirName);
-        if (logger.isDebugEnabled()) {
-            logger.debug("PackageUtils: getResources: " + dirs
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("PackageUtils: getResources: " + dirs
                     + ", hasMoreElements:" + dirs.hasMoreElements());
         }
         while (dirs.hasMoreElements()) {
             URL url = dirs.nextElement();
             String protocol = url.getProtocol();
-            if (logger.isDebugEnabled()) {
-                logger.debug("PackageUtils: url: " + url);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("PackageUtils: url: " + url);
             }
 
             if ("file".equals(protocol)) {
@@ -256,8 +256,8 @@ public class PackageUtils {
                                     '.');
                         }
 
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("PackageUtils: Package name is " + packageName);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("PackageUtils: Package name is " + packageName);
                         }
 
                         if ((idx != -1) || recursive) {
@@ -318,12 +318,12 @@ public class PackageUtils {
         List<String> vResult = new ArrayList<>();
         String packageDirName = packageOnly.replace('.', '/');
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        if (logger.isDebugEnabled()) {
-            logger.debug("using classloader: " + cl);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("using classloader: " + cl);
         }
         Enumeration<URL> dirs = cl.getResources(packageDirName);
-        if (logger.isDebugEnabled()) {
-            logger.debug("PackageUtils: getResources: " + dirs
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("PackageUtils: getResources: " + dirs
                     + ", hasMoreElements:" + dirs.hasMoreElements());
         }
         while (dirs.hasMoreElements()) {
@@ -332,8 +332,8 @@ public class PackageUtils {
             // if(!matchTestClasspath(url, packageDirName, recursive)) {
             // continue;
             // }
-            if (logger.isDebugEnabled()) {
-                logger.debug("PackageUtils: url: " + url);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("PackageUtils: url: " + url);
             }
 
             if ("file".equals(protocol)) {
@@ -357,8 +357,8 @@ public class PackageUtils {
                                     '.');
                         }
 
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("PackageUtils: Package name is " + packageName);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("PackageUtils: Package name is " + packageName);
                         }
 
                         // Utils.log("PackageUtils", 4, "Package name is " +
@@ -369,8 +369,8 @@ public class PackageUtils {
                                 String className = name.substring(packageName
                                         .length() + 1, name.length() - 6);
 
-                                if (logger.isDebugEnabled()) {
-                                    logger.debug("PackageUtils: Found class "
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("PackageUtils: Found class "
                                             + className
                                             + ", seeing it if it's included or excluded");
                                 }
@@ -404,19 +404,19 @@ public class PackageUtils {
             for (String clsName : findClassesInPackage(packageName)) {
                 try {
                     ClassLoader cl = Thread.currentThread().getContextClassLoader();
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("using ClassLoader {} to load Class {}", cl, clsName);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("using ClassLoader {} to load Class {}", cl, clsName);
                     }
                     Class<?> cls = cl.loadClass(clsName);
                     if (cls.isAnnotationPresent(annotationClass)) {
                         found.add(cls);
                     }
                 } catch (ClassNotFoundException e) {
-                    logger.error("", e);
+                    LOG.error("", e);
                 }
             }
         } catch (IOException e) {
-            logger.error("", e);
+            LOG.error("", e);
         }
         return found;
     }
@@ -437,8 +437,8 @@ public class PackageUtils {
             }
         });
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("PackageUtils: Looking for test classes in the directory: "
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("PackageUtils: Looking for test classes in the directory: "
                     + dir);
         }
         for (File file : dirfiles) {
@@ -450,8 +450,8 @@ public class PackageUtils {
                 String className = file.getName().substring(0,
                         file.getName().length() - 6);
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug("PackageUtils: Found class " + className
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("PackageUtils: Found class " + className
                             + ", seeing it if it's included or excluded");
                 }
                 includeOrExcludeClass(packageName, className, included,
@@ -464,13 +464,13 @@ public class PackageUtils {
                                               String className, List<String> included, List<String> excluded,
                                               List<String> classes) {
         if (isIncluded(className, included, excluded)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("PackageUtils: ... Including class " + className);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("PackageUtils: ... Including class " + className);
             }
             classes.add(packageName + '.' + className);
         } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("PackageUtils: ... Excluding class " + className);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("PackageUtils: ... Excluding class " + className);
             }
         }
     }
