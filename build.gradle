@@ -1,5 +1,13 @@
 apply from: 'http://git.jocean.org/jocean/devconf/raw/master/devconf/build-lib.gradle'
 
+jar {
+    manifest {
+        from 'conf/manifest/MANIFEST.MF'
+        attributes("Specification-Title": moduleName, "Specification-Version": version)
+        attributes("Implementation-Title": moduleName, "Implementation-Version": "$version-$distBuildNumber-$distBuildId-$distRevision")
+    }
+}
+
 configurations {
     all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     all*.exclude group: 'log4j', module: 'log4j'
