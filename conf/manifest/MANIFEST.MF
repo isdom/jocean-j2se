@@ -1,0 +1,2 @@
+Main-Class: org.jocean.j2se.booter.Booter
+Class-Path: ../../etc/ 
