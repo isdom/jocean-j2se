@@ -1,13 +1,13 @@
 package org.jocean.j2se;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
 public class AppInfo {
-    final private String _buildNo;
-
     public AppInfo() {
         this._buildNo = getVersion();
     }
@@ -23,4 +23,11 @@ public class AppInfo {
     public String getBuildNo() {
         return this._buildNo;
     }
+    
+    public Map<String, ModuleInfo> getModules() {
+        return this._modules;
+    }
+    
+    final private String _buildNo;
+    final private Map<String, ModuleInfo> _modules = new HashMap<>();
 }

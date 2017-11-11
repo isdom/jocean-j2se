@@ -3,8 +3,7 @@
  */
 package org.jocean.j2se.booter;
 
-import java.util.Map;
-
+import org.jocean.j2se.AppInfo;
 import org.jocean.j2se.ModuleInfo;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -24,11 +23,10 @@ public class ZKMain {
         @SuppressWarnings({ "resource"})
         final AbstractApplicationContext ctx = 
                 new ClassPathXmlApplicationContext("unit/zkbooter.xml");
-        @SuppressWarnings("unchecked")
-        final Map<String, ModuleInfo> modules = (Map<String, ModuleInfo>)ctx.getBean("libs", Map.class);
-        if (null != modules) {
+        final AppInfo app = ctx.getBean("appinfo", AppInfo.class);
+        if (null != app) {
             for (String lib : libs) {
-                modules.put(lib, new ModuleInfo(lib));
+                app.getModules().put(lib, new ModuleInfo(lib));
             }
         }
     }

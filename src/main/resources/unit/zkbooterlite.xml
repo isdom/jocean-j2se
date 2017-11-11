@@ -43,8 +43,6 @@
     
     <import resource="classpath:unit/zkunit.xml"/>
     
-    <bean id="libs" class="java.util.concurrent.ConcurrentHashMap"/>
-     
     <bean id="appinfo" class="org.jocean.j2se.AppInfo" />
     
     <bean class="java.lang.System" factory-method="setProperty">
@@ -60,7 +58,6 @@
             <map>
                 <entry key="org.jocean:type=zkclient" value-ref="zkClient"/>
                 <entry key="org.jocean:type=appinfo" value-ref="appinfo"/>
-                <entry key="org.jocean:type=libs" value-ref="libs"/>
             </map>
         </property>
     </bean>
