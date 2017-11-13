@@ -1,6 +1,5 @@
 package org.jocean.j2se;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +14,7 @@ public class AppInfo {
     private String getVersion() {
         try {
             return Resources.toString(getClass().getResource("/version.txt"), Charsets.UTF_8);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return "UNKNOWN";
         }
     }
