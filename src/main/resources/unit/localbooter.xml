@@ -17,6 +17,8 @@
         </constructor-arg>
     </bean>
     
+    <bean class="com.google.common.eventbus.EventBus"/>
+
     <bean class="org.jocean.j2se.spring.ApplicationContextNameSetter">
         <property name="displayName" value="${app.name:root}"/>
     </bean>

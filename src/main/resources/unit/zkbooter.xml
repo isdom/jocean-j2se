@@ -52,6 +52,8 @@
         </constructor-arg>
     </bean>
     
+    <bean class="com.google.common.eventbus.EventBus"/>
+    
     <import resource="classpath:unit/zkunit.xml"/>
 
     <bean id="appinfo" class="org.jocean.j2se.AppInfo" />
