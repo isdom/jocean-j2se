@@ -53,6 +53,7 @@
     </bean>
     
     <bean class="com.google.common.eventbus.EventBus"/>
+    <bean class="org.jocean.j2se.unit.DefaultBeanFinder"/>
     
     <import resource="classpath:unit/zkunit.xml"/>
 

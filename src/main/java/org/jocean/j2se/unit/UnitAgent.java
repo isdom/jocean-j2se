@@ -1066,6 +1066,8 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     private ApplicationContext _rootApplicationContext = null;
     
     private EventBus _eventbus = null;
+    
+    private DefaultBeanFinder _finder = null;
 
     private Resource[] _rootPropertyFiles = null;
 
