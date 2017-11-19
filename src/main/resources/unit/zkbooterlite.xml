@@ -42,9 +42,12 @@
     </bean>
     
     <bean class="com.google.common.eventbus.EventBus"/>
-    <bean class="org.jocean.j2se.unit.DefaultBeanFinder"/>
     
     <import resource="classpath:unit/zkunit.xml"/>
+    
+    <bean class="org.jocean.j2se.unit.DefaultBeanFinder">
+        <property name="beanHolder" ref="unitAgent"/>
+    </bean>
     
     <bean id="appinfo" class="org.jocean.j2se.AppInfo" />
     

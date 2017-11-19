@@ -17,15 +17,18 @@
         </constructor-arg>
     </bean>
     
-    <bean class="com.google.common.eventbus.EventBus"/>
-    <bean class="org.jocean.j2se.unit.DefaultBeanFinder"/>
-
     <bean class="org.jocean.j2se.spring.ApplicationContextNameSetter">
         <property name="displayName" value="${app.name:root}"/>
     </bean>
     
+    <bean class="com.google.common.eventbus.EventBus"/>
+
     <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"
         destroy-method="stop" />
+        
+    <bean class="org.jocean.j2se.unit.DefaultBeanFinder">
+        <property name="beanHolder" ref="unitAgent"/>
+    </bean>
     
     <bean id="unitBuilder" class="org.jocean.j2se.unit.model.UnitBuilder"
         init-method="start"
