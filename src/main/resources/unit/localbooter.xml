@@ -37,16 +37,4 @@
         <property name="location" value="${unitdesc:classpath:local.yaml}"/>
     </bean>
     
-    <bean id="directMemory" class="org.jocean.j2se.stats.DirectMemoryIndicator"/>
-
-    <bean class="org.springframework.jmx.export.MBeanExporter"
-          lazy-init="false">
-        <property name="beans">
-            <map>
-                <entry key="org.jocean:type=directMemory"
-                    value-ref="directMemory"/>
-            </map>
-        </property>
-    </bean>
-    
 </beans>
