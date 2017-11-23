@@ -44,7 +44,7 @@
     <bean class="org.jocean.j2se.jmx.MBeanRegisterSetter">
         <constructor-arg>
             <bean class="org.jocean.j2se.jmx.MBeanRegisterSupport">
-                <constructor-arg value="org.jocean:type=root"/>
+                <constructor-arg value="org.jocean:unit=root"/>
                 <constructor-arg>
                     <null/>
                 </constructor-arg>
