@@ -11,8 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jocean.idiom.Pair;
 import org.jocean.idiom.SimpleCache;
-import org.jocean.j2se.jmx.MBeanRegister;
-import org.jocean.j2se.jmx.MBeanRegisterAware;
+import org.jocean.idiom.jmx.MBeanRegister;
+import org.jocean.idiom.jmx.MBeanRegisterAware;
 import org.jocean.j2se.jmx.MBeanUtil;
 import org.jocean.j2se.stats.TIMemos.CounterableTIMemo;
 import org.jocean.j2se.stats.TIMemos.OnCounter;

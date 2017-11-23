@@ -15,6 +15,7 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.jocean.idiom.ExceptionUtils;
+import org.jocean.idiom.jmx.MBeanRegister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
