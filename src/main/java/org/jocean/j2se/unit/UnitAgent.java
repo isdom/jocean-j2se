@@ -114,6 +114,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             this._rootPropertyFiles = null;
         }
         this._eventbus = this._rootApplicationContext.getBean(EventBus.class);
+        this._finder = this._rootApplicationContext.getBean(DefaultBeanFinder.class);
     }
 
     @Override
@@ -962,6 +963,8 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             }});
 
         ctx.refresh();
+        // when new applicationContext added, then reset finder's beans cache
+        this._finder.resetCache();
         return ctx;
     }
 
