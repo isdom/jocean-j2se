@@ -29,13 +29,20 @@ public class TIMemos {
     }
     
     private static final Range<Long> MT30S = Range.atLeast(30000L);
-    private static final Range<Long> LT30S = Range.closedOpen(10000L, 30000L);
-    private static final Range<Long> LT10S = Range.closedOpen(5000L, 10000L);
-    private static final Range<Long> LT5S = Range.closedOpen(1000L, 5000L);
-    private static final Range<Long> LT1S = Range.closedOpen(500L, 1000L);
-    private static final Range<Long> LT500MS = Range.closedOpen(100L, 500L);
-    private static final Range<Long> LS100MS = Range.closedOpen(10L, 100L);
+    private static final Range<Long> BT10_30S = Range.closedOpen(10000L, 30000L);
+    private static final Range<Long> BT5S_10S = Range.closedOpen(5000L, 10000L);
+    private static final Range<Long> BT1S_5S = Range.closedOpen(1000L, 5000L);
+    private static final Range<Long> BT500MS_1S = Range.closedOpen(500L, 1000L);
+    private static final Range<Long> BT100MS_500MS = Range.closedOpen(100L, 500L);
+    private static final Range<Long> BT10MS_100MS = Range.closedOpen(10L, 100L);
     private static final Range<Long> LT10MS = Range.closedOpen(0L, 10L);
+    
+    private static final Range<Long> BT5MS_10MS = Range.closedOpen(5L, 10L);
+    private static final Range<Long> EQ4MS = Range.singleton(4L);
+    private static final Range<Long> EQ3MS = Range.singleton(3L);
+    private static final Range<Long> EQ2MS = Range.singleton(2L);
+    private static final Range<Long> EQ1MS = Range.singleton(1L);
+    private static final Range<Long> EQ0MS = Range.singleton(0L);
     
     @SuppressWarnings("unchecked")
     public static CounterableTIMemo memo_10ms_30S() {
@@ -51,13 +58,45 @@ public class TIMemos {
                 },
                 new Range[]{
                 LT10MS,
-                LS100MS,
-                LT500MS,
-                LT1S,
-                LT5S,
-                LT10S,
-                LT30S,
+                BT10MS_100MS,
+                BT100MS_500MS,
+                BT500MS_1S,
+                BT1S_5S,
+                BT5S_10S,
+                BT10_30S,
                 MT30S});
     }
     
+    @SuppressWarnings("unchecked")
+    public static CounterableTIMemo memo_0ms_30S() {
+        return new CounterableTIMemoImpl(new String[]{
+                "01_eq0ms",
+                "02_eq1ms",
+                "03_eq2ms",
+                "04_eq3ms",
+                "05_eq4ms",
+                "06_5_10ms",
+                "07_10_100ms",
+                "08_100_500ms",
+                "09_500ms_1s",
+                "10_1_5s",
+                "11_5_10s",
+                "12_10_30s",
+                "13_mt30s",
+                },
+                new Range[]{
+                EQ0MS,
+                EQ1MS,
+                EQ2MS,
+                EQ3MS,
+                EQ4MS,
+                BT5MS_10MS,
+                BT10MS_100MS,
+                BT100MS_500MS,
+                BT500MS_1S,
+                BT1S_5S,
+                BT5S_10S,
+                BT10_30S,
+                MT30S});
+    }
 }

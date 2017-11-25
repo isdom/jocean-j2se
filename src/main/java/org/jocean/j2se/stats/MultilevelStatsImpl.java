@@ -31,7 +31,8 @@ class MultilevelStatsImpl implements MultilevelStats {
             @Override
             public Object call(final Object input) {
                 if ( 0 == levels ) {
-                    return TIMemos.memo_10ms_30S();
+//                    return TIMemos.memo_10ms_30S();
+                    return TIMemos.memo_0ms_30S();
                 } else {
                     return new SimpleCache<Object, Object>(
                             genIfAbsent(levels-1, ifAssociated), ifAssociated);
