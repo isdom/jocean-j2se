@@ -22,7 +22,6 @@ import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.jmx.MBeanRegister;
 import org.jocean.idiom.jmx.MBeanRegisterAware;
-import org.jocean.j2se.eventbus.EventBusAware;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.jocean.j2se.spring.BeanHolderBasedInjector;
@@ -41,7 +40,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ApplicationContext;
@@ -53,8 +51,6 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ReflectionUtils;
-
-import com.google.common.eventbus.EventBus;
 
 import rx.functions.Action1;
 
@@ -113,7 +109,6 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         } else {
             this._rootPropertyFiles = null;
         }
-        this._eventbus = this._rootApplicationContext.getBean(EventBus.class);
         this._finder = this._rootApplicationContext.getBean(DefaultBeanFinder.class);
     }
 
@@ -929,19 +924,6 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 if (null!=unitKeeprAwareHolder) {
                     beanFactory.addBeanPostProcessor(unitKeeprAwareHolder);
                 }
-                beanFactory.addBeanPostProcessor(new BeanPostProcessor() {
-                    @Override
-                    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-                        if ( bean instanceof EventBusAware) {
-                            LOG.debug("set eventbus {} to bean:{}", _eventbus, bean);
-                            ((EventBusAware)bean).setEventBus(_eventbus);
-                        }
-                        return bean;
-                    }
-                    @Override
-                    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-                        return bean;
-                    }});
             }});
         ctx.addApplicationListener(new ApplicationListener<ApplicationContextEvent>() {
             @Override
@@ -1067,8 +1049,6 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     private String[] _sourcePatterns;
 
     private ApplicationContext _rootApplicationContext = null;
-    
-    private EventBus _eventbus = null;
     
     private DefaultBeanFinder _finder = null;
 
