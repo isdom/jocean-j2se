@@ -21,12 +21,10 @@
         <property name="displayName" value="${app.name:root}"/>
     </bean>
     
-    <bean class="com.google.common.eventbus.EventBus"/>
-
     <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent"
         destroy-method="stop" />
         
-    <bean class="org.jocean.j2se.unit.DefaultBeanFinder">
+    <bean id="beanFinder" class="org.jocean.j2se.unit.DefaultBeanFinder">
         <property name="beanHolder" ref="unitAgent"/>
     </bean>
     
