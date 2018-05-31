@@ -26,7 +26,7 @@ import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.jocean.j2se.spring.BeanHolderBasedInjector;
 import org.jocean.j2se.spring.BeanHolderSetter;
-import org.jocean.j2se.spring.FieldValueSetter;
+import org.jocean.j2se.spring.FieldAndMethodValueSetter;
 import org.jocean.j2se.spring.PropertiesResourceSetter;
 import org.jocean.j2se.spring.PropertyPlaceholderConfigurerSetter;
 import org.jocean.j2se.spring.SpringBeanHolder;
@@ -889,7 +889,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 beanFactory.addBeanPostProcessor(new PropertyPlaceholderConfigurerSetter(configurer));
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
                 beanFactory.addBeanPostProcessor(new BeanHolderSetter(UnitAgent.this));
-                beanFactory.addBeanPostProcessor(new FieldValueSetter(properties));
+                beanFactory.addBeanPostProcessor(new FieldAndMethodValueSetter(properties));
                 beanFactory.addBeanPostProcessor(new BeanHolderBasedInjector(new BeanHolder(){
                     @Override
                     public <T> T getBean(final Class<T> requiredType) {
