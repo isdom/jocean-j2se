@@ -39,7 +39,7 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
             try {
                 final Value v = field.getAnnotation(Value.class);
                 final String key = v.value().replace("${", "").replace("}", "");
-                final String value = this._properties.getProperty(key);
+                final String value = ket2value(key);
 
                 if (null!=value) {
                     field.set(bean, Beans.fromString(value, field.getType()));
@@ -68,7 +68,7 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
             try {
                 final Value v = method.getAnnotation(Value.class);
                 final String key = v.value().replace("${", "").replace("}", "");
-                final String value = this._properties.getProperty(key);
+                final String value = ket2value(key);
 
                 if (null!=value) {
                     final Parameter p1st = method.getParameters()[0];
@@ -91,6 +91,11 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
     public Object postProcessAfterInitialization(final Object bean, final String beanName)
             throws BeansException {
         return bean;
+    }
+
+    private String ket2value(final String key) {
+        final String value = this._properties.getProperty(key);
+        return null != value ? value : System.getProperty(key);
     }
 
     private final Properties _properties;
