@@ -35,6 +35,8 @@ dependencies {
     compile "org.springframework:spring-context-support:${springVersion}"
     compile "org.springframework:spring-orm:${springVersion}"
     compile "org.springframework:spring-test:${springVersion}"
+    compile "org.springframework:spring-aspects:${springVersion}"
+    compile 'aopalliance:aopalliance:1.0'
 
     runtime 'org.javassist:javassist:3.24.0-GA'
     runtime 'com.jcraft:jzlib:1.1.3'
