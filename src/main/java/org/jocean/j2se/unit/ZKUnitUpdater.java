@@ -1,47 +1,45 @@
 /**
- * 
+ *
  */
 package org.jocean.j2se.unit;
 
 import java.io.ByteArrayInputStream;
+import java.io.DataInput;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.io.FilenameUtils;
 import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
 import org.jocean.j2se.zk.ZKAgent;
-import org.jocean.j2se.zk.ZKAgent.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
 
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteStreams;
 
 /**
  * @author isdom
  *
  */
-public class ZKUnitUpdater implements Listener {
+public class ZKUnitUpdater implements ZKAgent.Listener {
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(ZKUnitUpdater.class);
-    
+    private static final Logger LOG = LoggerFactory.getLogger(ZKUnitUpdater.class);
+
     private static final String SPRING_XML_KEY = "__spring.xml";
-    
+
     public ZKUnitUpdater(final UnitAgent unitAgent) {
         this._unitAgent = unitAgent;
     }
-    
+
     /**
      * @param data
      * @throws IOException
      */
     private Properties loadProperties(final byte[] data) throws IOException {
-        try (
-            final InputStream is = null != data
-                    ? new ByteArrayInputStream(data) 
-                    : null;
-        ) {
+        try (final InputStream is = null != data ? new ByteArrayInputStream(data) : null) {
             return new Properties() {
                 private static final long serialVersionUID = 1L;
             {
@@ -51,7 +49,22 @@ public class ZKUnitUpdater implements Listener {
             }};
         }
     }
-    
+
+    private Map<String, String> data2props(final byte[] data) throws IOException {
+        Map<String, String> props;
+        final DataInput di = ByteStreams.newDataInput(data);
+        final String _1_line = di.readLine();
+        if (null != _1_line && _1_line.startsWith("## yaml")) {
+            // read as yaml
+            final Yaml yaml = new Yaml();
+            props = (Map<String, String>)yaml.loadAs(new ByteArrayInputStream(data), Map.class);
+        } else {
+            final Properties properties = loadProperties(data);
+            props = Maps.fromProperties(properties);
+        }
+        return props;
+    }
+
     @Override
     public void onAdded(
             final ZKAgent agent,
@@ -64,20 +77,15 @@ public class ZKUnitUpdater implements Listener {
                 LOG.debug("creating unit named {}", pathName);
             }
             final String template = getTemplateFromFullPathName(pathName);
-            final Properties properties = loadProperties(data);
-            final String[] source = genSourceFrom(properties);
-            
+            final Map<String, String> props = data2props(data);
+            final String[] source = genSourceFrom(props);
             UnitMXBean unit = null;
             if (null != source ) {
-                unit = this._unitAgent.createUnitWithSource(
-                        pathName,
-                        source,
-                        Maps.fromProperties(properties));
+                unit = this._unitAgent.createUnitWithSource(pathName, source, props);
             } else {
-                unit = this._unitAgent.createUnit(
-                        pathName,
+                unit = this._unitAgent.createUnit(pathName,
                         new String[]{"**/"+ template + ".xml", template + ".xml"},
-                        Maps.fromProperties(properties),
+                        props,
                         true);
             }
             if (null == unit) {
@@ -85,7 +93,7 @@ public class ZKUnitUpdater implements Listener {
             } else {
                 LOG.info("create unit {} success with active status:{}", pathName, unit.isActive());
             }
-            
+
         }
     }
 
@@ -100,19 +108,14 @@ public class ZKUnitUpdater implements Listener {
             if ( LOG.isDebugEnabled()) {
                 LOG.debug("updating unit named {}", pathName);
             }
-            final Properties properties = loadProperties(data);
-            final String[] source = genSourceFrom(properties);
-            
+            final Map<String, String> props = data2props(data);
+            final String[] source = genSourceFrom(props);
+
             UnitMXBean unit = null;
             if (null != source ) {
-                unit = this._unitAgent.updateUnitWithSource(
-                        pathName,
-                        source,
-                        Maps.fromProperties(properties));
+                unit = this._unitAgent.updateUnitWithSource(pathName, source, props);
             } else {
-                unit = this._unitAgent.updateUnit(
-                        pathName,
-                        Maps.fromProperties(properties));
+                unit = this._unitAgent.updateUnit(pathName, props);
             }
             if (null == unit) {
                 LOG.info("update unit {} failed.", pathName);
@@ -121,7 +124,7 @@ public class ZKUnitUpdater implements Listener {
             }
         }
     }
-    
+
     @Override
     public void onRemoved(
             final ZKAgent agent,
@@ -141,9 +144,9 @@ public class ZKUnitUpdater implements Listener {
         }
     }
 
-    private static String[] genSourceFrom(final Properties properties) {
-        final String value = properties.getProperty(SPRING_XML_KEY);
-        properties.remove(SPRING_XML_KEY);
+    private static String[] genSourceFrom(final Map<String, String> props) {
+        final String value = props.get(SPRING_XML_KEY);
+//        properties.remove(SPRING_XML_KEY);
         return null!=value ? value.split(",") : null;
     }
 
@@ -165,6 +168,6 @@ public class ZKUnitUpdater implements Listener {
         final int idx = template.indexOf('.');
         return ( -1 != idx ) ? template.substring(0, idx) : template;
     }
-    
+
     private final UnitAgent _unitAgent;
 }
