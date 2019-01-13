@@ -35,4 +35,7 @@
         <property name="location" value="${unitdesc:classpath:local.yaml}"/>
     </bean>
     
+    <!-- Tracing 切面 -->
+    <bean id="tracingAspect" class="org.jocean.j2se.tracing.TracingAspect" />
+
 </beans>
