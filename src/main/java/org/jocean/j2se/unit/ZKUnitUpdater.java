@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
@@ -51,20 +52,21 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
     }
 
     private Map<String, String> data2props(final byte[] data) throws IOException {
-        Map<String, String> props;
+        if (null == data) {
+            return Collections.emptyMap();
+        }
         final DataInput di = ByteStreams.newDataInput(data);
         final String _1_line = di.readLine();
         if (null != _1_line && _1_line.startsWith("## yaml")) {
             LOG.debug("parse as yaml");
             // read as yaml
             final Yaml yaml = new Yaml();
-            props = (Map<String, String>)yaml.loadAs(new ByteArrayInputStream(data), Map.class);
+            final Map<String, String> props = (Map<String, String>)yaml.loadAs(new ByteArrayInputStream(data), Map.class);
             LOG.debug("parse result: {}", props);
+            return props;
         } else {
-            final Properties properties = loadProperties(data);
-            props = Maps.fromProperties(properties);
+            return Maps.fromProperties(loadProperties(data));
         }
-        return props;
     }
 
     @Override
