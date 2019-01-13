@@ -55,9 +55,11 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
         final DataInput di = ByteStreams.newDataInput(data);
         final String _1_line = di.readLine();
         if (null != _1_line && _1_line.startsWith("## yaml")) {
+            LOG.debug("parse as yaml");
             // read as yaml
             final Yaml yaml = new Yaml();
             props = (Map<String, String>)yaml.loadAs(new ByteArrayInputStream(data), Map.class);
+            LOG.debug("parse result: {}", props);
         } else {
             final Properties properties = loadProperties(data);
             props = Maps.fromProperties(properties);
