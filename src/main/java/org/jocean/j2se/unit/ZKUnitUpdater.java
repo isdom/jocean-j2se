@@ -61,12 +61,32 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
             LOG.debug("parse as yaml");
             // read as yaml
             final Yaml yaml = new Yaml();
-            final Map<String, String> props = (Map<String, String>)yaml.loadAs(new ByteArrayInputStream(data), Map.class);
+            @SuppressWarnings("unchecked")
+            final Map<String, String> props = asStringStringMap(null, yaml.loadAs(new ByteArrayInputStream(data), Map.class));
             LOG.debug("parse result: {}", props);
             return props;
         } else {
             return Maps.fromProperties(loadProperties(data));
         }
+    }
+
+    private Map<String, String> asStringStringMap(final String prefix, final Map<Object, Object> map) {
+        final Map<String, String> ssmap = Maps.newHashMap();
+        for(final Map.Entry<Object, Object> entry : map.entrySet()) {
+            final String key = withPrefix(prefix, entry.getKey().toString());
+            if (entry.getValue() instanceof Map) {
+                @SuppressWarnings("unchecked")
+                final Map<Object, Object> orgmap = (Map<Object, Object>)entry.getValue();
+                ssmap.putAll(asStringStringMap(key, orgmap));
+            } else {
+                ssmap.put(key, entry.getValue().toString());
+            }
+        }
+        return ssmap;
+    }
+
+    private String withPrefix(final String prefix, final String key) {
+        return null != prefix ? prefix + "." + key : key;
     }
 
     @Override
