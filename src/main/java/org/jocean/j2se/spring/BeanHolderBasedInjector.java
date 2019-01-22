@@ -19,13 +19,12 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 
 public class BeanHolderBasedInjector implements BeanPostProcessor {
 
-    private static final Logger LOG = 
-            LoggerFactory.getLogger(BeanHolderBasedInjector.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BeanHolderBasedInjector.class);
 
     public BeanHolderBasedInjector(final BeanHolder beanHolder) {
         this._beanHolder = beanHolder;
     }
-    
+
     @Override
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
@@ -39,22 +38,20 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
     private void injectFields(final Object bean, final String beanName, final Class<? extends Annotation> injectCls,
             final Class<? extends Annotation> namedCls) {
         final Field[] fields = ReflectUtils.getAnnotationFieldsOf(bean.getClass(), injectCls);
-        for (Field field : fields) {
+        for (final Field field : fields) {
             try {
                 if (null == field.get(bean)) {
                     final Object value = BeanHolders.getBean(this._beanHolder, field.getType(),
                             field.getAnnotation(namedCls), bean);
                     if (null != value) {
                         field.set(bean, value);
-                        if (LOG.isInfoEnabled()) {
-                            LOG.info("inject {} to bean({})'s field({})", value, beanName, field);
-                        }
+                        LOG.debug("inject {} to bean({})'s field({})", value, beanName, field);
                     } else {
-                        LOG.warn("NOT Found global bean for type {}, unable auto inject bean({})'s field({})!",
+                        LOG.debug("NOT Found global bean for type {}, unable auto inject bean({})'s field({})!",
                                 field.getType(), beanName, field);
                     }
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 LOG.warn("exception when postProcessBeforeInitialization for bean({}), detail: {}", beanName,
                         ExceptionUtils.exception2detail(e));
             }
