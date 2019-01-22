@@ -4,15 +4,11 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
         
-    <bean id="observable" 
-        factory-bean="mbeanPublisher" 
-        factory-method="watch" >
+    <bean id="observable" factory-bean="mbeanPublisher" factory-method="watch">
         <constructor-arg value="${mbean.name}"/>
     </bean>
 
-    <bean factory-bean="observable" 
-        factory-method="subscribe"
-        destroy-method="unsubscribe" >
+    <bean factory-bean="observable" factory-method="subscribe" destroy-method="unsubscribe">
         <constructor-arg>
 		    <bean class="org.jocean.j2se.zk.UnitConfigOnZKUpdater">
 		        <constructor-arg ref="zkClient"/>

@@ -12,6 +12,8 @@ import org.apache.zookeeper.CreateMode;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.PropertyPlaceholderHelper;
 import org.jocean.idiom.PropertyPlaceholderHelper.PlaceholderResolver;
+import org.jocean.idiom.jmx.MBeanRegister;
+import org.jocean.idiom.jmx.MBeanRegisterAware;
 import org.jocean.j2se.jmx.MBeanStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,15 +22,29 @@ import com.google.common.base.Charsets;
 
 import rx.Subscriber;
 
-public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
-    
-    private static final Logger LOG = 
-            LoggerFactory.getLogger(UnitConfigOnZKUpdater.class);
+public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> implements MBeanRegisterAware {
+
+    private static final Logger LOG = LoggerFactory.getLogger(UnitConfigOnZKUpdater.class);
+
+    @Override
+    public void setMBeanRegister(final MBeanRegister register) {
+        register.registerMBean("type=zkupdater", new ZKUpdaterMXBean() {
+            @Override
+            public String[] getCreatedPaths() {
+                return _createdPaths.values().toArray(new String[0]);
+            }
+
+            @Override
+            public void removePaths() {
+                removeAllZKPath();
+            }
+        });
+    }
 
     public UnitConfigOnZKUpdater(final CuratorFramework curator) {
         this._curator = curator;
     }
-    
+
     @Override
     public void onCompleted() {
         LOG.info("Subscriber MBeanStatus for path {} onCompleted", this._path);
@@ -52,7 +68,7 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
                     if (null!=propertyValue) {
                         return propertyValue;
                     }
-                    final String envValue = System.getenv(placeholderName);  
+                    final String envValue = System.getenv(placeholderName);
                     if (null!=envValue) {
                         return envValue;
                     }
@@ -61,23 +77,22 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
                 }};
             final PropertyPlaceholderHelper placeholderReplacer = new PropertyPlaceholderHelper("{", "}");
             final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
-            
+
             try {
                 addZKPath(mbeanStatus.mbeanName(),
                     this._curator.create()
                         .creatingParentsIfNeeded()
                         .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-                        .forPath(placeholderReplacer.replacePlaceholders(
-                                null, this._path, placeholderResolver, null), 
+                        .forPath(placeholderReplacer.replacePlaceholders(null, this._path, placeholderResolver, null),
                             config.getBytes(Charsets.UTF_8)));
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("create config for path {}, config\n{}", this._path, config);
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 LOG.warn("exception when create config for path {}, detail:{}",
                         this._path, ExceptionUtils.exception2detail(e));
             }
-            
+
         } else if (mbeanStatus.isUnregistered()) {
             removeZKPath(mbeanStatus.mbeanName());
         }
@@ -97,51 +112,50 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("delete config for path {}", path);
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 LOG.warn("exception when delete config for path {}, detail:{}",
                         path, ExceptionUtils.exception2detail(e));
             }
         }
     }
-    
+
     private void removeAllZKPath() {
         while (!this._createdPaths.keySet().isEmpty()) {
             removeZKPath(this._createdPaths.keySet().iterator().next());
         }
     }
 
-    
+
     /**
      * @param template the _template to set
      */
     public void setTemplate(final String template) {
         this._template = template;
     }
-    
+
     /**
      * @param path the _path to set
      */
     public void setPath(final String path) {
         this._path = path + _PATH_SUFFIX;
     }
-    
+
     static {
         String hostname = "unknown";
         try {
             hostname = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
+        } catch (final UnknownHostException e) {
         }
         _PATH_SUFFIX = "." + hostname
-                + "." + System.getProperty("user.name") 
+                + "." + System.getProperty("user.name")
                 + "." + System.getProperty("app.name")
                 + ".";
     }
-    
+
     private static final String _PATH_SUFFIX;
-    
+
     private String _path;
     private String _template;
     private final CuratorFramework _curator;
-    private final Map<ObjectName,String> _createdPaths = 
-            new ConcurrentHashMap<>();
+    private final Map<ObjectName,String> _createdPaths = new ConcurrentHashMap<>();
 }

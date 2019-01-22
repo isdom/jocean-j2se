@@ -17,29 +17,28 @@ import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
-import rx.functions.Action0;
-import rx.subscriptions.Subscriptions;
 import rx.Subscriber;
+import rx.subscriptions.Subscriptions;
 
 public class MBeanPublisher {
 
     private final static ObjectName MBEANSERVER_DELEGATE;
-    
+
     static {
         MBEANSERVER_DELEGATE = MBeanUtil.safeGetObjectName("JMImplementation:type=MBeanServerDelegate");
     }
-    
-    private static final Logger LOG = 
+
+    private static final Logger LOG =
             LoggerFactory.getLogger(MBeanPublisher.class);
-    
+
     public MBeanPublisher() {
         this(ManagementFactory.getPlatformMBeanServer());
     }
-    
+
     public MBeanPublisher(final MBeanServerConnection mbsc) {
         this._mbsc = mbsc;
     }
-    
+
     public Observable<MBeanStatus> watch(final ObjectName objectName) {
         return Observable.unsafeCreate(genOnSubscribe(objectName)).serialize();
     }
@@ -50,22 +49,18 @@ public class MBeanPublisher {
             public void call(final Subscriber<? super MBeanStatus> subscriber) {
                 if (!subscriber.isUnsubscribed()) {
                     try {
-                        final NotificationListener notificationListener = 
-                                new MBeanStatusNotifyListener(objectName, subscriber);
+                        final NotificationListener notificationListener = new MBeanStatusNotifyListener(objectName, subscriber);
                         _mbsc.addNotificationListener(MBEANSERVER_DELEGATE, notificationListener, null, null );
-                        subscriber.add(Subscriptions.create(new Action0() {
-                            @Override
-                            public void call() {
+                        subscriber.add(Subscriptions.create(() -> {
                                 try {
                                     _mbsc.removeNotificationListener(MBEANSERVER_DELEGATE, notificationListener);
                                     subscriber.onCompleted();
-                                } catch (Exception e) {
+                                } catch (final Exception e) {
                                     LOG.warn("exception when removeNotificationListener for {}, detail:{}",
                                             objectName, ExceptionUtils.exception2detail(e));
                                 }
-                            }
-                        }));
-                    } catch (Exception e) {
+                            }));
+                    } catch (final Exception e) {
                         LOG.warn("exception when addNotificationListener for {}, detail:{}",
                                 objectName, ExceptionUtils.exception2detail(e));
                         subscriber.onError(e);
@@ -84,23 +79,21 @@ public class MBeanPublisher {
                                     return false;
                                 }});
                         }
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         LOG.warn("exception when queryNames for {}, detail:{}",
                                 objectName, ExceptionUtils.exception2detail(e));
                     }
                 }
             }
-            
+
         };
     }
-    
-    private final class MBeanStatusNotifyListener implements
-            NotificationListener {
+
+    private final class MBeanStatusNotifyListener implements NotificationListener {
         private final ObjectName _objectName;
         private final Subscriber<? super MBeanStatus> _subscriber;
 
-        private MBeanStatusNotifyListener(final ObjectName objectName,
-                final Subscriber<? super MBeanStatus> subscriber) {
+        private MBeanStatusNotifyListener(final ObjectName objectName, final Subscriber<? super MBeanStatus> subscriber) {
             this._objectName = objectName;
             this._subscriber = subscriber;
         }
@@ -138,7 +131,7 @@ public class MBeanPublisher {
                         }} );
                 }
             }
-            
+
         }
     }
 
@@ -157,20 +150,20 @@ public class MBeanPublisher {
         public Object getValue(final String attributeOrMethodName) {
             try {
                 return _mbsc.getAttribute(this._mbeanName, attributeOrMethodName);
-            } catch (AttributeNotFoundException e) {
+            } catch (final AttributeNotFoundException e) {
                 try {
                     return _mbsc.invoke(this._mbeanName, attributeOrMethodName, null, null);
-                } catch (Exception e1) {
+                } catch (final Exception e1) {
                     LOG.warn("exception when invoke {}.{}, detail:{}",
                             this._mbeanName, attributeOrMethodName, ExceptionUtils.exception2detail(e1));
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 LOG.warn("exception when get attribute {}.{}, detail:{}",
                         this._mbeanName, attributeOrMethodName, ExceptionUtils.exception2detail(e));
             }
             return null;
         }
-        
+
         private final ObjectName _mbeanName;
     }
 
