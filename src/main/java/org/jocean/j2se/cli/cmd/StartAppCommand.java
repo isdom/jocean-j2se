@@ -87,7 +87,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
     @Override
     public String getHelp() {
-        return "start app with zk config\r\n\tUsage: startapp [endpoint] [namespace] [dataid] [group] [rootxml]";
+        return "start app with zk config\r\n\tUsage: startapp [endpoint] [namespace] [ramRoleName] [dataid] [group] [rootxml]";
     }
 }
 

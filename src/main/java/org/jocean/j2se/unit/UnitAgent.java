@@ -63,8 +63,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         private static final long serialVersionUID = 1L;
     }
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(UnitAgent.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UnitAgent.class);
 
     public UnitAgent() {
         this._sourcePatterns = _DEFAULT_SOURCE_PATTERNS;
@@ -99,9 +98,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         this._rootApplicationContext = applicationContext;
         //设置工程全局配置文件
         final PropertyPlaceholderConfigurer rootConfigurer =
-                null != this._rootApplicationContext
-                ? this._rootApplicationContext.getBean(PropertyPlaceholderConfigurer.class)
-                : null;
+                null != this._rootApplicationContext ? getRootConfigurer() : null;
         if (rootConfigurer != null) {
             final Field field = ReflectionUtils.findField(rootConfigurer.getClass(), "locations");
             field.setAccessible(true);
@@ -110,6 +107,14 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             this._rootPropertyFiles = null;
         }
         this._finder = this._rootApplicationContext.getBean(DefaultBeanFinder.class);
+    }
+
+    private PropertyPlaceholderConfigurer getRootConfigurer() {
+        try {
+            return this._rootApplicationContext.getBean(PropertyPlaceholderConfigurer.class);
+        } catch (final Exception e) {
+            return null;
+        }
     }
 
     @Override
