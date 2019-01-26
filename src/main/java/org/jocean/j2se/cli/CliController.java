@@ -110,4 +110,8 @@ public class CliController {
     public DefaultCommandRepository cmdsRepo() {
         return this._cmdsRepo;
     }
+
+    public void await() throws InterruptedException {
+        EPOLL_BOSS_GROUP.terminationFuture().await();
+    }
 }

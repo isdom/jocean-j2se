@@ -23,12 +23,14 @@ public class CliMain {
      * @throws Exception
      */
     public static void main(final String[] args, final String[] libs) throws Exception {
-        final CliController cli = new CliController(System.getProperty("user.dir", "~/"));
+        final CliController cli = new CliController(System.getProperty("user.dir", "~") + "/");
         final AtomicReference<ConfigurableApplicationContext> ref = new AtomicReference<>();
         cli.cmdsRepo().addCommand(new StartAppCommand(ref, libs))
             .addCommand(new StopAppCommand(ref))
             .addCommand(new ExitSrvCommand(cli))
             ;
         cli.start();
+
+        cli.await();
     }
 }
