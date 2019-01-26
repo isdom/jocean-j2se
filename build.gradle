@@ -26,6 +26,11 @@ dependencies {
     /** jocean */
     compile 'org.jocean:jocean-idiom:0.1.4-SNAPSHOT'
     
+    // for cli
+    compile 'org.jocean:jocean-cli:0.0.1-SNAPSHOT'
+    compile 'org.jocean:jocean-http:0.0.2-SNAPSHOT'
+    compile 'com.alibaba.edas.acm:acm-sdk:1.0.8'
+    
     /* log */
     runtime 'org.slf4j:jcl-over-slf4j:1.7.25'
     optional("org.logback-extensions:logback-ext-spring:0.1.2") { transitive = false }

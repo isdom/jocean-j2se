@@ -10,13 +10,12 @@ import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
 public class PropertyPlaceholderConfigurerSetter implements BeanPostProcessor {
 
-    private static final Logger LOG = 
-            LoggerFactory.getLogger(PropertyPlaceholderConfigurerSetter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PropertyPlaceholderConfigurerSetter.class);
 
     public PropertyPlaceholderConfigurerSetter(final PropertyPlaceholderConfigurer configurer) {
         this._configurer = configurer;
     }
-    
+
     @Override
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
@@ -24,7 +23,7 @@ public class PropertyPlaceholderConfigurerSetter implements BeanPostProcessor {
             if (bean instanceof PropertyPlaceholderConfigurerAware) {
                 try {
                     ((PropertyPlaceholderConfigurerAware)bean).setPropertyPlaceholderConfigurer(this._configurer);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOG.warn("exception when setPropertyPlaceholderConfigurer for bean({}), detail: {}",
                             beanName, ExceptionUtils.exception2detail(e));
                 }

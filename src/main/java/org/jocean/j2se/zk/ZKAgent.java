@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import rx.functions.Action0;
-import rx.functions.Action1;
 import rx.functions.ActionN;
 
 public class ZKAgent {
@@ -161,19 +160,13 @@ public class ZKAgent {
         }};
 
     private void stopWhenActive() {
-        this._executor.submit(new Runnable() {
-            @Override
-            public void run() {
+        this._executor.submit(() -> {
                 // close tree cache first and no more task accepted by executor
                 _treecache.close();
 
-                _listenerSupport.foreachComponent(new Action1<Listener>() {
-                    @Override
-                    public void call(final Listener listener) {
-                        syncNodesOnRemoved(listener);
-                    }});
+                _listenerSupport.foreachComponent(listener -> syncNodesOnRemoved(listener));
                 _listenerSupport.clear();
-            }});
+            });
     }
 
     public Action0 addListener(final Listener listener) {

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    
+    <bean class="org.jocean.j2se.spring.ApplicationContextNameSetter">
+        <property name="displayName" value="${app.name:root}"/>
+    </bean>
+    
+    <bean id="zkClient" class="org.jocean.j2se.zk.ZKUtils"
+        factory-method="buildWithExhibitorEnsembleProvider"
+        init-method="start"
+        destroy-method="close">
+        <constructor-arg>
+            <bean class="org.springframework.util.StringUtils"
+                factory-method="commaDelimitedListToStringArray">
+                <constructor-arg value="${exhibitor.hosts}"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg value="${exhibitor.restport}"/>
+        <constructor-arg value="${zk.address}"/>
+        <constructor-arg value="${exhibitor.basicAuthUser:}"/>
+        <constructor-arg value="${exhibitor.basicAuthPass:}"/>
+        <constructor-arg value="${exhibitor.restUriPath:/exhibitor/v1/cluster/list}"/>
+        <constructor-arg value="${exhibitor.pollingMs:2000}"/>
+        <constructor-arg>
+            <bean class="org.apache.curator.retry.ExponentialBackoffRetry">
+                <constructor-arg value="1000"/>
+                <constructor-arg value="3"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+    
+    <bean class="org.jocean.j2se.jmx.MBeanRegisterSetter">
+        <constructor-arg>
+            <bean class="org.jocean.j2se.jmx.MBeanRegisterSupport">
+                <constructor-arg value="org.jocean:unit=root"/>
+                <constructor-arg>
+                    <null/>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+    
+    <import resource="classpath:unit/zkunit.xml"/>
+
+    <bean id="beanFinder" class="org.jocean.j2se.unit.DefaultBeanFinder">
+        <property name="beanHolder" ref="unitAgent"/>
+    </bean>
+    
+    <bean id="appinfo" class="org.jocean.j2se.AppInfo" />
+    
+    <bean class="java.lang.System" factory-method="setProperty">
+        <constructor-arg value="service.buildno"/>
+        <constructor-arg>
+            <bean factory-bean="appinfo" factory-method="getBuildNo"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean class="org.springframework.jmx.export.MBeanExporter"
+          lazy-init="false">
+        <property name="beans">
+            <map>
+                <entry key="org.jocean:type=zkclient" value-ref="zkClient"/>
+                <entry key="org.jocean:type=appinfo" value-ref="appinfo"/>
+            </map>
+        </property>
+    </bean>
+    
+    <!-- Tracing 切面 -->
+    <bean id="tracingAspect" class="org.jocean.j2se.tracing.TracingAspect" />
+    
+</beans>
