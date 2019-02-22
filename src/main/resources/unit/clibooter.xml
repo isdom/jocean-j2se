@@ -27,7 +27,17 @@
         <property name="beanHolder" ref="unitAgent"/>
     </bean>
     
+    <bean id="appinfo" class="org.jocean.j2se.AppInfo" />
+    
     <!-- Tracing 切面 -->
     <bean id="tracingAspect" class="org.jocean.j2se.tracing.TracingAspect" />
 
+    <bean class="org.springframework.jmx.export.MBeanExporter"
+          lazy-init="false">
+        <property name="beans">
+            <map>
+                <entry key="org.jocean:type=appinfo" value-ref="appinfo"/>
+            </map>
+        </property>
+    </bean>
 </beans>
