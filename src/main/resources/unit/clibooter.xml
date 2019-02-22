@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+        
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+    
+    <bean class="org.jocean.j2se.jmx.MBeanRegisterSetter">
+        <constructor-arg>
+            <bean class="org.jocean.j2se.jmx.MBeanRegisterSupport">
+                <constructor-arg value="org.jocean:unit=root"/>
+                <constructor-arg>
+                    <null/>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+    
+    <bean class="org.jocean.j2se.spring.ApplicationContextNameSetter">
+        <property name="displayName" value="${app.name:root}"/>
+    </bean>
+    
+    <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent" destroy-method="stop" />
+        
+    <bean id="beanFinder" class="org.jocean.j2se.unit.DefaultBeanFinder">
+        <property name="beanHolder" ref="unitAgent"/>
+    </bean>
+    
+    <!-- Tracing 切面 -->
+    <bean id="tracingAspect" class="org.jocean.j2se.tracing.TracingAspect" />
+
+</beans>
