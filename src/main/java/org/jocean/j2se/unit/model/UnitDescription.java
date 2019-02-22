@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.jocean.j2se.unit.model;
 
@@ -21,36 +21,31 @@ import com.google.common.base.Charsets;
  *
  */
 public class UnitDescription {
-    
-    private static final Logger LOG = LoggerFactory
-            .getLogger(UnitDescription.class);
 
-    private static final UnitDescription[] EMPTY_DESCRIPTIONS = 
-            new UnitDescription[0];
-    
-    private final Comparator<UnitDescription> DESC_COMPARATOR_ASC = 
-        new Comparator<UnitDescription>() {
+    private static final Logger LOG = LoggerFactory.getLogger(UnitDescription.class);
+
+    private static final UnitDescription[] EMPTY_DESCRIPTIONS = new UnitDescription[0];
+
+    private final Comparator<UnitDescription> DESC_COMPARATOR_ASC = new Comparator<UnitDescription>() {
             @Override
             public int compare(final UnitDescription o1, final UnitDescription o2) {
                 return o2._name.compareTo(o1._name);
             }};
-    
+
     public void setName(final String name) {
         this._name = name;
     }
-    
+
     public void setChildren(final UnitDescription[] children) {
-        this._children = null != children 
-                ? children
-                : EMPTY_DESCRIPTIONS;
-        
+        this._children = null != children ? children : EMPTY_DESCRIPTIONS;
+
         Arrays.sort(this._children, DESC_COMPARATOR_ASC);
     }
-    
+
     public void setParameters(final String parameters) {
         this._parameters = parameters;
     }
-    
+
     public String getName() {
         return this._name;
     }
@@ -62,28 +57,28 @@ public class UnitDescription {
     public String getParameters() {
         return this._parameters;
     }
-    
+
     public Properties parametersAsProperties() {
         final Properties properties = new Properties();
         try (
             final InputStream is = null != _parameters
-                    ? new ByteArrayInputStream(_parameters.getBytes(Charsets.UTF_8)) 
+                    ? new ByteArrayInputStream(_parameters.getBytes(Charsets.UTF_8))
                     : null;
         ) {
             if (null != is) {
                 try {
                     properties.load( is );
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     LOG.warn("exception when load properties, detail: {}",
                             ExceptionUtils.exception2detail(e));
                 }
             }
-        } catch (IOException e1) {
+        } catch (final IOException e1) {
             // just ignore close throw Exception
         }
         return properties;
     }
-    
+
     @Override
     public String toString() {
         return "UnitDescription [name=" + _name + ", parameters="
@@ -115,7 +110,7 @@ public class UnitDescription {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        UnitDescription other = (UnitDescription) obj;
+        final UnitDescription other = (UnitDescription) obj;
         if (!Arrays.equals(_children, other._children))
             return false;
         if (_name == null) {

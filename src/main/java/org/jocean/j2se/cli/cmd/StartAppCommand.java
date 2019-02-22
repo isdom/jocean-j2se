@@ -9,6 +9,7 @@ import org.jocean.cli.CliCommand;
 import org.jocean.cli.CliContext;
 import org.jocean.j2se.AppInfo;
 import org.jocean.j2se.ModuleInfo;
+import org.jocean.j2se.os.OSUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
@@ -53,6 +54,16 @@ public class StartAppCommand implements CliCommand<CliContext> {
         //props.put("regionId", "$regionId");
 
         ConfigService.init(props);
+
+        final String appName = System.getProperty("app.name", "unknown");
+        final String hostname = OSUtil.getLocalHostname();
+
+        final String appConfig = ConfigService.getConfig(appName, args[4], 6000);
+        if (null != appConfig) {
+            LOG.debug("{}/{} app config: {}", hostname, appName, appConfig);
+        } else {
+            LOG.debug("{}/{} app config is null", hostname, appName);
+        }
 
         // 主动获取配置
         final String content = ConfigService.getConfig(args[3], args[4], 6000);
