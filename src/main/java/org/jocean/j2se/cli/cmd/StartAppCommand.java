@@ -49,7 +49,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
             return "FAILED: app already started when " + new Date(this._ctxRef.get().getStartupDate());
         }
 
-        if (args.length < 6) {
+        if (args.length < 5) {
             return "FAILED: missing startapp params\n" + getHelp();
         }
 
@@ -236,7 +236,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
     @Override
     public String getHelp() {
-        return "start app with zk config\r\n\tUsage: startapp [endpoint] [namespace] [ramRoleName] [dataid] [group] [rootxml]";
+        return "start app with zk config\r\n\tUsage: startapp [endpoint] [namespace] [ramRoleName] [dataid] [group]";
     }
 }
 
