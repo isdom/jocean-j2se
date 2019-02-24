@@ -6,6 +6,10 @@
         
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
     
+    <bean class="org.jocean.j2se.spring.ApplicationContextNameSetter">
+        <property name="displayName" value="${app.name:root}"/>
+    </bean>
+    
     <bean class="org.jocean.j2se.jmx.MBeanRegisterSetter">
         <constructor-arg>
             <bean class="org.jocean.j2se.jmx.MBeanRegisterSupport">
@@ -17,10 +21,6 @@
         </constructor-arg>
     </bean>
     
-    <bean class="org.jocean.j2se.spring.ApplicationContextNameSetter">
-        <property name="displayName" value="${app.name:root}"/>
-    </bean>
-    
     <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent" destroy-method="stop" />
         
     <bean id="beanFinder" class="org.jocean.j2se.unit.DefaultBeanFinder">
@@ -28,6 +28,13 @@
     </bean>
     
     <bean id="appinfo" class="org.jocean.j2se.AppInfo" />
+    
+    <bean class="java.lang.System" factory-method="setProperty">
+        <constructor-arg value="service.buildno"/>
+        <constructor-arg>
+            <bean factory-bean="appinfo" factory-method="getBuildNo"/>
+        </constructor-arg>
+    </bean>
     
     <!-- Tracing 切面 -->
     <bean id="tracingAspect" class="org.jocean.j2se.tracing.TracingAspect" />
