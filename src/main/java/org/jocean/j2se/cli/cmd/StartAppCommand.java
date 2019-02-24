@@ -3,7 +3,6 @@ package org.jocean.j2se.cli.cmd;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
@@ -19,7 +18,6 @@ import org.jocean.j2se.unit.model.ServiceConfig;
 import org.jocean.j2se.unit.model.UnitDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -68,10 +66,18 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
         ConfigService.init(props);
 
+        final Func1<String, String> getACMConfig = dataid -> {
+            try {
+                return ConfigService.getConfig(dataid, args[4], 6000);
+            } catch (final ConfigException e) {
+                return null;
+            }
+        };
+
         final String appName = System.getProperty("app.name", "unknown");
         final String hostname = OSUtil.getLocalHostname();
 
-        final String appConfig = ConfigService.getConfig(appName, args[4], 6000);
+        final String appConfig = getACMConfig.call(appName);
         if (null != appConfig) {
             LOG.debug("{}/{} app config: {}", hostname, appName, appConfig);
             final Yaml yaml = new Yaml(new Constructor(ServiceConfig[].class));
@@ -81,13 +87,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
                 final ServiceConfig conf4host = findConfig(hostname, confs);
                 if (null != conf4host) {
                     LOG.debug("found app-conf {} match hostname: {}", conf4host, hostname);
-                    buildApplication(conf4host, dataid -> {
-                        try {
-                            return ConfigService.getConfig(dataid, args[4], 6000);
-                        } catch (final ConfigException e) {
-                            return null;
-                        }
-                    });
+                    buildApplication(conf4host.getConf(), getACMConfig);
                     return "OK";
                 }
 
@@ -95,13 +95,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
                 final ServiceConfig defaultconf = findConfig("_default_", confs);
                 if (null != defaultconf) {
                     LOG.debug("found default config: {}", defaultconf);
-                    buildApplication(defaultconf, dataid -> {
-                        try {
-                            return ConfigService.getConfig(dataid, args[4], 6000);
-                        } catch (final ConfigException e) {
-                            return null;
-                        }
-                    });
+                    buildApplication(defaultconf.getConf(), getACMConfig);
                     return "OK";
                 }
             }
@@ -111,29 +105,22 @@ public class StartAppCommand implements CliCommand<CliContext> {
         }
 
         // 主动获取配置
-        final String content = ConfigService.getConfig(args[3], args[4], 6000);
-        final Properties properties = new Properties();
-        properties.load(new StringReader(content));
+        final String defaultConfig = getACMConfig.call(args[3]);
+        if (null != defaultConfig) {
+            final Yaml yaml = new Yaml(new Constructor(UnitDescription.class));
 
-        final PropertyPlaceholderConfigurer configurer = new PropertyPlaceholderConfigurer();
-
-        configurer.setProperties(properties);
-
-        // "unit/zkbooter.xml"
-        final AbstractApplicationContext appctx = new ClassPathXmlApplicationContext(new String[]{args[5]}, false);
-        appctx.addBeanFactoryPostProcessor(configurer);
-        appctx.refresh();
-
-        this._ctxRef.set(appctx);
-
-        final AppInfo app = appctx.getBean("appinfo", AppInfo.class);
-        if (null != app) {
-            for (final String lib : this._libs) {
-                app.getModules().put(lib, new ModuleInfo(lib));
+            try (final InputStream is = new ByteArrayInputStream(defaultConfig.getBytes(Charsets.UTF_8))) {
+                final UnitDescription unitdesc = (UnitDescription)yaml.load(is);
+                if (null != unitdesc) {
+                    LOG.debug("{}/{} apply default config: {}", hostname, appName, defaultConfig);
+                    buildApplication(unitdesc, getACMConfig);
+                    return "OK";
+                }
             }
         }
+        LOG.debug("{}/{} NOT apply ANY config", hostname, appName);
 
-        return "OK";
+        return "ERROR";
     }
 
     private ServiceConfig findConfig(final String hostname, final ServiceConfig[] confs) {
@@ -145,7 +132,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         return null;
     }
 
-    private void buildApplication(final ServiceConfig conf, final Func1<String, String> getConfig) {
+    private void buildApplication(final UnitDescription unitdesc, final Func1<String, String> getConfig) {
         final AbstractApplicationContext appctx = new ClassPathXmlApplicationContext("unit/clibooter.xml");
         final AppInfo app = appctx.getBean("appinfo", AppInfo.class);
         if (null != app) {
@@ -154,7 +141,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
             }
         }
 
-        build(appctx.getBean(UnitAgent.class), conf.getConf(), null, getConfig);
+        build(appctx.getBean(UnitAgent.class), unitdesc, null, getConfig);
         this._ctxRef.set(appctx);
     }
 
