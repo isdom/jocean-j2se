@@ -75,27 +75,24 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
             try (final InputStream is = new ByteArrayInputStream(appConfig.getBytes(Charsets.UTF_8))) {
                 final ServiceConfig[] confs = (ServiceConfig[])yaml.load(is);
-                for (final ServiceConfig conf : confs) {
-                    if (conf.getHost().equals(hostname)) {
-                        LOG.debug("found app-conf {} match hostname: {}", conf, hostname);
-                        final AbstractApplicationContext appctx = new ClassPathXmlApplicationContext("unit/clibooter.xml");
-                        final AppInfo app = appctx.getBean("appinfo", AppInfo.class);
-                        if (null != app) {
-                            for (final String lib : this._libs) {
-                                app.getModules().put(lib, new ModuleInfo(lib));
-                            }
-                        }
+                final ServiceConfig conf4host = findConfig(hostname, confs);
+                if (null != conf4host) {
+                    LOG.debug("found app-conf {} match hostname: {}", conf4host, hostname);
+                    buildApplication(conf4host);
+                    return "OK";
+                }
 
-                        build(appctx.getBean(UnitAgent.class), conf.getConf(), null);
-                        this._ctxRef.set(appctx);
-
-                        return "OK";
-                    }
+                // try match defult config
+                final ServiceConfig defaultconf = findConfig("_default_", confs);
+                if (null != defaultconf) {
+                    LOG.debug("found default config: {}", defaultconf);
+                    buildApplication(defaultconf);
+                    return "OK";
                 }
             }
-            LOG.debug("NOT found any app-conf match hostname: {}", hostname);
+            LOG.debug("NOT found any app-conf match hostname: {} or default", hostname);
         } else {
-            LOG.debug("{}/{} app config is null", hostname, appName);
+            LOG.debug("{}/{} app config is null", args[4], appName);
         }
 
         // 主动获取配置
@@ -122,6 +119,28 @@ public class StartAppCommand implements CliCommand<CliContext> {
         }
 
         return "OK";
+    }
+
+    private ServiceConfig findConfig(final String hostname, final ServiceConfig[] confs) {
+        for (final ServiceConfig conf : confs) {
+            if (conf.getHost().equals(hostname)) {
+                return conf;
+            }
+        }
+        return null;
+    }
+
+    private void buildApplication(final ServiceConfig conf) {
+        final AbstractApplicationContext appctx = new ClassPathXmlApplicationContext("unit/clibooter.xml");
+        final AppInfo app = appctx.getBean("appinfo", AppInfo.class);
+        if (null != app) {
+            for (final String lib : this._libs) {
+                app.getModules().put(lib, new ModuleInfo(lib));
+            }
+        }
+
+        build(appctx.getBean(UnitAgent.class), conf.getConf(), null);
+        this._ctxRef.set(appctx);
     }
 
     private void build(final UnitAgent unitAgent, final UnitDescription desc, final String parentPath) {
