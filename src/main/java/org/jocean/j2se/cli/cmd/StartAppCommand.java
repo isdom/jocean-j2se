@@ -1,6 +1,7 @@
 package org.jocean.j2se.cli.cmd;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.Date;
@@ -26,12 +27,14 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import com.alibaba.edas.acm.ConfigService;
+import com.alibaba.edas.acm.exception.ConfigException;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 
+import rx.functions.Func1;
+
 public class StartAppCommand implements CliCommand<CliContext> {
 
-    @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(StartAppCommand.class);
 
     final AtomicReference<ConfigurableApplicationContext> _ctxRef;
@@ -78,7 +81,13 @@ public class StartAppCommand implements CliCommand<CliContext> {
                 final ServiceConfig conf4host = findConfig(hostname, confs);
                 if (null != conf4host) {
                     LOG.debug("found app-conf {} match hostname: {}", conf4host, hostname);
-                    buildApplication(conf4host);
+                    buildApplication(conf4host, dataid -> {
+                        try {
+                            return ConfigService.getConfig(dataid, args[4], 6000);
+                        } catch (final ConfigException e) {
+                            return null;
+                        }
+                    });
                     return "OK";
                 }
 
@@ -86,7 +95,13 @@ public class StartAppCommand implements CliCommand<CliContext> {
                 final ServiceConfig defaultconf = findConfig("_default_", confs);
                 if (null != defaultconf) {
                     LOG.debug("found default config: {}", defaultconf);
-                    buildApplication(defaultconf);
+                    buildApplication(defaultconf, dataid -> {
+                        try {
+                            return ConfigService.getConfig(dataid, args[4], 6000);
+                        } catch (final ConfigException e) {
+                            return null;
+                        }
+                    });
                     return "OK";
                 }
             }
@@ -130,7 +145,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         return null;
     }
 
-    private void buildApplication(final ServiceConfig conf) {
+    private void buildApplication(final ServiceConfig conf, final Func1<String, String> getConfig) {
         final AbstractApplicationContext appctx = new ClassPathXmlApplicationContext("unit/clibooter.xml");
         final AppInfo app = appctx.getBean("appinfo", AppInfo.class);
         if (null != app) {
@@ -139,42 +154,79 @@ public class StartAppCommand implements CliCommand<CliContext> {
             }
         }
 
-        build(appctx.getBean(UnitAgent.class), conf.getConf(), null);
+        build(appctx.getBean(UnitAgent.class), conf.getConf(), null, getConfig);
         this._ctxRef.set(appctx);
     }
 
-    private void build(final UnitAgent unitAgent, final UnitDescription desc, final String parentPath) {
-        final String pathName = null != parentPath
-                ? parentPath + desc.getName()
-                : desc.getName();
-        final String template = getTemplateFromName(desc.getName());
-        final Properties properties = desc.parametersAsProperties();
-        final String[] source = genSourceFrom(properties);
+    private static final String SPRING_XML_KEY = "__spring.xml";
+    private static final String REF_KEY = "->";
 
-        UnitMXBean unit = null;
-        if (null != source ) {
-            unit = unitAgent.createUnitWithSource(
-                    pathName,
-                    source,
-                    Maps.fromProperties(properties));
+    private void build(final UnitAgent unitAgent, final UnitDescription desc, final String parentPath,
+            final Func1<String, String> getConfig) {
+        final String pathName = pathOf(parentPath, desc);
+        if (desc.getName().startsWith(REF_KEY)) {
+            final UnitDescription ref = buildRef(desc.getName().substring(REF_KEY.length()), unitAgent, parentPath, getConfig);
+            if (null != ref) {
+                buildChildren(desc.getChildren(), unitAgent, getConfig, pathOf(parentPath, ref));
+            } else {
+                LOG.warn("can't build unit by ref: {}, skip all it's children", desc.getName());
+            }
         } else {
-            unit = unitAgent.createUnit(
-                    pathName,
-                    new String[]{"**/"+ template + ".xml", template + ".xml"},
-                    Maps.fromProperties(properties),
-                    true);
-        }
-        if (null == unit) {
-            LOG.info("create unit {} failed.", pathName);
-        } else {
-            LOG.info("create unit {} success with active status:{}", pathName, unit.isActive());
-        }
-        for ( final UnitDescription child : desc.getChildren()) {
-            build(unitAgent, child, pathName + "/");
+            final String template = getTemplateFromName(desc.getName());
+            final Properties properties = desc.parametersAsProperties();
+            final String[] source = genSourceFrom(properties);
+
+            UnitMXBean unit = null;
+            if (null != source ) {
+                unit = unitAgent.createUnitWithSource(
+                        pathName,
+                        source,
+                        Maps.fromProperties(properties));
+            } else {
+                unit = unitAgent.createUnit(
+                        pathName,
+                        new String[]{"**/"+ template + ".xml", template + ".xml"},
+                        Maps.fromProperties(properties),
+                        true);
+            }
+            if (null == unit) {
+                LOG.info("create unit {} failed.", pathName);
+            } else {
+                LOG.info("create unit {} success with active status:{}", pathName, unit.isActive());
+            }
+            buildChildren(desc.getChildren(), unitAgent, getConfig, pathName);
         }
     }
 
-    private static final String SPRING_XML_KEY = "__spring.xml";
+    private String pathOf(final String parentPath, final UnitDescription desc) {
+        return null != parentPath ? parentPath + desc.getName() : desc.getName();
+    }
+
+    private void buildChildren(final UnitDescription[] children,
+            final UnitAgent unitAgent,
+            final Func1<String, String> getConfig, final String pathName) {
+        for ( final UnitDescription child : children) {
+            build(unitAgent, child, pathName + "/", getConfig);
+        }
+    }
+
+    private UnitDescription buildRef(final String dataid, final UnitAgent unitAgent, final String parentPath,
+            final Func1<String, String> getConfig) {
+        final String content = getConfig.call(dataid);
+        if (null != content) {
+            final Yaml yaml = new Yaml(new Constructor(UnitDescription.class));
+
+            try (final InputStream is = new ByteArrayInputStream(content.getBytes(Charsets.UTF_8))) {
+                final UnitDescription refdesc = (UnitDescription)yaml.load(is);
+                if (null != refdesc) {
+                    build(unitAgent, refdesc, parentPath, getConfig);
+                    return  refdesc;
+                }
+            } catch (final IOException e) {
+            }
+        }
+        return null;
+    }
 
     private static String[] genSourceFrom(final Properties properties) {
         final String value = properties.getProperty(SPRING_XML_KEY);
