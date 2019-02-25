@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.jocean.cli.CliCommand;
 import org.jocean.cli.CliContext;
+import org.jocean.idiom.ExceptionUtils;
 import org.jocean.j2se.AppInfo;
 import org.jocean.j2se.ModuleInfo;
 import org.jocean.j2se.os.OSUtil;
@@ -66,9 +67,12 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
         ConfigService.init(props);
 
+        final String defaultDataid = args[3];
+        final String groupName = args[4];
+
         final Func1<String, String> getACMConfig = dataid -> {
             try {
-                return ConfigService.getConfig(dataid, args[4], 6000);
+                return ConfigService.getConfig(dataid, groupName, 6000);
             } catch (final ConfigException e) {
                 return null;
             }
@@ -77,56 +81,57 @@ public class StartAppCommand implements CliCommand<CliContext> {
         final String appName = System.getProperty("app.name", "unknown");
         final String hostname = OSUtil.getLocalHostname();
 
-        final String appConfig = getACMConfig.call(appName);
-        if (null != appConfig) {
-            LOG.debug("{}/{} app config: {}", hostname, appName, appConfig);
-            final Yaml yaml = new Yaml(new Constructor(ServiceConfig[].class));
+        final ServiceConfig[] confs = loadYaml(ServiceConfig[].class, appName, getACMConfig);
+        final ServiceConfig conf4host = findConfig(hostname, confs);
+        if (null != conf4host) {
+            LOG.debug("found host-conf {} for service: {} / hostname: {}", conf4host, appName, hostname);
+            buildApplication(conf4host.getConf(), getACMConfig);
+            return "OK";
+        }
 
-            try (final InputStream is = new ByteArrayInputStream(appConfig.getBytes(Charsets.UTF_8))) {
-                final ServiceConfig[] confs = (ServiceConfig[])yaml.load(is);
-                final ServiceConfig conf4host = findConfig(hostname, confs);
-                if (null != conf4host) {
-                    LOG.debug("found app-conf {} match hostname: {}", conf4host, hostname);
-                    buildApplication(conf4host.getConf(), getACMConfig);
-                    return "OK";
-                }
-
-                // try match defult config
-                final ServiceConfig defaultconf = findConfig("_default_", confs);
-                if (null != defaultconf) {
-                    LOG.debug("found default config: {}", defaultconf);
-                    buildApplication(defaultconf.getConf(), getACMConfig);
-                    return "OK";
-                }
-            }
-            LOG.debug("NOT found any app-conf match hostname: {} or default", hostname);
+        // try match defult config
+        final ServiceConfig defaultconf = findConfig("_default_", confs);
+        if (null != defaultconf) {
+            LOG.debug("found default-conf {} for service: {} / hostname: {}", defaultconf, appName, hostname);
+            buildApplication(defaultconf.getConf(), getACMConfig);
+            return "OK";
         } else {
-            LOG.debug("{}/{} app config is null", args[4], appName);
+            LOG.debug("can't found any host-conf for service: {} match hostname: {} or default", appName, hostname);
         }
 
-        // 主动获取配置
-        final String defaultConfig = getACMConfig.call(args[3]);
-        if (null != defaultConfig) {
-            final Yaml yaml = new Yaml(new Constructor(UnitDescription.class));
-
-            try (final InputStream is = new ByteArrayInputStream(defaultConfig.getBytes(Charsets.UTF_8))) {
-                final UnitDescription unitdesc = (UnitDescription)yaml.load(is);
-                if (null != unitdesc) {
-                    LOG.debug("{}/{} apply default config: {}", hostname, appName, defaultConfig);
-                    buildApplication(unitdesc, getACMConfig);
-                    return "OK";
-                }
-            }
+        final UnitDescription unitdesc = loadYaml(UnitDescription.class, defaultDataid, getACMConfig);
+        if (null != unitdesc) {
+            LOG.debug("{}/{} apply default config: {}", hostname, appName, unitdesc);
+            buildApplication(unitdesc, getACMConfig);
+            return "OK";
         }
+
         LOG.debug("{}/{} NOT apply ANY config", hostname, appName);
 
         return "ERROR";
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> T loadYaml(final Class<T> type, final String dataid, final Func1<String, String> getACMConfig) {
+        final String content = getACMConfig.call(dataid);
+        if (null != content) {
+            final Yaml yaml = new Yaml(new Constructor(type));
+
+            try (final InputStream is = new ByteArrayInputStream(content.getBytes(Charsets.UTF_8))) {
+                return (T)yaml.load(is);
+            } catch (final IOException e) {
+                LOG.warn("exception when loadYaml from {}, detail: {}", dataid, ExceptionUtils.exception2detail(e));
+            }
+        }
+        return null;
+    }
+
     private ServiceConfig findConfig(final String hostname, final ServiceConfig[] confs) {
-        for (final ServiceConfig conf : confs) {
-            if (conf.getHost().equals(hostname)) {
-                return conf;
+        if (null != confs) {
+            for (final ServiceConfig conf : confs) {
+                if (conf.getHost().equals(hostname)) {
+                    return conf;
+                }
             }
         }
         return null;
