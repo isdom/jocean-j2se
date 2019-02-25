@@ -59,7 +59,7 @@ public class UnitDescription {
     }
 
     public byte[] parametersAsByteArray() {
-        return this._parameters.getBytes(Charsets.UTF_8);
+        return null != this._parameters ? this._parameters.getBytes(Charsets.UTF_8) : null;
     }
 
     public Properties parametersAsProperties() {
