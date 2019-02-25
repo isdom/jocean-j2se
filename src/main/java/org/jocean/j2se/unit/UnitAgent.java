@@ -372,9 +372,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
 
         final Node parentNode = getParentNode(unitName);
-        final ApplicationContext parentCtx =
-                null != parentNode
-                    ? parentNode.rootApplicationContext()
+        final ApplicationContext parentCtx = null != parentNode ? parentNode.rootApplicationContext()
                     : this._rootApplicationContext;
 
         if (null == parentCtx) {

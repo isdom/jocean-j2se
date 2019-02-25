@@ -79,8 +79,7 @@ public class ZKAgent {
                 new AtomicReference<>();
     }
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(ZKAgent.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZKAgent.class);
 
     public ZKAgent(
             final CuratorFramework client,

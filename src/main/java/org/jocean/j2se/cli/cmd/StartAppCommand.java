@@ -85,7 +85,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         final ServiceConfig conf4host = findConfig(hostname, confs);
         if (null != conf4host) {
             LOG.debug("found host-conf {} for service: {} / hostname: {}", conf4host, appName, hostname);
-            buildApplication(conf4host.getConf(), getACMConfig);
+            buildApplication(conf4host.getConfs(), getACMConfig);
             return "OK";
         }
 
@@ -93,7 +93,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         final ServiceConfig defaultconf = findConfig("_default_", confs);
         if (null != defaultconf) {
             LOG.debug("found default-conf {} for service: {} / hostname: {}", defaultconf, appName, hostname);
-            buildApplication(defaultconf.getConf(), getACMConfig);
+            buildApplication(defaultconf.getConfs(), getACMConfig);
             return "OK";
         } else {
             LOG.debug("can't found any host-conf for service: {} match hostname: {} or default", appName, hostname);
@@ -102,7 +102,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         final UnitDescription unitdesc = loadYaml(UnitDescription.class, defaultDataid, getACMConfig);
         if (null != unitdesc) {
             LOG.debug("{}/{} apply default config: {}", hostname, appName, unitdesc);
-            buildApplication(unitdesc, getACMConfig);
+            buildApplication(new UnitDescription[]{unitdesc}, getACMConfig);
             return "OK";
         }
 
@@ -137,7 +137,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         return null;
     }
 
-    private void buildApplication(final UnitDescription unitdesc, final Func1<String, String> getConfig) {
+    private void buildApplication(final UnitDescription[] unitdescs, final Func1<String, String> getConfig) {
         final AbstractApplicationContext appctx = new ClassPathXmlApplicationContext("unit/clibooter.xml");
         final AppInfo app = appctx.getBean("appinfo", AppInfo.class);
         if (null != app) {
@@ -146,7 +146,11 @@ public class StartAppCommand implements CliCommand<CliContext> {
             }
         }
 
-        build(appctx.getBean(UnitAgent.class), unitdesc, null, getConfig);
+        if (null != unitdescs) {
+            for (final UnitDescription desc : unitdescs) {
+                build(appctx.getBean(UnitAgent.class), desc, null, getConfig);
+            }
+        }
         this._ctxRef.set(appctx);
     }
 
