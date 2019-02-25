@@ -159,7 +159,6 @@ public class StartAppCommand implements CliCommand<CliContext> {
         if (desc.getName().startsWith(REF_KEY)) {
             final UnitDescription ref = buildRef(desc.getName().substring(REF_KEY.length()), unitAgent, parentPath, getConfig);
             if (null != ref) {
-                LOG.info("try to build unit by ref: {}", ref.getName());
                 buildChildren(desc.getChildren(), unitAgent, getConfig, pathOf(parentPath, ref));
             } else {
                 LOG.warn("can't build unit by ref: {}, skip all it's children", desc.getName());
@@ -212,6 +211,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
             try (final InputStream is = new ByteArrayInputStream(content.getBytes(Charsets.UTF_8))) {
                 final UnitDescription refdesc = (UnitDescription)yaml.load(is);
                 if (null != refdesc) {
+                    LOG.info("try to build unit by ref: {}", refdesc.getName());
                     build(unitAgent, refdesc, parentPath, getConfig);
                     return  refdesc;
                 }
