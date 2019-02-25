@@ -9,8 +9,8 @@ public class ServiceConfig {
     public String toString() {
         final int maxLen = 10;
         final StringBuilder builder = new StringBuilder();
-        builder.append("ServiceConfig [host=").append(_host).append(", confs=")
-                .append(_confs != null ? Arrays.asList(_confs).subList(0, Math.min(_confs.length, maxLen)) : null)
+        builder.append("ServiceConfig [host=").append(_host).append(", conf=")
+                .append(_conf != null ? Arrays.asList(_conf).subList(0, Math.min(_conf.length, maxLen)) : null)
                 .append("]");
         return builder.toString();
     }
@@ -23,14 +23,14 @@ public class ServiceConfig {
         return this._host;
     }
 
-    public void setConfs(final UnitDescription[] confs) {
-        this._confs = confs;
+    public void setConf(final UnitDescription[] conf) {
+        this._conf = conf;
     }
 
-    public UnitDescription[] getConfs() {
-        return this._confs;
+    public UnitDescription[] getConf() {
+        return this._conf;
     }
 
     private String _host;
-    private UnitDescription[] _confs;
+    private UnitDescription[] _conf;
 }

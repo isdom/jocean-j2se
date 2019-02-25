@@ -85,7 +85,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         final ServiceConfig conf4host = findConfig(hostname, confs);
         if (null != conf4host) {
             LOG.debug("found host-conf {} for service: {} / hostname: {}", conf4host, appName, hostname);
-            buildApplication(conf4host.getConfs(), getACMConfig);
+            buildApplication(conf4host.getConf(), getACMConfig);
             return "OK";
         }
 
@@ -93,7 +93,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         final ServiceConfig defaultconf = findConfig("_default_", confs);
         if (null != defaultconf) {
             LOG.debug("found default-conf {} for service: {} / hostname: {}", defaultconf, appName, hostname);
-            buildApplication(defaultconf.getConfs(), getACMConfig);
+            buildApplication(defaultconf.getConf(), getACMConfig);
             return "OK";
         } else {
             LOG.debug("can't found any host-conf for service: {} match hostname: {} or default", appName, hostname);
