@@ -1,9 +1,12 @@
 package org.jocean.j2se.cli.cmd;
 
 import java.io.ByteArrayInputStream;
+import java.io.DataInput;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -29,6 +32,7 @@ import com.alibaba.edas.acm.ConfigService;
 import com.alibaba.edas.acm.exception.ConfigException;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteStreams;
 
 import rx.functions.Func1;
 
@@ -169,20 +173,16 @@ public class StartAppCommand implements CliCommand<CliContext> {
             }
         } else {
             final String template = getTemplateFromName(desc.getName());
-            final Properties properties = desc.parametersAsProperties();
-            final String[] source = genSourceFrom(properties);
+            final Map<String, String> props = data2props(desc.parametersAsByteArray());
+            final String[] source = genSourceFrom(props);
 
             UnitMXBean unit = null;
             if (null != source ) {
-                unit = unitAgent.createUnitWithSource(
-                        pathName,
-                        source,
-                        Maps.fromProperties(properties));
+                unit = unitAgent.createUnitWithSource(pathName, source, props);
             } else {
-                unit = unitAgent.createUnit(
-                        pathName,
+                unit = unitAgent.createUnit(pathName,
                         new String[]{"**/"+ template + ".xml", template + ".xml"},
-                        Maps.fromProperties(properties),
+                        props,
                         true);
             }
             if (null == unit) {
@@ -191,6 +191,63 @@ public class StartAppCommand implements CliCommand<CliContext> {
                 LOG.info("create unit {} success with active status:{}", pathName, unit.isActive());
             }
             buildChildren(desc.getChildren(), unitAgent, getConfig, pathName);
+        }
+    }
+
+    private Map<String, String> data2props(final byte[] data)  {
+        if (null == data) {
+            return Collections.emptyMap();
+        }
+        final DataInput di = ByteStreams.newDataInput(data);
+        try {
+            final String _1_line = di.readLine();
+            if (null != _1_line && _1_line.startsWith("## yaml")) {
+                LOG.debug("parse as yaml");
+                // read as yaml
+                @SuppressWarnings("unchecked")
+                final Map<String, String> props = asStringStringMap(null, new Yaml().loadAs(new ByteArrayInputStream(data), Map.class));
+                LOG.debug("parse result: {}", props);
+                return props;
+            } else {
+                return Maps.fromProperties(loadProperties(data));
+            }
+        } catch (final Exception e) {
+            LOG.warn("exception when data2props, detail: {}", ExceptionUtils.exception2detail(e));
+            return Collections.emptyMap();
+        }
+    }
+
+    private Map<String, String> asStringStringMap(final String prefix, final Map<Object, Object> map) {
+        final Map<String, String> ssmap = Maps.newHashMap();
+        for(final Map.Entry<Object, Object> entry : map.entrySet()) {
+            final String key = withPrefix(prefix, entry.getKey().toString());
+            if (entry.getValue() instanceof Map) {
+                @SuppressWarnings("unchecked")
+                final Map<Object, Object> orgmap = (Map<Object, Object>)entry.getValue();
+                ssmap.putAll(asStringStringMap(key, orgmap));
+            } else {
+                ssmap.put(key, entry.getValue().toString());
+            }
+        }
+        return ssmap;
+    }
+
+    private String withPrefix(final String prefix, final String key) {
+        return null != prefix ? prefix + "." + key : key;
+    }
+
+    private Properties loadProperties(final byte[] data) {
+        try (final InputStream is = null != data ? new ByteArrayInputStream(data) : null) {
+            return new Properties() {
+                private static final long serialVersionUID = 1L;
+            {
+                if (null != is) {
+                    this.load( is );
+                }
+            }};
+        } catch (final IOException e) {
+            LOG.warn("exception when loadProperties, detail: {}", ExceptionUtils.exception2detail(e));
+            return new Properties();
         }
     }
 
@@ -225,9 +282,9 @@ public class StartAppCommand implements CliCommand<CliContext> {
         return null;
     }
 
-    private static String[] genSourceFrom(final Properties properties) {
-        final String value = properties.getProperty(SPRING_XML_KEY);
-        properties.remove(SPRING_XML_KEY);
+    private static String[] genSourceFrom(final Map<String, String> props) {
+        final String value = props.get(SPRING_XML_KEY);
+//        properties.remove(SPRING_XML_KEY);
         return null!=value ? value.split(",") : null;
     }
 

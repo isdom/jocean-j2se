@@ -58,6 +58,10 @@ public class UnitDescription {
         return this._parameters;
     }
 
+    public byte[] parametersAsByteArray() {
+        return this._parameters.getBytes(Charsets.UTF_8);
+    }
+
     public Properties parametersAsProperties() {
         final Properties properties = new Properties();
         try (
