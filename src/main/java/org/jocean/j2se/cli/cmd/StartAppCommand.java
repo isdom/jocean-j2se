@@ -34,7 +34,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 
-import rx.functions.Func1;
+import rx.functions.Func2;
 
 public class StartAppCommand implements CliCommand<CliContext> {
 
@@ -72,11 +72,11 @@ public class StartAppCommand implements CliCommand<CliContext> {
         ConfigService.init(props);
 
         final String defaultDataid = args[3];
-        final String groupName = args[4];
+        final String defaultGroup = args[4];
 
-        final Func1<String, String> getACMConfig = dataid -> {
+        final Func2<String, String, String> getACMConfig = (dataid, group) -> {
             try {
-                return ConfigService.getConfig(dataid, groupName, 6000);
+                return ConfigService.getConfig(dataid, null != group ? group : defaultGroup, 6000);
             } catch (final ConfigException e) {
                 return null;
             }
@@ -116,8 +116,8 @@ public class StartAppCommand implements CliCommand<CliContext> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T loadYaml(final Class<T> type, final String dataid, final Func1<String, String> getACMConfig) {
-        final String content = getACMConfig.call(dataid);
+    private static <T> T loadYaml(final Class<T> type, final String dataid, final Func2<String, String, String> getACMConfig) {
+        final String content = getACMConfig.call(dataid, null);
         if (null != content) {
             final Yaml yaml = new Yaml(new Constructor(type));
 
@@ -141,7 +141,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         return null;
     }
 
-    private void buildApplication(final UnitDescription[] unitdescs, final Func1<String, String> getConfig) {
+    private void buildApplication(final UnitDescription[] unitdescs, final Func2<String, String, String> getConfig) {
         final AbstractApplicationContext appctx = new ClassPathXmlApplicationContext("unit/clibooter.xml");
         final AppInfo app = appctx.getBean("appinfo", AppInfo.class);
         if (null != app) {
@@ -162,7 +162,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
     private static final String REF_KEY = "->";
 
     private void build(final UnitAgent unitAgent, final UnitDescription desc, final String parentPath,
-            final Func1<String, String> getConfig) {
+            final Func2<String, String, String> getConfig) {
         final String pathName = pathOf(parentPath, desc);
         if (desc.getName().startsWith(REF_KEY)) {
             final UnitDescription ref = buildRef(desc.getName().substring(REF_KEY.length()), unitAgent, parentPath, getConfig);
@@ -257,15 +257,23 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
     private void buildChildren(final UnitDescription[] children,
             final UnitAgent unitAgent,
-            final Func1<String, String> getConfig, final String pathName) {
+            final Func2<String, String, String> getConfig,
+            final String pathName) {
         for ( final UnitDescription child : children) {
             build(unitAgent, child, pathName + "/", getConfig);
         }
     }
 
-    private UnitDescription buildRef(final String dataid, final UnitAgent unitAgent, final String parentPath,
-            final Func1<String, String> getConfig) {
-        final String content = getConfig.call(dataid);
+    private UnitDescription buildRef(
+            final String dataidAndGroup,
+            final UnitAgent unitAgent,
+            final String parentPath,
+            final Func2<String, String, String> getConfig) {
+        final String[] ss = dataidAndGroup.split("@");
+        final String dataid = ss[0];
+        final String group = ss.length > 1 ? ss[1] : null;
+        LOG.info("try to load ref unit with dataid:{}/group:{}", dataid, null != group ? group : "(using default)");
+        final String content = getConfig.call(dataid, group);
         if (null != content) {
             final Yaml yaml = new Yaml(new Constructor(UnitDescription.class));
 
