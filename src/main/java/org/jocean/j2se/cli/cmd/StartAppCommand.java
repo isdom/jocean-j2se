@@ -275,24 +275,24 @@ public class StartAppCommand implements CliCommand<CliContext> {
         LOG.info("try to load ref unit with dataid:{}/group:{}", dataid, null != group ? group : "(using default)");
         final String content = getConfig.call(dataid, group);
         if (null != content) {
-            final Yaml yaml = new Yaml(new Constructor(UnitDescription.class));
-
             try (final InputStream is = new ByteArrayInputStream(content.getBytes(Charsets.UTF_8))) {
-                final UnitDescription refdesc = (UnitDescription)yaml.load(is);
+                final UnitDescription refdesc = (UnitDescription)new Yaml().loadAs(is, UnitDescription.class);
                 if (null != refdesc) {
-                    LOG.info("try to build unit by ref: {}", refdesc.getName());
+                    LOG.info("try to build unit by ref named:{} with group:{}",
+                            refdesc.getName(), null != group ? group : "(using default)");
                     build(unitAgent, refdesc, parentPath, getConfig);
                     return  refdesc;
                 }
             } catch (final IOException e) {
             }
+        } else {
+            LOG.warn("can't load config from dataid:{}/group:{}", dataid, null != group ? group : "(using default)");
         }
         return null;
     }
 
     private static String[] genSourceFrom(final Map<String, String> props) {
         final String value = props.get(SPRING_XML_KEY);
-//        properties.remove(SPRING_XML_KEY);
         return null!=value ? value.split(",") : null;
     }
 
