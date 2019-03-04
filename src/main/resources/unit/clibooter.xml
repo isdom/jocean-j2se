@@ -43,7 +43,7 @@
     
     <bean factory-bean="commandRepository" factory-method="addCommand">
         <constructor-arg>
-            <bean class="org.jocean.j2se.cli.cmd.StartAppCommand" autowire="autodetect"/>
+            <bean class="org.jocean.j2se.cli.cmd.StartAppCommand" autowire="byType"/>
         </constructor-arg>
     </bean>
     
@@ -55,7 +55,7 @@
     
     <bean factory-bean="commandRepository" factory-method="addCommand">
         <constructor-arg>
-            <bean class="org.jocean.j2se.cli.cmd.ExitSrvCommand" autowire="autodetect"/>
+            <bean class="org.jocean.j2se.cli.cmd.ExitSrvCommand" autowire="byType"/>
         </constructor-arg>
     </bean>
     
