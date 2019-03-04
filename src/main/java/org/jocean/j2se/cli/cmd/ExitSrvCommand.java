@@ -1,5 +1,7 @@
 package org.jocean.j2se.cli.cmd;
 
+import javax.inject.Inject;
+
 import org.jocean.cli.CliCommand;
 import org.jocean.cli.CliContext;
 import org.jocean.j2se.cli.CliController;
@@ -10,10 +12,6 @@ import org.slf4j.LoggerFactory;
 public class ExitSrvCommand implements CliCommand<CliContext> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExitSrvCommand.class);
-
-    public ExitSrvCommand(final CliController cli) {
-        this._cli = cli;
-    }
 
     @Override
     public String execute(final CliContext ctx, final String... args) throws Exception {
@@ -34,6 +32,6 @@ public class ExitSrvCommand implements CliCommand<CliContext> {
         return null;
     }
 
-    final CliController _cli;
+    @Inject
+    CliController _cli;
 }
-
