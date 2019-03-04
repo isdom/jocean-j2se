@@ -5,6 +5,7 @@ package org.jocean.j2se.booter;
 
 import org.jocean.j2se.AppInfo;
 import org.jocean.j2se.ModuleInfo;
+import org.jocean.j2se.cli.CliController;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -29,6 +30,6 @@ public class CliMain {
             }
         }
 
-//        final CliController cli = new CliController(System.getProperty("user.dir", "~") + "/");
+        appctx.getBean(CliController.class).await();
     }
 }
