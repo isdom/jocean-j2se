@@ -3,13 +3,10 @@
  */
 package org.jocean.j2se.booter;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.jocean.j2se.cli.CliController;
-import org.jocean.j2se.cli.cmd.ExitSrvCommand;
-import org.jocean.j2se.cli.cmd.StartAppCommand;
-import org.jocean.j2se.cli.cmd.StopAppCommand;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.jocean.j2se.AppInfo;
+import org.jocean.j2se.ModuleInfo;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 
 /**
@@ -23,14 +20,15 @@ public class CliMain {
      * @throws Exception
      */
     public static void main(final String[] args, final String[] libs) throws Exception {
-        final CliController cli = new CliController(System.getProperty("user.dir", "~") + "/");
-        final AtomicReference<ConfigurableApplicationContext> ref = new AtomicReference<>();
-        cli.cmdsRepo().addCommand(new StartAppCommand(ref, libs))
-            .addCommand(new StopAppCommand(ref))
-            .addCommand(new ExitSrvCommand(cli))
-            ;
-        cli.start();
+        @SuppressWarnings({ "resource"})
+        final AbstractApplicationContext appctx = new ClassPathXmlApplicationContext("unit/clibooter.xml");
+        final AppInfo app = appctx.getBean("appinfo", AppInfo.class);
+        if (null != app) {
+            for (final String lib : libs) {
+                app.getModules().put(lib, new ModuleInfo(lib));
+            }
+        }
 
-        cli.await();
+//        final CliController cli = new CliController(System.getProperty("user.dir", "~") + "/");
     }
 }

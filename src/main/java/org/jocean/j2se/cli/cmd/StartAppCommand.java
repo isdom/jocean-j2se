@@ -5,16 +5,14 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicReference;
+
+import javax.inject.Inject;
 
 import org.jocean.cli.CliCommand;
 import org.jocean.cli.CliContext;
 import org.jocean.idiom.ExceptionUtils;
-import org.jocean.j2se.AppInfo;
-import org.jocean.j2se.ModuleInfo;
 import org.jocean.j2se.os.OSUtil;
 import org.jocean.j2se.unit.UnitAgent;
 import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
@@ -22,9 +20,6 @@ import org.jocean.j2se.unit.model.ServiceConfig;
 import org.jocean.j2se.unit.model.UnitDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -40,19 +35,18 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
     private static final Logger LOG = LoggerFactory.getLogger(StartAppCommand.class);
 
-    final AtomicReference<ConfigurableApplicationContext> _ctxRef;
-    final String[] _libs;
+    @Inject
+    UnitAgent _unitAgent;
 
-    public StartAppCommand(final AtomicReference<ConfigurableApplicationContext> ctxRef, final String[] libs) {
-        this._ctxRef = ctxRef;
-        this._libs = libs;
-    }
+    boolean _started = false;
 
     @Override
     public String execute(final CliContext ctx, final String... args) throws Exception {
-        if (this._ctxRef.get() != null) {
-            return "FAILED: app already started when " + new Date(this._ctxRef.get().getStartupDate());
+        if (_started) {
+            return "FAILED: app already started.";
         }
+
+        _started = true;
 
         if (args.length < 5) {
             return "FAILED: missing startapp params\n" + getHelp();
@@ -142,20 +136,11 @@ public class StartAppCommand implements CliCommand<CliContext> {
     }
 
     private void buildApplication(final UnitDescription[] unitdescs, final Func2<String, String, String> getConfig) {
-        final AbstractApplicationContext appctx = new ClassPathXmlApplicationContext("unit/clibooter.xml");
-        final AppInfo app = appctx.getBean("appinfo", AppInfo.class);
-        if (null != app) {
-            for (final String lib : this._libs) {
-                app.getModules().put(lib, new ModuleInfo(lib));
-            }
-        }
-
         if (null != unitdescs) {
             for (final UnitDescription desc : unitdescs) {
-                build(appctx.getBean(UnitAgent.class), desc, null, getConfig);
+                build(this._unitAgent, desc, null, getConfig);
             }
         }
-        this._ctxRef.set(appctx);
     }
 
     private static final String SPRING_XML_KEY = "__spring.xml";

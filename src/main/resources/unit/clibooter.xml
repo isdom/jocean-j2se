@@ -39,6 +39,49 @@
     <!-- Tracing 切面 -->
     <bean id="tracingAspect" class="org.jocean.j2se.tracing.TracingAspect" />
 
+    <bean id="commandRepository" class="org.jocean.cli.DefaultCommandRepository" />
+    
+    <bean factory-bean="commandRepository" factory-method="addCommand">
+        <constructor-arg>
+            <bean class="org.jocean.j2se.cli.cmd.StartAppCommand"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean factory-bean="commandRepository" factory-method="addCommand">
+        <constructor-arg>
+            <bean class="org.jocean.j2se.cli.cmd.StopAppCommand"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean factory-bean="commandRepository" factory-method="addCommand">
+        <constructor-arg>
+            <bean class="org.jocean.j2se.cli.cmd.ExitSrvCommand"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean factory-bean="commandRepository" factory-method="addCommand">
+        <constructor-arg>
+            <bean class="org.jocean.j2se.cli.cmd.TradeCountCommand"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean factory-bean="commandRepository" factory-method="addCommand">
+        <constructor-arg>
+            <bean class="org.jocean.j2se.cli.cmd.UnforwardCommand"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean factory-bean="commandRepository" factory-method="addCommand">
+        <constructor-arg>
+            <bean class="org.jocean.cli.cmd.HelpCommand"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean class="org.jocean.j2se.cli.CliController" init-method="start">
+        <constructor-arg value="${user.dir:~}/">
+        <property name="commandRepository" ref="commandRepository"/>
+    </bean>
+    
     <bean class="org.springframework.jmx.export.MBeanExporter"
           lazy-init="false">
         <property name="beans">

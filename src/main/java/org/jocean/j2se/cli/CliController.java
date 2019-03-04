@@ -5,10 +5,7 @@ import java.util.Map;
 import org.jocean.cli.AbstractCliContext;
 import org.jocean.cli.CliContext;
 import org.jocean.cli.CliShell;
-import org.jocean.cli.DefaultCommandRepository;
-import org.jocean.cli.cmd.HelpCommand;
-import org.jocean.j2se.cli.cmd.TradeCountCommand;
-import org.jocean.j2se.cli.cmd.UnforwardCommand;
+import org.jocean.cli.CommandRepository;
 import org.jocean.j2se.os.OSUtil;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -47,16 +44,11 @@ public class CliController {
 
     final String _socketPath;
 
-    final DefaultCommandRepository  _cmdsRepo;
-
     public CliController(final String socketPath) {
         this._socketPath = socketPath;
-        this._cmdsRepo = new DefaultCommandRepository()
-                    .addCommand(new HelpCommand())
-                    .addCommand(new UnforwardCommand())
-                    .addCommand(new TradeCountCommand())
-                    ;
+    }
 
+    public void setCommandRepository(final CommandRepository commandRepository) {
         final AbstractCliContext ctx = new AbstractCliContext() {
             @Override
             public <V> V getProperty(final String key) {
@@ -71,7 +63,7 @@ public class CliController {
                 return null;
             }};
 
-        ctx.setCommandRepository(_cmdsRepo);
+        ctx.setCommandRepository(commandRepository);
 
         _shell.setCommandContext(ctx);
     }
@@ -105,10 +97,6 @@ public class CliController {
         if (_bindChannel != null) {
             _bindChannel.close().sync();
         }
-    }
-
-    public DefaultCommandRepository cmdsRepo() {
-        return this._cmdsRepo;
     }
 
     public void await() throws InterruptedException {
