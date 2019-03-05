@@ -21,7 +21,6 @@ import org.jocean.j2se.unit.model.UnitDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 
 import com.alibaba.edas.acm.ConfigService;
 import com.alibaba.edas.acm.exception.ConfigException;
@@ -109,14 +108,11 @@ public class StartAppCommand implements CliCommand<CliContext> {
         return "ERROR";
     }
 
-    @SuppressWarnings("unchecked")
     private static <T> T loadYaml(final Class<T> type, final String dataid, final Func2<String, String, String> getACMConfig) {
         final String content = getACMConfig.call(dataid, null);
         if (null != content) {
-            final Yaml yaml = new Yaml(new Constructor(type));
-
             try (final InputStream is = new ByteArrayInputStream(content.getBytes(Charsets.UTF_8))) {
-                return (T)yaml.load(is);
+                return (T)new Yaml().loadAs(is, type);
             } catch (final IOException e) {
                 LOG.warn("exception when loadYaml from {}, detail: {}", dataid, ExceptionUtils.exception2detail(e));
             }
