@@ -22,7 +22,7 @@ public class UnforwardCommand implements CliCommand<CliContext> {
         final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 
         final Set<ObjectName> names = mbeanServer.queryNames(
-                ObjectName.getInstance("org.jocean:*,*=unitupdater.restin,type=zkupdater"), null);
+                ObjectName.getInstance("org.jocean:*,zkunit.af=unitupdater.restin,type=zkupdater"), null);
 
         if (names.size() != 1) {
             return "failed: matched names is " + names.size();
