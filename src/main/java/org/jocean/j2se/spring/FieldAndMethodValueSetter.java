@@ -39,7 +39,7 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
             try {
                 final Value v = field.getAnnotation(Value.class);
                 final String key = v.value().replace("${", "").replace("}", "");
-                final String value = ket2value(key);
+                final String value = key2value(key);
 
                 if (null!=value) {
                     field.set(bean, Beans.fromString(value, field.getType()));
@@ -68,7 +68,7 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
             try {
                 final Value v = method.getAnnotation(Value.class);
                 final String key = v.value().replace("${", "").replace("}", "");
-                final String value = ket2value(key);
+                final String value = key2value(key);
 
                 if (null!=value) {
                     final Parameter p1st = method.getParameters()[0];
@@ -77,8 +77,7 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
                         LOG.info("invoke bean({})'s method {} with value {}, which build by key {}", beanName, method, value, key);
                     }
                 } else {
-                    LOG.warn("NOT Found value for key {}, unable invoke bean({})'s method({})!",
-                            key, beanName, method);
+                    LOG.warn("NOT Found value for key {}, unable invoke bean({})'s method({})!", key, beanName, method);
                 }
             } catch (final Exception e) {
                 LOG.warn("exception when FieldAndMethodValueSetter.postProcessBeforeInitialization for bean({}), detail: {}",
@@ -93,7 +92,7 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
         return bean;
     }
 
-    private String ket2value(final String key) {
+    private String key2value(final String key) {
         final String value = this._properties.getProperty(key);
         return null != value ? value : System.getProperty(key);
     }

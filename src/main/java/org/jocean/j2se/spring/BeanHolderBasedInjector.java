@@ -2,6 +2,8 @@ package org.jocean.j2se.spring;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,18 +31,20 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
         if (null!=bean) {
-            injectFields(bean, beanName, Inject.class, Named.class);
-            injectFields(bean, beanName, Autowired.class, Qualifier.class);
+            injectAnnotatedFields(bean, beanName, Inject.class, Named.class);
+            injectAnnotatedFields(bean, beanName, Autowired.class, Qualifier.class);
+            injectAnnotatedMethods(bean, beanName, Inject.class, Named.class);
+            injectAnnotatedMethods(bean, beanName, Autowired.class, Qualifier.class);
         }
         return bean;
     }
 
-    private void injectFields(final Object bean, final String beanName, final Class<? extends Annotation> injectCls,
-            final Class<? extends Annotation> namedCls) {
+    private void injectAnnotatedFields(final Object bean, final String beanName,
+            final Class<? extends Annotation> injectCls, final Class<? extends Annotation> namedCls) {
         final Field[] fields = ReflectUtils.getAnnotationFieldsOf(bean.getClass(), injectCls);
         for (final Field field : fields) {
             try {
-                if (null == field.get(bean)) {
+                if (null == field.get(bean)) { // ?
                     final Object value = BeanHolders.getBean(this._beanHolder, field.getType(),
                             field.getAnnotation(namedCls), bean);
                     if (null != value) {
@@ -52,8 +56,35 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
                     }
                 }
             } catch (final Exception e) {
-                LOG.warn("exception when postProcessBeforeInitialization for bean({}), detail: {}", beanName,
-                        ExceptionUtils.exception2detail(e));
+                LOG.warn("exception when postProcessBeforeInitialization for bean({}), detail: {}",
+                        beanName, ExceptionUtils.exception2detail(e));
+            }
+        }
+    }
+
+    private void injectAnnotatedMethods(final Object bean, final String beanName,
+            final Class<? extends Annotation> injectCls, final Class<? extends Annotation> namedCls) {
+        final Method[] methods = ReflectUtils.getAnnotationMethodsOf(bean.getClass(), injectCls);
+        for (final Method method : methods) {
+            if (method.getParameterCount()!=1) {
+                LOG.warn("method {}'s parameter count != 1, ignore inject", method);
+                continue;
+            }
+
+            try {
+                final Parameter p1st = method.getParameters()[0];
+                final Object value = BeanHolders.getBean(this._beanHolder, p1st.getType(), method.getAnnotation(namedCls), bean);
+
+                if (null != value) {
+                    method.invoke(bean, value);
+                    LOG.debug("inject {} to bean({})'s method({})", value, beanName, method);
+                } else {
+                    LOG.debug("NOT Found global bean for type {}, unable auto inject bean({})'s method({})!",
+                            p1st.getType(), beanName, method);
+                }
+            } catch (final Exception e) {
+                LOG.warn("exception when postProcessBeforeInitialization for bean({}), detail: {}",
+                        beanName, ExceptionUtils.exception2detail(e));
             }
         }
     }
