@@ -188,8 +188,8 @@ public class StartAppCommand implements CliCommand<CliContext> {
         } else if ( ss.length == 2) {
             // like <parent>/<name>
             final String parentPath = unitAgent.findUnitFullpathByName(ss[0]);
-            if (null !=parentPath) {
-                return Pair.of(ss[1], parentPath);
+            if (null != parentPath) {
+                return Pair.of(ss[1], parentPath + "/");
             } else {
                 LOG.warn("can't find parent Unit named {}, cancel creating child unit {}", ss[0], ss[1]);
                 return null;
