@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import org.jocean.cli.CliCommand;
 import org.jocean.cli.CliContext;
 import org.jocean.idiom.ExceptionUtils;
+import org.jocean.idiom.Pair;
 import org.jocean.j2se.os.OSUtil;
 import org.jocean.j2se.unit.UnitAgent;
 import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
@@ -142,18 +143,26 @@ public class StartAppCommand implements CliCommand<CliContext> {
     private static final String SPRING_XML_KEY = "__spring.xml";
     private static final String REF_KEY = "->";
 
-    private void build(final UnitAgent unitAgent, final UnitDescription desc, final String parentPath,
+    private void build(final UnitAgent unitAgent,
+            final UnitDescription desc,
+            final String orgParentPath,
             final Func2<String, String, String> getConfig) {
-        final String pathName = pathOf(parentPath, desc);
-        if (desc.getName().startsWith(REF_KEY)) {
-            final UnitDescription ref = buildRef(desc.getName().substring(REF_KEY.length()), unitAgent, parentPath, getConfig);
+        final Pair<String, String> nameAndParentPath = initNameAndPath(orgParentPath, desc.getName(), unitAgent);
+        if (null == nameAndParentPath) {
+            return;
+        }
+        final String unitName = nameAndParentPath.first;
+        final String parentPath = nameAndParentPath.second;
+        final String pathName = pathOf(parentPath, unitName);
+        if (unitName.startsWith(REF_KEY)) {
+            final UnitDescription ref = buildRef(unitName.substring(REF_KEY.length()), unitAgent, parentPath, getConfig);
             if (null != ref) {
-                buildChildren(desc.getChildren(), unitAgent, getConfig, pathOf(parentPath, ref));
+                buildChildren(desc.getChildren(), unitAgent, getConfig, pathOf(parentPath, ref.getName()));
             } else {
-                LOG.warn("can't build unit by ref: {}, skip all it's children", desc.getName());
+                LOG.warn("can't build unit by ref: {}, skip all it's children", unitName);
             }
         } else {
-            final String template = getTemplateFromName(desc.getName());
+            final String template = getTemplateFromName(unitName);
             final Map<String, String> props = data2props(desc.parametersAsByteArray());
             final String[] source = genSourceFrom(props);
 
@@ -161,10 +170,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
             if (null != source ) {
                 unit = unitAgent.createUnitWithSource(pathName, source, props);
             } else {
-                unit = unitAgent.createUnit(pathName,
-                        new String[]{"**/"+ template + ".xml", template + ".xml"},
-                        props,
-                        true);
+                unit = unitAgent.createUnit(pathName, template2source(template), props, true);
             }
             if (null == unit) {
                 LOG.info("create unit {} failed.", pathName);
@@ -173,6 +179,29 @@ public class StartAppCommand implements CliCommand<CliContext> {
             }
             buildChildren(desc.getChildren(), unitAgent, getConfig, pathName);
         }
+    }
+
+    private Pair<String, String> initNameAndPath(final String orgParentPath, final String rawname, final UnitAgent unitAgent) {
+        final String ss[] = rawname.split("/");
+        if ( ss.length == 1) {
+            return Pair.of(rawname, orgParentPath);
+        } else if ( ss.length == 2) {
+            // like <parent>/<name>
+            final String parentPath = unitAgent.findUnitFullpathByName(ss[0]);
+            if (null !=parentPath) {
+                return Pair.of(ss[1], parentPath);
+            } else {
+                LOG.warn("can't find parent Unit named {}, cancel creating child unit {}", ss[0], ss[1]);
+                return null;
+            }
+        } else {
+            LOG.warn("rawname {} has '/' > 1, cancel create this unit", rawname);
+            return null;
+        }
+    }
+
+    private String[] template2source(final String template) {
+        return new String[]{"**/"+ template + ".xml", template + ".xml"};
     }
 
     private Map<String, String> data2props(final byte[] data)  {
@@ -232,8 +261,8 @@ public class StartAppCommand implements CliCommand<CliContext> {
         }
     }
 
-    private String pathOf(final String parentPath, final UnitDescription desc) {
-        return null != parentPath ? parentPath + desc.getName() : desc.getName();
+    private String pathOf(final String parentPath, final String unitName) {
+        return null != parentPath ? parentPath + unitName : unitName;
     }
 
     private void buildChildren(final UnitDescription[] children,

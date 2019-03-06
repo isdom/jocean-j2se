@@ -231,6 +231,15 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
     }
 
+    public String findUnitFullpathByName(final String name) {
+        for (final String fullpath : this._units.keySet()) {
+            if (fullpath.endsWith("/" + name) || fullpath.equals(name)) {
+                return fullpath;
+            }
+        }
+        return null;
+    }
+
     @Override
     public ConfigurableListableBeanFactory[] allBeanFactory() {
         final List<ConfigurableListableBeanFactory> factorys = new ArrayList<>();
