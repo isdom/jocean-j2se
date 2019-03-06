@@ -18,8 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 
 public class ZKNodeRef implements UnitKeeperAware {
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ZKNodeRef.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZKNodeRef.class);
 
     public void setPath(final String path) {
         this._path = path;
@@ -34,24 +33,24 @@ public class ZKNodeRef implements UnitKeeperAware {
             }});
         try {
             this._cache.start(true);
-        } catch (Exception e) {
-            LOG.warn("exception when NodeCache.start for path {}, detail: {}", 
+        } catch (final Exception e) {
+            LOG.warn("exception when NodeCache.start for path {}, detail: {}",
                     this._path,
                     ExceptionUtils.exception2detail(e));
         }
         LOG.debug("ZKNodeRef {} start", this);
         processUnitByData();
     }
-    
+
     public void stop() {
         try {
             LOG.debug("ZKNodeRef {} closing", this);
             this._cache.close();
             LOG.debug("ZKNodeRef {} closed", this);
-        } catch (IOException e) {
+        } catch (final IOException e) {
         }
     }
-    
+
     private void processUnitByData() {
         final ChildData data = this._cache.getCurrentData();
         LOG.debug("process unit with current data {}", data);
@@ -75,7 +74,7 @@ public class ZKNodeRef implements UnitKeeperAware {
     private Properties loadProperties(final byte[] data) {
         try (
             final InputStream is = null != data
-                    ? new ByteArrayInputStream(data) 
+                    ? new ByteArrayInputStream(data)
                     : null;
         ) {
             return new Properties() {
@@ -85,11 +84,11 @@ public class ZKNodeRef implements UnitKeeperAware {
                     this.load( is );
                 }
             }};
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return null;
         }
     }
-    
+
     private static String[] genSourceFrom(final Properties properties) {
         final String value = properties.getProperty(SPRING_XML_KEY);
         properties.remove(SPRING_XML_KEY);
@@ -101,14 +100,14 @@ public class ZKNodeRef implements UnitKeeperAware {
         this._unitKeeper = keeper;
         start();
     }
-    
+
     @Inject
     private CuratorFramework _client;
-    
+
     private NodeCache _cache;
     private String _path;
-    
+
     private UnitKeeper _unitKeeper;
-    
+
     private static final String SPRING_XML_KEY = "__spring.xml";
 }

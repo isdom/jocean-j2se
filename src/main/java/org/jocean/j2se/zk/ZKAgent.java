@@ -8,6 +8,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.inject.Inject;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -81,11 +83,14 @@ public class ZKAgent {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZKAgent.class);
 
-    public ZKAgent(
-            final CuratorFramework client,
-            final String root) throws Exception {
-        this._client = client;
+    public ZKAgent(final String root) {
         this._root = root;
+    }
+
+    @Inject
+    public void setClient(final CuratorFramework client) throws Exception {
+        LOG.info("inject CuratorFramework {}", client);
+        this._client = client;
         this._executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
             .setNameFormat("Curator-TreeCache-%d")
             .setDaemon(false)
@@ -96,7 +101,7 @@ public class ZKAgent {
             public void run() {
                 LOG.info("ZKUpdater Thread has running.");
             }}).get();
-        this._treecache = TreeCache.newBuilder(client, root)
+        this._treecache = TreeCache.newBuilder(client, this._root)
             .setCacheData(false)
             .setExecutor(this._executor)
             .build();
@@ -359,10 +364,12 @@ public class ZKAgent {
     private final InterfaceSelector _selector = new InterfaceSelector();
     private final Op _op = this._selector.build(Op.class, OP_ACTIVE, OP_UNACTIVE);
 
-    private final CuratorFramework _client;
-    private final ExecutorService _executor;
     private final String _root;
-    private final TreeCache _treecache;
+
+    private CuratorFramework _client;
+    private ExecutorService _executor;
+    private TreeCache _treecache;
+
     private final Map<String, byte[]> _nodes = new HashMap<>();
     private final COWCompositeSupport<Listener> _listenerSupport = new COWCompositeSupport<Listener>();
 }
