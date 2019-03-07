@@ -14,9 +14,8 @@ import rx.Observable;
 
 public class DefaultBeanFinder implements BeanFinder, BeanHolderAware {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DefaultBeanFinder.class);
-    
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultBeanFinder.class);
+
     @Override
     public <T> Observable<T> find(final Class<T> requiredType) {
         return Observable.unsafeCreate(subscriber -> {
@@ -39,9 +38,9 @@ public class DefaultBeanFinder implements BeanFinder, BeanHolderAware {
             }
         });
     }
-    
+
     @Override
-    public <T> Observable<T> find(String name, Class<T> requiredType) {
+    public <T> Observable<T> find(final String name, final Class<T> requiredType) {
         return Observable.unsafeCreate(subscriber -> {
             if (!subscriber.isUnsubscribed()) {
                 final ConcurrentMap<String, Object> cache = this._cached.get();
@@ -64,7 +63,7 @@ public class DefaultBeanFinder implements BeanFinder, BeanHolderAware {
             }
         });
     }
-    
+
     @Override
     public void setBeanHolder(final BeanHolder beanHolder) {
         this._holder = beanHolder;
@@ -77,7 +76,7 @@ public class DefaultBeanFinder implements BeanFinder, BeanHolderAware {
             old.clear();
         }
     }
-    
+
     private BeanHolder _holder;
     private final AtomicReference<ConcurrentMap<String, Object>> _cached = new AtomicReference<>(new ConcurrentHashMap<>());
 }

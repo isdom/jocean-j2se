@@ -106,7 +106,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         } else {
             this._rootPropertyFiles = null;
         }
-        this._finder = this._rootApplicationContext.getBean(DefaultBeanFinder.class);
+        this._beanFinder = this._rootApplicationContext.getBean(DefaultBeanFinder.class);
     }
 
     private PropertyPlaceholderConfigurer getRootConfigurer() {
@@ -908,8 +908,14 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         } catch (final Exception e) {
                             LOG.info("can't found {} locally, try find global.", requiredType);
                         }
-                        return UnitAgent.this.getBean(requiredType);
+                        final T bean = UnitAgent.this.getBean(requiredType);
+                        if (null != bean) {
+                            return bean;
+                        }
+                        // TODO, fix for real async find
+                        return _beanFinder.find(requiredType).toBlocking().single();
                     }
+
                     @Override
                     public <T> T getBean(final String name, final Class<T> requiredType) {
                         try {
@@ -917,8 +923,14 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         } catch (final Exception e) {
                             LOG.info("can't found {}/{} locally, try find global.", name, requiredType);
                         }
-                        return UnitAgent.this.getBean(name, requiredType);
+                        final T bean = UnitAgent.this.getBean(name, requiredType);
+                        if (null != bean) {
+                            return bean;
+                        }
+                        // TODO, fix for real async find
+                        return _beanFinder.find(name, requiredType).toBlocking().single();
                     }
+
                     @Override
                     public Object getBean(final String name) {
                         try {
@@ -926,7 +938,12 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         } catch (final Exception e) {
                             LOG.info("can't found {} locally, try find global.", name);
                         }
-                        return UnitAgent.this.getBean(name);
+                        final Object bean = UnitAgent.this.getBean(name);
+                        if (null != bean) {
+                            return bean;
+                        }
+                        // TODO, fix for real async find
+                        return _beanFinder.find(name, Object.class).toBlocking().single();
                     }}));
                 if (null!=unitAgentAware) {
                     beanFactory.addBeanPostProcessor(unitAgentAware);
@@ -956,7 +973,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
 
         ctx.refresh();
         // when new applicationContext added, then reset finder's beans cache
-        this._finder.resetCache();
+        this._beanFinder.resetCache();
         return ctx;
     }
 
@@ -1060,7 +1077,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
 
     private ApplicationContext _rootApplicationContext = null;
 
-    private DefaultBeanFinder _finder = null;
+    private DefaultBeanFinder _beanFinder = null;
 
     private Resource[] _rootPropertyFiles = null;
 
@@ -1074,6 +1091,5 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
 
     private final Queue<String> _logs = new ConcurrentLinkedQueue<>();
 
-    private final COWCompositeSupport<UnitListener> _unitListenerSupport
-        = new COWCompositeSupport<UnitListener>();
+    private final COWCompositeSupport<UnitListener> _unitListenerSupport = new COWCompositeSupport<UnitListener>();
 }
