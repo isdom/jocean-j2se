@@ -44,16 +44,13 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
         final Field[] fields = ReflectUtils.getAnnotationFieldsOf(bean.getClass(), injectCls);
         for (final Field field : fields) {
             try {
-                if (null == field.get(bean)) { // ?
-                    final Object value = BeanHolders.getBean(this._beanHolder, field.getType(),
-                            field.getAnnotation(namedCls), bean);
-                    if (null != value) {
-                        field.set(bean, value);
-                        LOG.debug("inject {} to bean({})'s field({})", value, beanName, field);
-                    } else {
-                        LOG.debug("NOT Found global bean for type {}, unable auto inject bean({})'s field({})!",
-                                field.getType(), beanName, field);
-                    }
+                final Object value = BeanHolders.getBean(this._beanHolder, field.getType(), field.getAnnotation(namedCls), bean);
+                if (null != value) {
+                    field.set(bean, value);
+                    LOG.debug("inject {} to bean({})'s field({})", value, beanName, field);
+                } else {
+                    LOG.debug("NOT Found global bean for type {}, unable auto inject bean({})'s field({})!",
+                            field.getType(), beanName, field);
                 }
             } catch (final Exception e) {
                 LOG.warn("exception when postProcessBeforeInitialization for bean({}), detail: {}",
