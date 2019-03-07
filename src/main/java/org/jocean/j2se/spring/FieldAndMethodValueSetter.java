@@ -47,8 +47,7 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
                         LOG.info("set value {} to bean({})'s field({}) by key {}", value, beanName, field, key);
                     }
                 } else {
-                    LOG.warn("NOT Found value for key {}, unable auto set bean({})'s field({})!",
-                            key, beanName, field);
+                    LOG.warn("NOT Found value for key {}, unable auto set bean({})'s field({})!", key, beanName, field);
                 }
             } catch (final Exception e) {
                 LOG.warn("exception when FieldAndMethodValueSetter.postProcessBeforeInitialization for bean({}), detail: {}",
