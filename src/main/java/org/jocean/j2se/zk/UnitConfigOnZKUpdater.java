@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.inject.Inject;
 import javax.management.ObjectName;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -20,9 +21,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 
-import rx.Subscriber;
+import rx.Observer;
 
-public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> implements MBeanRegisterAware {
+public class UnitConfigOnZKUpdater implements Observer<MBeanStatus>, MBeanRegisterAware {
 
     private static final Logger LOG = LoggerFactory.getLogger(UnitConfigOnZKUpdater.class);
 
@@ -39,10 +40,6 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> implements MB
                 removeAllZKPath();
             }
         });
-    }
-
-    public UnitConfigOnZKUpdater(final CuratorFramework curator) {
-        this._curator = curator;
     }
 
     @Override
@@ -154,8 +151,11 @@ public class UnitConfigOnZKUpdater extends Subscriber<MBeanStatus> implements MB
 
     private static final String _PATH_SUFFIX;
 
+    @Inject
+    private CuratorFramework _curator;
+
     private String _path;
     private String _template;
-    private final CuratorFramework _curator;
+
     private final Map<ObjectName,String> _createdPaths = new ConcurrentHashMap<>();
 }
