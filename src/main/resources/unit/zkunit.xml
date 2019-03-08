@@ -9,7 +9,6 @@
     <bean id="__zkagent" class="org.jocean.j2se.zk.ZKAgent"
         init-method="start" 
         destroy-method="stop">
-        <!-- constructor-arg name="client" ref="zkClient"/ -->
         <constructor-arg name="root" value="${zk.units.path}"/>
     </bean>
 
