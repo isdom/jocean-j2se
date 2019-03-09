@@ -12,7 +12,7 @@ public class TracingAspect {
 
     public Object around(final ProceedingJoinPoint pjp) throws Throwable {
         final Object[] args = pjp.getArgs();
-        if (args.length > 0 && args[0] instanceof Tracing) {
+        if (args.length > 0 && (null != args[0]) && (args[0] instanceof Tracing)) {
             final Tracing tracing = (Tracing) args[0];
             try (final Scope scope = tracing.activate()) {
                 final Object ret = pjp.proceed();
