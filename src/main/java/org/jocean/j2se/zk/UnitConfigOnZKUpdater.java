@@ -15,17 +15,29 @@ import org.jocean.idiom.PropertyPlaceholderHelper;
 import org.jocean.idiom.PropertyPlaceholderHelper.PlaceholderResolver;
 import org.jocean.idiom.jmx.MBeanRegister;
 import org.jocean.idiom.jmx.MBeanRegisterAware;
+import org.jocean.j2se.jmx.MBeanPublisher;
 import org.jocean.j2se.jmx.MBeanStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.google.common.base.Charsets;
 
-import rx.Observer;
+import rx.Subscription;
 
-public class UnitConfigOnZKUpdater implements Observer<MBeanStatus>, MBeanRegisterAware {
+public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
 
     private static final Logger LOG = LoggerFactory.getLogger(UnitConfigOnZKUpdater.class);
+
+    public Subscription start() {
+        return _publisher.watch(this._objectName).subscribe(mbeanStatus -> processStatus(mbeanStatus),
+                e -> LOG.warn("exception when subscriber MBeanStatus for path {}, detail:{}",
+                        this._path, ExceptionUtils.exception2detail(e)),
+                () -> {
+                    LOG.info("Subscriber MBeanStatus for path {} onCompleted", this._path);
+                    removeAllZKPath();
+                });
+    }
 
     @Override
     public void setMBeanRegister(final MBeanRegister register) {
@@ -42,20 +54,7 @@ public class UnitConfigOnZKUpdater implements Observer<MBeanStatus>, MBeanRegist
         });
     }
 
-    @Override
-    public void onCompleted() {
-        LOG.info("Subscriber MBeanStatus for path {} onCompleted", this._path);
-        removeAllZKPath();
-    }
-
-    @Override
-    public void onError(final Throwable e) {
-        LOG.warn("exception when subscriber MBeanStatus for path {}, detail:{}",
-                this._path, ExceptionUtils.exception2detail(e));
-    }
-
-    @Override
-    public void onNext(final MBeanStatus mbeanStatus) {
+    private void processStatus(final MBeanStatus mbeanStatus) {
         if ( mbeanStatus.isRegistered() ) {
             final PlaceholderResolver placeholderResolver = new PlaceholderResolver() {
                 @Override
@@ -122,21 +121,6 @@ public class UnitConfigOnZKUpdater implements Observer<MBeanStatus>, MBeanRegist
         }
     }
 
-
-    /**
-     * @param template the _template to set
-     */
-    public void setTemplate(final String template) {
-        this._template = template;
-    }
-
-    /**
-     * @param path the _path to set
-     */
-    public void setPath(final String path) {
-        this._path = path + _PATH_SUFFIX;
-    }
-
     static {
         String hostname = "unknown";
         try {
@@ -152,10 +136,27 @@ public class UnitConfigOnZKUpdater implements Observer<MBeanStatus>, MBeanRegist
     private static final String _PATH_SUFFIX;
 
     @Inject
+    private MBeanPublisher _publisher;
+
+    @Inject
     private CuratorFramework _curator;
 
-    private String _path;
-    private String _template;
+    @Value("${mbean.name}")
+    void setObjectName(final String on) throws Exception {
+        this._objectName = ObjectName.getInstance(on);
+    }
+
+    @Value("${path}")
+    public void setPath(final String path) {
+        this._path = path + _PATH_SUFFIX;
+    }
+
+    ObjectName _objectName;
+
+    String _path;
+
+    @Value("${template}")
+    String _template;
 
     private final Map<ObjectName,String> _createdPaths = new ConcurrentHashMap<>();
 }

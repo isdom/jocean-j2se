@@ -4,16 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
         
-    <bean id="observable" factory-bean="mbeanPublisher" factory-method="watch">
-        <constructor-arg value="${mbean.name}"/>
-    </bean>
-
-    <bean factory-bean="observable" factory-method="subscribe" destroy-method="unsubscribe">
-        <constructor-arg>
-		    <bean class="org.jocean.j2se.zk.UnitConfigOnZKUpdater">
-		        <property name="template" value="${template}" />
-		        <property name="path" value="${path}" />
-		    </bean>
-        </constructor-arg>
-    </bean>
+    <bean id="updater" class="org.jocean.j2se.zk.UnitConfigOnZKUpdater"/>
+    
+    <bean factory-bean="updater" factory-method="start" destroy-method="unsubscribe"/>
 </beans>

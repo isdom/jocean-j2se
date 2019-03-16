@@ -28,8 +28,7 @@ public class MBeanPublisher {
         MBEANSERVER_DELEGATE = MBeanUtil.safeGetObjectName("JMImplementation:type=MBeanServerDelegate");
     }
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(MBeanPublisher.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MBeanPublisher.class);
 
     public MBeanPublisher() {
         this(ManagementFactory.getPlatformMBeanServer());
