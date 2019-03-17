@@ -139,11 +139,12 @@ public class StartAppCommand implements CliCommand<CliContext> {
     private void buildApplication(final UnitDescription[] unitdescs, final Func2<String, String, String> getConfig) {
         if (null != unitdescs) {
             for (final UnitDescription desc : unitdescs) {
+                final long begin = System.currentTimeMillis();
                 build(this._unitAgent, desc, null, getConfig);
                 try {
                     LOG.info("wait for {} initialization", desc);
                     this._initializationMonitor.await();
-                    LOG.info("{} has been initialized", desc);
+                    LOG.info("{} has been initialized, cost {} seconds", desc, (System.currentTimeMillis() - begin) / 1000.0f);
                 } catch (final InterruptedException e) {
                     LOG.warn("Interrupted when await for initialization, detail: {}", ExceptionUtils.exception2detail(e));
                 }
