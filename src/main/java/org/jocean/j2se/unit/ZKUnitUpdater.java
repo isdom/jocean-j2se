@@ -90,11 +90,7 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
     }
 
     @Override
-    public void onAdded(
-            final ZKAgent agent,
-            final String path,
-            final byte[] data)
-            throws Exception {
+    public void onAdded(final ZKAgent agent, final String path, final byte[] data) throws Exception {
         final String pathName = parseSourceFromPath(agent.root(), path);
         if ( null != pathName ) {
             if ( LOG.isDebugEnabled()) {
@@ -122,11 +118,7 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
     }
 
     @Override
-    public void onUpdated(
-            final ZKAgent agent,
-            final String path,
-            final byte[] data)
-            throws Exception {
+    public void onUpdated(final ZKAgent agent, final String path,  final byte[] data) throws Exception {
         final String pathName = parseSourceFromPath(agent.root(), path);
         if (null != pathName) {
             if ( LOG.isDebugEnabled()) {
@@ -150,10 +142,7 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
     }
 
     @Override
-    public void onRemoved(
-            final ZKAgent agent,
-            final String path)
-            throws Exception {
+    public void onRemoved(final ZKAgent agent, final String path) throws Exception {
         final String pathName = parseSourceFromPath(agent.root(), path);
         if (null != pathName) {
             if ( LOG.isDebugEnabled()) {

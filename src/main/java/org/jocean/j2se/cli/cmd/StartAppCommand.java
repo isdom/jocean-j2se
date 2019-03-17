@@ -15,6 +15,7 @@ import org.jocean.cli.CliContext;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.Pair;
 import org.jocean.j2se.os.OSUtil;
+import org.jocean.j2se.unit.InitializationMonitor;
 import org.jocean.j2se.unit.UnitAgent;
 import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
 import org.jocean.j2se.unit.model.ServiceConfig;
@@ -37,6 +38,9 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
     @Inject
     UnitAgent _unitAgent;
+
+    @Inject
+    InitializationMonitor _initializationMonitor;
 
     boolean _started = false;
 
@@ -136,6 +140,13 @@ public class StartAppCommand implements CliCommand<CliContext> {
         if (null != unitdescs) {
             for (final UnitDescription desc : unitdescs) {
                 build(this._unitAgent, desc, null, getConfig);
+                try {
+                    LOG.info("wait for {} initialization", desc);
+                    this._initializationMonitor.await();
+                    LOG.info("{} has been initialized", desc);
+                } catch (final InterruptedException e) {
+                    LOG.warn("Interrupted when await for initialization, detail: {}", ExceptionUtils.exception2detail(e));
+                }
             }
         }
     }

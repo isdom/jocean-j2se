@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
@@ -17,6 +18,7 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.InterfaceSelector;
+import org.jocean.j2se.unit.InitializationMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,7 @@ import rx.functions.Action0;
 import rx.functions.ActionN;
 
 public class ZKAgent {
+
     public interface Listener {
         public void onAdded(final ZKAgent agent, final String path, final byte[] data)
                 throws Exception;
@@ -91,20 +94,20 @@ public class ZKAgent {
     public void setClient(final CuratorFramework client) throws Exception {
         LOG.info("inject CuratorFramework {}", client);
         this._client = client;
-        this._executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
-            .setNameFormat("Curator-TreeCache-%d")
-            .setDaemon(false)
-            .build());
+        this._executor = Executors.newSingleThreadExecutor(DEFAULT_THREAD_FACTORY);
         // wait for thread running
-        this._executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                LOG.info("ZKUpdater Thread has running.");
-            }}).get();
+        this._executor.submit(() -> LOG.info("ZKAgent Thread has running.")).get();
         this._treecache = TreeCache.newBuilder(client, this._root)
             .setCacheData(false)
             .setExecutor(this._executor)
             .build();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ZKAgent [root=").append(_root).append("]");
+        return builder.toString();
     }
 
     /**
@@ -123,6 +126,9 @@ public class ZKAgent {
     }
 
     public void start() {
+        if ( this._initializationMonitor != null) {
+            this._initializationMonitor.beginInitialize(this);
+        }
         this._treecache.getListenable().addListener(new TreeCacheListener() {
             @Override
             public void childEvent(final CuratorFramework client, final TreeCacheEvent event)
@@ -136,6 +142,13 @@ public class ZKAgent {
                     break;
                 case NODE_UPDATED:
                     nodeUpdated(event);
+                case INITIALIZED:
+                    if ( !_initialized ) {
+                        _initialized = true;
+                        if ( _initializationMonitor != null) {
+                            _initializationMonitor.endInitialize(ZKAgent.this);
+                        }
+                    }
                 default:
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("unhandle event ({}), just ignore.",
@@ -180,22 +193,12 @@ public class ZKAgent {
     private Action0 addListenerWhenActive(final Listener listener) {
         final DisabledListener disabledListener = new DisabledListener(listener);
         try {
-            return new Action0() {
-                @Override
-                public void call() {
+            return () -> {
                     disabledListener.disable();
-                    _executor.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            _op.removeListenerAndRemoveTree(ZKAgent.this, disabledListener);
-                        }});
-                }};
+                    _executor.submit(() -> _op.removeListenerAndRemoveTree(ZKAgent.this, disabledListener));
+                };
         } finally {
-            this._executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    _op.addTreeAndAddListener(ZKAgent.this, disabledListener);
-                }});
+            this._executor.submit(() -> _op.addTreeAndAddListener(ZKAgent.this, disabledListener));
         }
     }
 
@@ -361,6 +364,10 @@ public class ZKAgent {
         }
     };
 
+    boolean _initialized = false;
+    @Inject
+    InitializationMonitor _initializationMonitor;
+
     private final InterfaceSelector _selector = new InterfaceSelector();
     private final Op _op = this._selector.build(Op.class, OP_ACTIVE, OP_UNACTIVE);
 
@@ -372,4 +379,9 @@ public class ZKAgent {
 
     private final Map<String, byte[]> _nodes = new HashMap<>();
     private final COWCompositeSupport<Listener> _listenerSupport = new COWCompositeSupport<Listener>();
+
+    private static final ThreadFactory DEFAULT_THREAD_FACTORY = new ThreadFactoryBuilder()
+            .setNameFormat("Curator-TreeCache-%d")
+            .setDaemon(false)
+            .build();
 }

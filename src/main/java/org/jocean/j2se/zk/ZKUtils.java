@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.jocean.j2se.zk;
 
@@ -20,9 +20,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ZKUtils {
-    private static final Logger LOG = LoggerFactory
-            .getLogger(ZKUtils.class);
-    
+    private static final Logger LOG = LoggerFactory.getLogger(ZKUtils.class);
+
     public static CuratorFramework buildWithExhibitorEnsembleProvider(
             final String[] exhibitorHostnames,
             final int exhibitorRestPort,
@@ -33,8 +32,8 @@ public class ZKUtils {
             final int pollingMs,
             final RetryPolicy retryPolicy) {
         final ExhibitorEnsembleProvider exhibitorEnsembleProvider =  new ExhibitorEnsembleProvider(
-                new Exhibitors(Arrays.asList(exhibitorHostnames), 
-                    exhibitorRestPort, 
+                new Exhibitors(Arrays.asList(exhibitorHostnames),
+                    exhibitorRestPort,
                     new BackupConnectionStringProvider() {
                         @Override
                         public String getBackupConnectionString() throws Exception {
@@ -49,7 +48,7 @@ public class ZKUtils {
                 retryPolicy);
         try {
             exhibitorEnsembleProvider.pollForInitialEnsemble();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOG.warn("exception when invoke pollForInitialEnsemble for {}, detail: {}",
                     exhibitorEnsembleProvider, ExceptionUtils.exception2detail(e));
         }

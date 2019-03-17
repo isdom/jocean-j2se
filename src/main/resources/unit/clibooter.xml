@@ -33,6 +33,8 @@
         </constructor-arg>
     </bean>
     
+    <bean class="org.jocean.j2se.unit.InitializationMonitor"/>
+    
     <bean id="unitAgent" class="org.jocean.j2se.unit.UnitAgent" destroy-method="stop" />
         
     <bean id="beanFinder" class="org.jocean.j2se.unit.DefaultBeanFinder">
