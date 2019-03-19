@@ -167,7 +167,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         }
         final String unitName = nameAndParentPath.first;
         final String parentPath = nameAndParentPath.second;
-        final String pathName = pathOf(parentPath, null != aliasName ? aliasName : unitName);
+        final String pathName = pathOf(parentPath, (null != aliasName && !aliasName.isEmpty()) ? aliasName : unitName);
         final Map<String, String> props = data2props(desc.parametersAsByteArray(), externProps);
         if (unitName.contains(REF_KEY)) {
             final String[] ss = unitName.split(REF_KEY);
