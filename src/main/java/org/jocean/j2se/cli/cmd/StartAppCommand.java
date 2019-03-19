@@ -140,7 +140,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         if (null != unitdescs) {
             for (final UnitDescription desc : unitdescs) {
                 final long begin = System.currentTimeMillis();
-                build(this._unitAgent, desc, null, null, getConfig);
+                build(this._unitAgent, desc, null, null, null, getConfig);
                 try {
                     LOG.info("wait for {} initialization", desc);
                     this._initializationMonitor.await();
@@ -157,6 +157,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
     private void build(final UnitAgent unitAgent,
             final UnitDescription desc,
+            final String aliasName,
             final Map<String, String> externProps,
             final String orgParentPath,
             final Func2<String, String, String> getConfig) {
@@ -166,12 +167,13 @@ public class StartAppCommand implements CliCommand<CliContext> {
         }
         final String unitName = nameAndParentPath.first;
         final String parentPath = nameAndParentPath.second;
-        final String pathName = pathOf(parentPath, unitName);
+        final String pathName = pathOf(parentPath, null != aliasName ? aliasName : unitName);
         final Map<String, String> props = data2props(desc.parametersAsByteArray(), externProps);
-        if (unitName.startsWith(REF_KEY)) {
-            final UnitDescription ref = buildRef(unitName.substring(REF_KEY.length()), props, unitAgent, parentPath, getConfig);
+        if (unitName.contains(REF_KEY)) {
+            final String[] ss = unitName.split(REF_KEY);
+            final UnitDescription ref = buildRef(ss[1], ss[0], props, unitAgent, parentPath, getConfig);
             if (null != ref) {
-                buildChildren(desc.getChildren(), unitAgent, getConfig, pathOf(parentPath, ref.getName()));
+                buildChildren(desc.getChildren(), unitAgent, getConfig, pathOf(parentPath, !ss[0].isEmpty() ? ss[0] : ref.getName()));
             } else {
                 LOG.warn("can't build unit by ref: {}, skip all it's children", unitName);
             }
@@ -298,12 +300,13 @@ public class StartAppCommand implements CliCommand<CliContext> {
             final Func2<String, String, String> getConfig,
             final String pathName) {
         for ( final UnitDescription child : children) {
-            build(unitAgent, child, null, pathName + "/", getConfig);
+            build(unitAgent, child, null, null, pathName + "/", getConfig);
         }
     }
 
     private UnitDescription buildRef(
             final String dataidAndGroup,
+            final String aliasName,
             final Map<String, String> props,
             final UnitAgent unitAgent,
             final String parentPath,
@@ -318,7 +321,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
                 final UnitDescription refdesc = (UnitDescription)new Yaml().loadAs(is, UnitDescription.class);
                 if (null != refdesc) {
                     LOG.info("try to build unit by ref named:{} with group:{}", refdesc.getName(), null != group ? group : "(using default)");
-                    build(unitAgent, refdesc, props, parentPath, getConfig);
+                    build(unitAgent, refdesc, aliasName, props, parentPath, getConfig);
                     return  refdesc;
                 }
             } catch (final IOException e) {
