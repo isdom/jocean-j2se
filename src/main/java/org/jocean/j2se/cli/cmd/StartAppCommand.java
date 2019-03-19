@@ -140,7 +140,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         if (null != unitdescs) {
             for (final UnitDescription desc : unitdescs) {
                 final long begin = System.currentTimeMillis();
-                build(this._unitAgent, desc, null, getConfig);
+                build(this._unitAgent, desc, null, null, getConfig);
                 try {
                     LOG.info("wait for {} initialization", desc);
                     this._initializationMonitor.await();
@@ -157,6 +157,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
     private void build(final UnitAgent unitAgent,
             final UnitDescription desc,
+            final Map<String, String> externProps,
             final String orgParentPath,
             final Func2<String, String, String> getConfig) {
         final Pair<String, String> nameAndParentPath = initNameAndPath(orgParentPath, desc.getName(), unitAgent);
@@ -166,8 +167,9 @@ public class StartAppCommand implements CliCommand<CliContext> {
         final String unitName = nameAndParentPath.first;
         final String parentPath = nameAndParentPath.second;
         final String pathName = pathOf(parentPath, unitName);
+        final Map<String, String> props = data2props(desc.parametersAsByteArray(), externProps);
         if (unitName.startsWith(REF_KEY)) {
-            final UnitDescription ref = buildRef(unitName.substring(REF_KEY.length()), unitAgent, parentPath, getConfig);
+            final UnitDescription ref = buildRef(unitName.substring(REF_KEY.length()), props, unitAgent, parentPath, getConfig);
             if (null != ref) {
                 buildChildren(desc.getChildren(), unitAgent, getConfig, pathOf(parentPath, ref.getName()));
             } else {
@@ -175,7 +177,6 @@ public class StartAppCommand implements CliCommand<CliContext> {
             }
         } else {
             final String template = getTemplateFromName(unitName);
-            final Map<String, String> props = data2props(desc.parametersAsByteArray());
             final String[] source = genSourceFrom(props);
 
             UnitMXBean unit = null;
@@ -216,26 +217,41 @@ public class StartAppCommand implements CliCommand<CliContext> {
         return new String[]{"**/"+ template + ".xml", template + ".xml"};
     }
 
-    private Map<String, String> data2props(final byte[] data)  {
+    private Map<String, String> data2props(final byte[] data, final Map<String, String> externProps)  {
         if (null == data) {
-            return Collections.emptyMap();
-        }
-        final DataInput di = ByteStreams.newDataInput(data);
-        try {
-            final String _1_line = di.readLine();
-            if (null != _1_line && _1_line.startsWith("## yaml")) {
-                LOG.debug("parse as yaml");
-                // read as yaml
-                @SuppressWarnings("unchecked")
-                final Map<String, String> props = asStringStringMap(null, new Yaml().loadAs(new ByteArrayInputStream(data), Map.class));
-                LOG.debug("parse result: {}", props);
-                return props;
+            if (null == externProps) {
+                return Collections.emptyMap();
             } else {
-                return Maps.fromProperties(loadProperties(data));
+                return externProps;
             }
+        }
+        try {
+            final Map<String, String> props = loadYamlOrProperties(data);
+            if (null != externProps) {
+                props.putAll(externProps);
+            }
+            LOG.debug("parse result: {}", props);
+            return props;
         } catch (final Exception e) {
             LOG.warn("exception when data2props, detail: {}", ExceptionUtils.exception2detail(e));
-            return Collections.emptyMap();
+            if (null == externProps) {
+                return Collections.emptyMap();
+            } else {
+                return externProps;
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, String> loadYamlOrProperties(final byte[] data) throws IOException {
+        final DataInput di = ByteStreams.newDataInput(data);
+        final String _1_line = di.readLine();
+        if (null != _1_line && _1_line.startsWith("## yaml")) {
+            LOG.debug("parse as yaml");
+            // read as yaml
+            return asStringStringMap(null, (Map<Object, Object>)new Yaml().loadAs(new ByteArrayInputStream(data), Map.class));
+        } else {
+            return Maps.fromProperties(loadProperties(data));
         }
     }
 
@@ -282,12 +298,13 @@ public class StartAppCommand implements CliCommand<CliContext> {
             final Func2<String, String, String> getConfig,
             final String pathName) {
         for ( final UnitDescription child : children) {
-            build(unitAgent, child, pathName + "/", getConfig);
+            build(unitAgent, child, null, pathName + "/", getConfig);
         }
     }
 
     private UnitDescription buildRef(
             final String dataidAndGroup,
+            final Map<String, String> props,
             final UnitAgent unitAgent,
             final String parentPath,
             final Func2<String, String, String> getConfig) {
@@ -300,9 +317,8 @@ public class StartAppCommand implements CliCommand<CliContext> {
             try (final InputStream is = new ByteArrayInputStream(content.getBytes(Charsets.UTF_8))) {
                 final UnitDescription refdesc = (UnitDescription)new Yaml().loadAs(is, UnitDescription.class);
                 if (null != refdesc) {
-                    LOG.info("try to build unit by ref named:{} with group:{}",
-                            refdesc.getName(), null != group ? group : "(using default)");
-                    build(unitAgent, refdesc, parentPath, getConfig);
+                    LOG.info("try to build unit by ref named:{} with group:{}", refdesc.getName(), null != group ? group : "(using default)");
+                    build(unitAgent, refdesc, props, parentPath, getConfig);
                     return  refdesc;
                 }
             } catch (final IOException e) {
