@@ -251,7 +251,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
             // read as yaml
             return asStringStringMap(null, (Map<Object, Object>)new Yaml().loadAs(new ByteArrayInputStream(data), Map.class));
         } else {
-            return Maps.fromProperties(loadProperties(data));
+            return Maps.newHashMap(Maps.fromProperties(loadProperties(data)));
         }
     }
 
