@@ -1,5 +1,6 @@
 package org.jocean.j2se.unit;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,8 +23,20 @@ import org.springframework.util.StringValueResolver;
 
 public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigurer {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ValueAwarePlaceholderConfigurer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ValueAwarePlaceholderConfigurer.class);
+
+    public StringValueResolver buildStringValueResolver() {
+        try {
+            final Properties mergedProps = mergeProperties();
+
+            // Convert the merged properties, if necessary.
+            convertProperties(mergedProps);
+
+            return new PlaceholderResolvingStringValueResolver(mergedProps);
+        } catch(final IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Visit each bean definition in the given bean factory and attempt to replace ${...} property
@@ -35,7 +48,7 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
 
         LOG.info("processProperties for beanFactoryToProcess {}", beanFactoryToProcess.toString());
 
-        StringValueResolver valueResolver = new PlaceholderResolvingStringValueResolver(props);
+        final StringValueResolver valueResolver = new PlaceholderResolvingStringValueResolver(props);
 
         this.doProcessProperties(beanFactoryToProcess, valueResolver);
     }
@@ -49,7 +62,7 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
             private static final long serialVersionUID = 1L;
 
             {
-                for (Map.Entry<String, Object> entry : _resolvedPlaceholders.entrySet()) {
+                for (final Map.Entry<String, Object> entry : _resolvedPlaceholders.entrySet()) {
                     if (entry.getValue() instanceof String) {
                         this.put(entry.getKey(), entry.getValue().toString());
                     } else {
@@ -59,12 +72,12 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
             }
         };
     }
-    
+
     public String[] getTextedResolvedPlaceholdersAsStringArray() {
         return new ArrayList<String>() {
             private static final long serialVersionUID = 1L;
             {
-                for (Map.Entry<String, Object> entry : _resolvedPlaceholders.entrySet()) {
+                for (final Map.Entry<String, Object> entry : _resolvedPlaceholders.entrySet()) {
                     if (entry.getValue() instanceof String) {
                         this.add(entry.getKey() + "<--" + entry.getValue().toString());
                     } else {
@@ -81,14 +94,15 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
 
         private final PropertyPlaceholderHelper.PlaceholderResolver resolver;
 
-        public PlaceholderResolvingStringValueResolver(Properties props) {
+        public PlaceholderResolvingStringValueResolver(final Properties props) {
             this.helper = new PropertyPlaceholderHelperEx(
                     placeholderPrefix, placeholderSuffix, valueSeparator, ignoreUnresolvablePlaceholders);
             this.resolver = new PropertyPlaceholderConfigurerResolver(props);
         }
 
-        public String resolveStringValue(String strVal) throws BeansException {
-            String value = this.helper.replacePlaceholders(strVal, this.resolver);
+        @Override
+        public String resolveStringValue(final String strVal) throws BeansException {
+            final String value = this.helper.replacePlaceholders(strVal, this.resolver);
             return (value.equals(nullValue) ? null : value);
         }
     }
@@ -98,11 +112,12 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
 
         private final Properties props;
 
-        private PropertyPlaceholderConfigurerResolver(Properties props) {
+        private PropertyPlaceholderConfigurerResolver(final Properties props) {
             this.props = props;
         }
 
-        public String resolvePlaceholder(String placeholderName) {
+        @Override
+        public String resolvePlaceholder(final String placeholderName) {
             return ValueAwarePlaceholderConfigurer.this.resolvePlaceholder(placeholderName, props, systemPropertiesMode);
         }
     }
@@ -115,7 +130,8 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
      * @throws IllegalArgumentException if an invalid constant was specified
      * @see #setSystemPropertiesMode
      */
-    public void setSystemPropertiesModeName(String constantName) throws IllegalArgumentException {
+    @Override
+    public void setSystemPropertiesModeName(final String constantName) throws IllegalArgumentException {
         this.systemPropertiesMode = constants.asNumber(constantName).intValue();
     }
 
@@ -132,7 +148,8 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
      * @see #SYSTEM_PROPERTIES_MODE_OVERRIDE
      * @see #setSystemPropertiesModeName
      */
-    public void setSystemPropertiesMode(int systemPropertiesMode) {
+    @Override
+    public void setSystemPropertiesMode(final int systemPropertiesMode) {
         this.systemPropertiesMode = systemPropertiesMode;
     }
 
@@ -180,14 +197,14 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
          * @param ignoreUnresolvablePlaceholders indicates whether unresolvable placeholders should be ignored
          *                                       (<code>true</code>) or cause an exception (<code>false</code>).
          */
-        public PropertyPlaceholderHelperEx(String placeholderPrefix, String placeholderSuffix,
-                                           String valueSeparator, boolean ignoreUnresolvablePlaceholders) {
+        public PropertyPlaceholderHelperEx(final String placeholderPrefix, final String placeholderSuffix,
+                                           final String valueSeparator, final boolean ignoreUnresolvablePlaceholders) {
 
             Assert.notNull(placeholderPrefix, "placeholderPrefix must not be null");
             Assert.notNull(placeholderSuffix, "placeholderSuffix must not be null");
             this.placeholderPrefix = placeholderPrefix;
             this.placeholderSuffix = placeholderSuffix;
-            String simplePrefixForSuffix = wellKnownSimplePrefixes.get(this.placeholderSuffix);
+            final String simplePrefixForSuffix = wellKnownSimplePrefixes.get(this.placeholderSuffix);
             if (simplePrefixForSuffix != null && this.placeholderPrefix.endsWith(simplePrefixForSuffix)) {
                 this.simplePrefix = simplePrefixForSuffix;
             } else {
@@ -206,10 +223,11 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
          * @param properties the <code>Properties</code> to use for replacement.
          * @return the supplied value with placeholders replaced inline.
          */
-        public String replacePlaceholders(String value, final Properties properties) {
+        public String replacePlaceholders(final String value, final Properties properties) {
             Assert.notNull(properties, "Argument 'properties' must not be null.");
             return replacePlaceholders(value, new PropertyPlaceholderHelper.PlaceholderResolver() {
-                public String resolvePlaceholder(String placeholderName) {
+                @Override
+                public String resolvePlaceholder(final String placeholderName) {
                     return properties.getProperty(placeholderName);
                 }
             });
@@ -223,23 +241,23 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
          * @param placeholderResolver the <code>PlaceholderResolver</code> to use for replacement.
          * @return the supplied value with placeholders replaced inline.
          */
-        public String replacePlaceholders(String value, PropertyPlaceholderHelper.PlaceholderResolver placeholderResolver) {
+        public String replacePlaceholders(final String value, final PropertyPlaceholderHelper.PlaceholderResolver placeholderResolver) {
             Assert.notNull(value, "Argument 'value' must not be null.");
             return parseStringValue(value, placeholderResolver, new HashSet<String>());
         }
 
         protected String parseStringValue(
-                String strVal, PropertyPlaceholderHelper.PlaceholderResolver placeholderResolver, Set<String> visitedPlaceholders) {
+                final String strVal, final PropertyPlaceholderHelper.PlaceholderResolver placeholderResolver, final Set<String> visitedPlaceholders) {
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("in parseStringValue for: {}", strVal);
             }
 
-            StringBuilder buf = new StringBuilder(strVal);
+            final StringBuilder buf = new StringBuilder(strVal);
 
             int startIndex = strVal.indexOf(this.placeholderPrefix);
             while (startIndex != -1) {
-                int endIndex = findPlaceholderEndIndex(buf, startIndex);
+                final int endIndex = findPlaceholderEndIndex(buf, startIndex);
                 if (endIndex != -1) {
                     String placeholder = buf.substring(startIndex + this.placeholderPrefix.length(), endIndex);
                     if (!visitedPlaceholders.add(placeholder)) {
@@ -255,10 +273,10 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
                     // Now obtain the value for the fully resolved key...
                     String propVal = placeholderResolver.resolvePlaceholder(placeholder);
                     if (propVal == null && this.valueSeparator != null) {
-                        int separatorIndex = placeholder.indexOf(this.valueSeparator);
+                        final int separatorIndex = placeholder.indexOf(this.valueSeparator);
                         if (separatorIndex != -1) {
-                            String actualPlaceholder = placeholder.substring(0, separatorIndex);
-                            String defaultValue = placeholder.substring(separatorIndex + this.valueSeparator.length());
+                            final String actualPlaceholder = placeholder.substring(0, separatorIndex);
+                            final String defaultValue = placeholder.substring(separatorIndex + this.valueSeparator.length());
                             propVal = placeholderResolver.resolvePlaceholder(actualPlaceholder);
                             if (propVal == null) {
                                 propVal = defaultValue;
@@ -293,7 +311,7 @@ public class ValueAwarePlaceholderConfigurer extends PropertyPlaceholderConfigur
             return buf.toString();
         }
 
-        private int findPlaceholderEndIndex(CharSequence buf, int startIndex) {
+        private int findPlaceholderEndIndex(final CharSequence buf, final int startIndex) {
             int index = startIndex + this.placeholderPrefix.length();
             int withinNestedPlaceholder = 0;
             while (index < buf.length()) {

@@ -878,7 +878,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             final ApplicationContext parentCtx,
             final String objectNameSuffix,
             final String[] unitSource,
-            final PropertyPlaceholderConfigurer configurer,
+            final ValueAwarePlaceholderConfigurer configurer,
             final Properties properties,
             final UnitAgentAware unitAgentAware,
             final UnitKeeperAwareHolder unitKeeprAwareHolder) {
@@ -899,7 +899,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 beanFactory.addBeanPostProcessor(new PropertyPlaceholderConfigurerSetter(configurer));
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
                 beanFactory.addBeanPostProcessor(new BeanHolderSetter(UnitAgent.this));
-                beanFactory.addBeanPostProcessor(new FieldAndMethodValueSetter(properties));
+                beanFactory.addBeanPostProcessor(new FieldAndMethodValueSetter(configurer.buildStringValueResolver()));
                 beanFactory.addBeanPostProcessor(new BeanHolderBasedInjector(new BeanHolder(){
                     @Override
                     public <T> T getBean(final Class<T> requiredType) {

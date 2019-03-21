@@ -3,7 +3,6 @@ package org.jocean.j2se.spring;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.Properties;
 
 import org.jocean.idiom.Beans;
 import org.jocean.idiom.ExceptionUtils;
@@ -13,14 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.util.StringValueResolver;
 
 public class FieldAndMethodValueSetter implements BeanPostProcessor {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(FieldAndMethodValueSetter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FieldAndMethodValueSetter.class);
 
-    public FieldAndMethodValueSetter(final Properties properties) {
-        this._properties = properties;
+    public FieldAndMethodValueSetter(final StringValueResolver stringValueResolver) {
+        this._stringValueResolver = stringValueResolver;
     }
 
     @Override
@@ -38,16 +37,15 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
         for (final Field field : fields) {
             try {
                 final Value v = field.getAnnotation(Value.class);
-                final String key = v.value().replace("${", "").replace("}", "");
-                final String value = key2value(key);
+                final String value = resolveValue(v.value());
 
                 if (null!=value) {
                     field.set(bean, Beans.fromString(value, field.getType()));
                     if (LOG.isInfoEnabled()) {
-                        LOG.info("set value {} to bean({})'s field({}) by key {}", value, beanName, field, key);
+                        LOG.info("set value {} to bean({})'s field({}), it's original is {}", value, beanName, field, v.value());
                     }
                 } else {
-                    LOG.warn("NOT Found value for key {}, unable auto set bean({})'s field({})!", key, beanName, field);
+                    LOG.warn("NOT resolve value {}, unable auto set bean({})'s field({})!", v.value(), beanName, field);
                 }
             } catch (final Exception e) {
                 LOG.warn("exception when FieldAndMethodValueSetter.postProcessBeforeInitialization for bean({}), detail: {}",
@@ -66,17 +64,16 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
 
             try {
                 final Value v = method.getAnnotation(Value.class);
-                final String key = v.value().replace("${", "").replace("}", "");
-                final String value = key2value(key);
+                final String value = resolveValue(v.value());
 
                 if (null!=value) {
                     final Parameter p1st = method.getParameters()[0];
                     method.invoke(bean, Beans.fromString(value, p1st.getType()));
                     if (LOG.isInfoEnabled()) {
-                        LOG.info("invoke bean({})'s method {} with value {}, which build by key {}", beanName, method, value, key);
+                        LOG.info("invoke bean({})'s method {} with value {}, which original is {}", beanName, method, value, v.value());
                     }
                 } else {
-                    LOG.warn("NOT Found value for key {}, unable invoke bean({})'s method({})!", key, beanName, method);
+                    LOG.warn("NOT resolve value {}, unable invoke bean({})'s method({})!", v.value(), beanName, method);
                 }
             } catch (final Exception e) {
                 LOG.warn("exception when FieldAndMethodValueSetter.postProcessBeforeInitialization for bean({}), detail: {}",
@@ -91,10 +88,13 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
         return bean;
     }
 
-    private String key2value(final String key) {
-        final String value = this._properties.getProperty(key);
-        return null != value ? value : System.getProperty(key);
+    private String resolveValue(final String strVal) {
+        try {
+            return _stringValueResolver.resolveStringValue(strVal);
+        } catch (final Exception e) {
+            return null;
+        }
     }
 
-    private final Properties _properties;
+    private final StringValueResolver _stringValueResolver;
 }
