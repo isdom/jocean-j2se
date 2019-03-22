@@ -21,6 +21,7 @@ import org.jocean.idiom.InterfaceSelector;
 import org.jocean.j2se.unit.InitializationMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -86,21 +87,10 @@ public class ZKAgent {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZKAgent.class);
 
-    public ZKAgent(final String root) {
-        this._root = root;
-    }
-
     @Inject
-    public void setClient(final CuratorFramework client) throws Exception {
+    public void setClient(final CuratorFramework client) {
         LOG.info("inject CuratorFramework {}", client);
         this._client = client;
-        this._executor = Executors.newSingleThreadExecutor(DEFAULT_THREAD_FACTORY);
-        // wait for thread running
-        this._executor.submit(() -> LOG.info("ZKAgent Thread has running.")).get();
-        this._treecache = TreeCache.newBuilder(client, this._root)
-            .setCacheData(false)
-            .setExecutor(this._executor)
-            .build();
     }
 
     @Override
@@ -125,10 +115,17 @@ public class ZKAgent {
     	return this._executor;
     }
 
-    public void start() {
+    public void start() throws Exception {
         if ( this._initializationMonitor != null) {
             this._initializationMonitor.beginInitialize(this);
         }
+        this._executor = Executors.newSingleThreadExecutor(DEFAULT_THREAD_FACTORY);
+        // wait for thread running
+        this._executor.submit(() -> LOG.info("ZKAgent Thread has running.")).get();
+        this._treecache = TreeCache.newBuilder(this._client, this._root)
+            .setCacheData(false)
+            .setExecutor(this._executor)
+            .build();
         this._treecache.getListenable().addListener(new TreeCacheListener() {
             @Override
             public void childEvent(final CuratorFramework client, final TreeCacheEvent event)
@@ -365,13 +362,15 @@ public class ZKAgent {
     };
 
     boolean _initialized = false;
+
     @Inject
     InitializationMonitor _initializationMonitor;
 
     private final InterfaceSelector _selector = new InterfaceSelector();
     private final Op _op = this._selector.build(Op.class, OP_ACTIVE, OP_UNACTIVE);
 
-    private final String _root;
+    @Value("${zk.units.path}")
+    String _root;
 
     private CuratorFramework _client;
     private ExecutorService _executor;
