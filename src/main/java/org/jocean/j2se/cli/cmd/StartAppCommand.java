@@ -52,7 +52,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
         _started = true;
 
-        if (args.length < 5) {
+        if (args.length < 4) {
             return "FAILED: missing startapp params\n" + getHelp();
         }
 
@@ -69,8 +69,10 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
         ConfigService.init(props);
 
-        final String defaultDataid = args[3];
-        final String defaultGroup = args[4];
+        final String[] ss = args[3].split("@");
+
+        final String service2conf = ss[0];
+        final String defaultGroup = ss.length > 1 ? ss[1] : "DEFAULT_GROUP";
 
         final Func2<String, String, String> getACMConfig = (dataid, group) -> {
             try {
@@ -83,29 +85,13 @@ public class StartAppCommand implements CliCommand<CliContext> {
         final String appName = System.getProperty("app.name", "unknown");
         final String hostname = OSUtil.getLocalHostname();
 
-        final ServiceConfig[] confs = loadYaml(ServiceConfig[].class, appName, getACMConfig);
-        final ServiceConfig conf4host = findConfig(hostname, confs);
-        if (null != conf4host) {
-            LOG.debug("found host-conf {} for service: {} / hostname: {}", conf4host, appName, hostname);
-            buildApplication(conf4host.getConf(), getACMConfig);
-            return "OK";
-        }
-
-        // try match defult config
-        final ServiceConfig defaultconf = findConfig("_default_", confs);
-        if (null != defaultconf) {
-            LOG.debug("found default-conf {} for service: {} / hostname: {}", defaultconf, appName, hostname);
-            buildApplication(defaultconf.getConf(), getACMConfig);
-            return "OK";
-        } else {
-            LOG.debug("can't found any host-conf for service: {} match hostname: {} or default", appName, hostname);
-        }
-
-        final UnitDescription unitdesc = loadYaml(UnitDescription.class, defaultDataid, getACMConfig);
-        if (null != unitdesc) {
-            LOG.debug("{}/{} apply default config: {}", hostname, appName, unitdesc);
-            buildApplication(new UnitDescription[]{unitdesc}, getACMConfig);
-            return "OK";
+        final Map<String, String> configs = asStringStringMap(null, (Map<Object, Object>)loadYaml(Map.class, service2conf, getACMConfig));
+        if (null != configs) {
+            // appName.hostName
+            final String dataidAndGroup = getDataidAndGroup(appName, hostname, configs);
+            if (null != dataidAndGroup) {
+                return loadConfigAndBuildUnits(dataidAndGroup, hostname, getACMConfig);
+            }
         }
 
         LOG.debug("{}/{} NOT apply ANY config", hostname, appName);
@@ -113,8 +99,47 @@ public class StartAppCommand implements CliCommand<CliContext> {
         return "ERROR";
     }
 
-    private static <T> T loadYaml(final Class<T> type, final String dataid, final Func2<String, String, String> getACMConfig) {
-        final String content = getACMConfig.call(dataid, null);
+    private String loadConfigAndBuildUnits(final String dataidAndGroup, final String hostname, final Func2<String, String, String> getACMConfig) {
+        final ServiceConfig[] confs = loadYaml(ServiceConfig[].class, dataidAndGroup, getACMConfig);
+        final ServiceConfig conf4host = findConfig(hostname, confs);
+        if (null != conf4host) {
+            LOG.debug("found host-conf {} for hostname: {}", conf4host, hostname);
+            buildApplication(conf4host.getConf(), getACMConfig);
+            return "OK";
+        }
+
+        // try match defult config
+        final ServiceConfig defaultconf = findConfig("_default_", confs);
+        if (null != defaultconf) {
+            LOG.debug("found default-conf {} for hostname: {}", defaultconf, hostname);
+            buildApplication(defaultconf.getConf(), getACMConfig);
+            return "OK";
+        } else {
+            LOG.debug("can't found any host-conf match hostname: {} or default", hostname);
+        }
+
+        LOG.debug("{} NOT apply ANY config", hostname);
+        return "ERROR";
+    }
+
+    private String getDataidAndGroup(final String appName, final String hostname, final Map<String, String> configs) {
+        final String dg4app_host = configs.get(appName + "." + hostname);
+        if (null != dg4app_host) {
+            return dg4app_host;
+        }
+        final String dg4app = configs.get(appName + "._default_");
+        if (null != dg4app) {
+            return dg4app;
+        }
+        return configs.get("_default_");
+    }
+
+    private static <T> T loadYaml(final Class<T> type, final String dataidAndGroup, final Func2<String, String, String> getACMConfig) {
+        final String[] ss = dataidAndGroup.split("@");
+
+        final String dataid = ss[0];
+        final String group = ss.length > 1 ? ss[1] : null;
+        final String content = getACMConfig.call(dataid, group);
         if (null != content) {
             try (final InputStream is = new ByteArrayInputStream(content.getBytes(Charsets.UTF_8))) {
                 return (T)new Yaml().loadAs(is, type);
@@ -258,6 +283,9 @@ public class StartAppCommand implements CliCommand<CliContext> {
     }
 
     private Map<String, String> asStringStringMap(final String prefix, final Map<Object, Object> map) {
+        if (null == map) {
+            return null;
+        }
         final Map<String, String> ssmap = Maps.newHashMap();
         for(final Map.Entry<Object, Object> entry : map.entrySet()) {
             final String key = withPrefix(prefix, entry.getKey().toString());
@@ -351,7 +379,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
 
     @Override
     public String getHelp() {
-        return "start app with zk config\r\n\tUsage: startapp [endpoint] [namespace] [ramRoleName] [dataid] [group]";
+        return "start app with zk config\r\n\tUsage: startapp [endpoint] [namespace] [ramRoleName] [service<-->conf's dataid]@[group]";
     }
 }
 
