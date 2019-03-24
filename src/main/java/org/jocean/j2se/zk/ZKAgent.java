@@ -361,9 +361,8 @@ public class ZKAgent {
         }
     };
 
-    ZKAgent setRoot(final String root) {
+    public void setRoot(final String root) {
         this._root = root;
-        return this;
     }
 
     boolean _initialized = false;
