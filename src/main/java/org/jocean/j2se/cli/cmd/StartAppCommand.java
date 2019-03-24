@@ -82,19 +82,21 @@ public class StartAppCommand implements CliCommand<CliContext> {
             }
         };
 
-        final String appName = System.getProperty("app.name", "unknown");
+        final String appname = System.getProperty("app.name", "unknown");
         final String hostname = OSUtil.getLocalHostname();
 
         final Map<String, String> configs = asStringStringMap(null, (Map<Object, Object>)loadYaml(Map.class, service2conf, getACMConfig));
         if (null != configs) {
             // appName.hostName
-            final String dataidAndGroup = getDataidAndGroup(appName, hostname, configs);
+            final String dataidAndGroup = getDataidAndGroup(appname, hostname, configs);
             if (null != dataidAndGroup) {
                 return loadConfigAndBuildUnits(dataidAndGroup, hostname, getACMConfig);
+            } else {
+                LOG.warn("not found any config for appname:{}/hostname:{}", appname, hostname);
             }
+        } else {
+            LOG.warn("not found configs matched {}@{}", service2conf, defaultGroup);
         }
-
-        LOG.debug("{}/{} NOT apply ANY config", hostname, appName);
 
         return "ERROR";
     }
@@ -103,7 +105,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
         final ServiceConfig[] confs = loadYaml(ServiceConfig[].class, dataidAndGroup, getACMConfig);
         final ServiceConfig conf4host = findConfig(hostname, confs);
         if (null != conf4host) {
-            LOG.debug("found host-conf {} for hostname: {}", conf4host, hostname);
+            LOG.info("found host-conf {} for hostname: {}", conf4host, hostname);
             buildApplication(conf4host.getConf(), getACMConfig);
             return "OK";
         }
@@ -111,27 +113,33 @@ public class StartAppCommand implements CliCommand<CliContext> {
         // try match defult config
         final ServiceConfig defaultconf = findConfig("_default_", confs);
         if (null != defaultconf) {
-            LOG.debug("found default-conf {} for hostname: {}", defaultconf, hostname);
+            LOG.info("found default-conf {} for hostname: {}", defaultconf, hostname);
             buildApplication(defaultconf.getConf(), getACMConfig);
             return "OK";
         } else {
-            LOG.debug("can't found any host-conf match hostname: {} or default", hostname);
+            LOG.warn("can't found any host-conf match hostname: {} or default", hostname);
         }
 
-        LOG.debug("{} NOT apply ANY config", hostname);
         return "ERROR";
     }
 
-    private String getDataidAndGroup(final String appName, final String hostname, final Map<String, String> configs) {
-        final String dg4app_host = configs.get(appName + "." + hostname);
-        if (null != dg4app_host) {
-            return dg4app_host;
+    private String getDataidAndGroup(final String appname, final String hostname, final Map<String, String> configs) {
+        final String dataid_group4app_host = configs.get(appname + "." + hostname);
+        if (null != dataid_group4app_host) {
+            LOG.info("found config {} for appname:{}/hostname:{}", dataid_group4app_host, appname, hostname);
+            return dataid_group4app_host;
         }
-        final String dg4app = configs.get(appName + "._default_");
-        if (null != dg4app) {
-            return dg4app;
+        final String dataid_group4app = configs.get(appname + "._default_");
+        if (null != dataid_group4app) {
+            LOG.info("found config {} for appname:{} with all host", dataid_group4app, appname);
+            return dataid_group4app;
         }
-        return configs.get("_default_");
+        final String dataid_group4default = configs.get("_default_");
+        if (null != dataid_group4default) {
+            LOG.info("using config {} as default", dataid_group4default);
+            return dataid_group4default;
+        }
+        return null;
     }
 
     private static <T> T loadYaml(final Class<T> type, final String dataidAndGroup, final Func2<String, String, String> getACMConfig) {
