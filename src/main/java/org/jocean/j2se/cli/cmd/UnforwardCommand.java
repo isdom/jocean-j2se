@@ -21,20 +21,20 @@ public class UnforwardCommand implements CliCommand<CliContext> {
     public String execute(final CliContext ctx, final String... args) throws Exception {
         final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 
-        final Set<ObjectName> names = mbeanServer.queryNames(
-                ObjectName.getInstance("org.jocean:*,zkunit.af=unitupdater.restin,type=zkupdater"), null);
+        final Set<ObjectName> names = mbeanServer.queryNames(ObjectName.getInstance("org.jocean:*,type=zkupdater"), null);
 
-        if (names.size() != 1) {
-            return "failed: matched names is " + names.size();
+        if (names.size() > 0) {
+            for (final ObjectName forwardObjectName : names) {
+                LOG.info("try to invoke {}.removePaths.", forwardObjectName);
+
+                final ZKUpdaterMXBean updaterMXBean = JMX.newMXBeanProxy(mbeanServer, forwardObjectName, ZKUpdaterMXBean.class);
+
+                updaterMXBean.removePaths();
+            }
+        } else {
+            return "failed: !NO! ANY matched zkupdater instance";
         }
 
-        final ObjectName forwardObjectName = names.iterator().next();
-
-        LOG.info("try to invoke {}.removePaths.", forwardObjectName);
-
-        final ZKUpdaterMXBean updaterMXBean = JMX.newMXBeanProxy(mbeanServer, forwardObjectName, ZKUpdaterMXBean.class);
-
-        updaterMXBean.removePaths();
         return "OK";
     }
 
