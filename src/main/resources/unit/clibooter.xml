@@ -55,39 +55,23 @@
 
     <bean id="commandRepository" class="org.jocean.cli.DefaultCommandRepository" />
     
-    <bean factory-bean="commandRepository" factory-method="addCommand">
-        <constructor-arg>
-            <bean class="org.jocean.j2se.cli.cmd.StartAppCommand"/>
-        </constructor-arg>
-    </bean>
+    <bean id="cmd1" class="org.jocean.j2se.cli.cmd.StartAppCommand"/>
+    <bean id="cmd2" class="org.jocean.j2se.cli.cmd.StopAppCommand"/>
+    <bean id="cmd3" class="org.jocean.j2se.cli.cmd.ExitSrvCommand"/>
+    <bean id="cmd4" class="org.jocean.j2se.cli.cmd.TradeCountCommand"/>
+    <bean id="cmd5" class="org.jocean.j2se.cli.cmd.UnforwardCommand"/>
+    <bean id="cmd6" class="org.jocean.cli.cmd.HelpCommand"/>
     
-    <bean factory-bean="commandRepository" factory-method="addCommand">
+    <bean factory-bean="commandRepository" factory-method="addCommands">
         <constructor-arg>
-            <bean class="org.jocean.j2se.cli.cmd.StopAppCommand"/>
-        </constructor-arg>
-    </bean>
-    
-    <bean factory-bean="commandRepository" factory-method="addCommand">
-        <constructor-arg>
-            <bean class="org.jocean.j2se.cli.cmd.ExitSrvCommand"/>
-        </constructor-arg>
-    </bean>
-    
-    <bean factory-bean="commandRepository" factory-method="addCommand">
-        <constructor-arg>
-            <bean class="org.jocean.j2se.cli.cmd.TradeCountCommand"/>
-        </constructor-arg>
-    </bean>
-    
-    <bean factory-bean="commandRepository" factory-method="addCommand">
-        <constructor-arg>
-            <bean class="org.jocean.j2se.cli.cmd.UnforwardCommand"/>
-        </constructor-arg>
-    </bean>
-    
-    <bean factory-bean="commandRepository" factory-method="addCommand">
-        <constructor-arg>
-            <bean class="org.jocean.cli.cmd.HelpCommand"/>
+            <list>
+                <ref bean="cmd1"/>
+                <ref bean="cmd2"/>
+                <ref bean="cmd3"/>
+                <ref bean="cmd4"/>
+                <ref bean="cmd5"/>
+                <ref bean="cmd6"/>
+            </list>
         </constructor-arg>
     </bean>
     
