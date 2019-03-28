@@ -101,6 +101,7 @@
         <property name="beans">
             <map>
                 <entry key="org.jocean:type=appinfo" value-ref="appinfo"/>
+                <entry key="org.jocean:type=cmdrepo" value-ref="commandRepository"/>
             </map>
         </property>
     </bean>
