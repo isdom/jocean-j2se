@@ -1,0 +1,21 @@
+
+import java.lang.management.ManagementFactory;
+
+import javax.management.JMX;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
+interface AppInfoMXBean {
+    public String getBuildNo();
+}
+
+final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+
+final AppInfoMXBean appinfo = JMX.newMXBeanProxy(mbeanServer, 
+    ObjectName.getInstance("org.jocean:type=appinfo"), 
+    AppInfoMXBean.class);
+    
+appinfo.getBuildNo();
+
+======================================= BASE64 =================================
+CmltcG9ydCBqYXZhLmxhbmcubWFuYWdlbWVudC5NYW5hZ2VtZW50RmFjdG9yeTsKCmltcG9ydCBqYXZheC5tYW5hZ2VtZW50LkpNWDsKaW1wb3J0IGphdmF4Lm1hbmFnZW1lbnQuTUJlYW5TZXJ2ZXI7CmltcG9ydCBqYXZheC5tYW5hZ2VtZW50Lk9iamVjdE5hbWU7CgppbnRlcmZhY2UgQXBwSW5mb01YQmVhbiB7CiAgICBwdWJsaWMgU3RyaW5nIGdldEJ1aWxkTm8oKTsKfQoKZmluYWwgTUJlYW5TZXJ2ZXIgbWJlYW5TZXJ2ZXIgPSBNYW5hZ2VtZW50RmFjdG9yeS5nZXRQbGF0Zm9ybU1CZWFuU2VydmVyKCk7CgpmaW5hbCBBcHBJbmZvTVhCZWFuIGFwcGluZm8gPSBKTVgubmV3TVhCZWFuUHJveHkobWJlYW5TZXJ2ZXIsIAogICAgT2JqZWN0TmFtZS5nZXRJbnN0YW5jZSgib3JnLmpvY2Vhbjp0eXBlPWFwcGluZm8iKSwgCiAgICBBcHBJbmZvTVhCZWFuLmNsYXNzKTsKICAgIAphcHBpbmZvLmdldEJ1aWxkTm8oKTsK
