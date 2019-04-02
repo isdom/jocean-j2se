@@ -42,7 +42,7 @@ public class BshCommand implements CliCommand<CliContext> {
 
     @Override
     public String getHelp() {
-        return null;
+        return "bsh [script's content encode as base64]";
     }
 }
 
