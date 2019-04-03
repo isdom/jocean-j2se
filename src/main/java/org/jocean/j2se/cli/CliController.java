@@ -30,6 +30,26 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 
 public class CliController {
 
+    class DefaultAppContext extends AbstractCliContext implements AppCliContext {
+
+        @Override
+        public <V> V getProperty(final String key) {
+            return null;
+        }
+        @Override
+        public <V> CliContext setProperty(final String key, final V obj) {
+            return null;
+        }
+        @Override
+        public Map<String, Object> getProperties() {
+            return null;
+        }
+        @Override
+        public CliController getCliController() {
+            return CliController.this;
+        }
+    }
+
     static final EventLoopGroup EPOLL_BOSS_GROUP =
             new EpollEventLoopGroup(1, new DefaultThreadFactory("cli-boss", true));
 
@@ -49,19 +69,7 @@ public class CliController {
     }
 
     public void setCommandRepository(final CommandRepository commandRepository) {
-        final AbstractCliContext ctx = new AbstractCliContext() {
-            @Override
-            public <V> V getProperty(final String key) {
-                return null;
-            }
-            @Override
-            public <V> CliContext setProperty(final String key, final V obj) {
-                return null;
-            }
-            @Override
-            public Map<String, Object> getProperties() {
-                return null;
-            }};
+        final DefaultAppContext ctx = new DefaultAppContext();
 
         ctx.setCommandRepository(commandRepository);
 
