@@ -30,13 +30,16 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
         final Interpreter inter = new Interpreter();
 //      inter.setOut(new PrintStream(outputStream));
 
-        // TODO, 注入 CliContext 环境上下文，可以在 bsh 脚本中与 命令行 环境进行交互，实现类似 stopapp；exitapp 的功能
+        // 注入 CliContext 环境上下文，可以在 bsh 脚本中与 命令行 环境进行交互，实现类似 stopapp；exitapp 的功能
         try {
-//            Interpreter i = new Interpreter();  // Construct an interpreter
-//            i.set("foo", 5);                    // Set variables
-//            i.set("date", new Date() );
             inter.set("clictx", ctx);
             inter.set("appctx", this._applicationContext);
+            for (int idx = 1; idx < args.length; idx += 2) {
+                if (idx + 1 < args.length) {
+                    //  inject extern args for bsh env
+                    inter.set(args[idx], args[idx + 1]);
+                }
+            }
             return inter.eval( new StringReader(new String(BaseEncoding.base64().decode(args[0]), Charsets.UTF_8)) ).toString();
         }
         catch (final Exception e) {
@@ -52,7 +55,7 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
 
     @Override
     public String getHelp() {
-        return "bsh [script's content encode as base64]";
+        return "bsh [script's content encode as base64] [arg1 name] [value1] [arg2 name] [value2] ...";
     }
 
     @Override
