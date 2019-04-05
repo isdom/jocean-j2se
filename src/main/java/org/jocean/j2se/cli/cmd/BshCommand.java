@@ -32,8 +32,8 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
 
         // 注入 CliContext 环境上下文，可以在 bsh 脚本中与 命令行 环境进行交互，实现类似 stopapp；exitapp 的功能
         try {
-            inter.set("clictx", ctx);
-            inter.set("appctx", this._applicationContext);
+            inter.set("_clictx", ctx);
+            inter.set("_appctx", this._applicationContext);
             for (int idx = 1; idx < args.length; idx += 2) {
                 if (idx + 1 < args.length) {
                     //  inject extern args for bsh env

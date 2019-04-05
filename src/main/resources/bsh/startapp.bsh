@@ -1,8 +1,8 @@
 
 import org.jocean.cli.CliCommand;
 
-CliCommand startcmd = clictx.getCommandRepository().findCommandByAction("startapp");
-startcmd.execute(clictx, new String[]{endpoint, namespace, rolename, config});
+CliCommand startcmd = _clictx.getCommandRepository().findCommandByAction("startapp");
+startcmd.execute(_clictx, new String[]{endpoint, namespace, rolename, config});
 
 ======================================= BASE64 =================================
-aW1wb3J0IG9yZy5qb2NlYW4uY2xpLkNsaUNvbW1hbmQ7CgpDbGlDb21tYW5kIHN0YXJ0Y21kID0gY2xpY3R4LmdldENvbW1hbmRSZXBvc2l0b3J5KCkuZmluZENvbW1hbmRCeUFjdGlvbigic3RhcnRhcHAiKTsKc3RhcnRjbWQuZXhlY3V0ZShjbGljdHgsIG5ldyBTdHJpbmdbXXtlbmRwb2ludCwgbmFtZXNwYWNlLCByb2xlbmFtZSwgY29uZmlnfSk7Cg==
+aW1wb3J0IG9yZy5qb2NlYW4uY2xpLkNsaUNvbW1hbmQ7CgpDbGlDb21tYW5kIHN0YXJ0Y21kID0gX2NsaWN0eC5nZXRDb21tYW5kUmVwb3NpdG9yeSgpLmZpbmRDb21tYW5kQnlBY3Rpb24oInN0YXJ0YXBwIik7CnN0YXJ0Y21kLmV4ZWN1dGUoX2NsaWN0eCwgbmV3IFN0cmluZ1tde2VuZHBvaW50LCBuYW1lc3BhY2UsIHJvbGVuYW1lLCBjb25maWd9KTs=
