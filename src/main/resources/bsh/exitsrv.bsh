@@ -1,5 +1,13 @@
+import org.jocean.j2se.os.OSUtil;
+
+_LOG.info("begin to stop CliController");
+
 _clictx.getCliController().stop();
+
+_LOG.info("end of stop CliController");
+_LOG.warn("execute exit command, will stop JVM process {}", OSUtil.getCurrentPid());
+
 System.exit(0);
 
 ======================================= BASE64 =================================
-X2NsaWN0eC5nZXRDbGlDb250cm9sbGVyKCkuc3RvcCgpOwpTeXN0ZW0uZXhpdCgwKTsK
+aW1wb3J0IG9yZy5qb2NlYW4uajJzZS5vcy5PU1V0aWw7CgpfTE9HLmluZm8oImJlZ2luIHRvIHN0b3AgQ2xpQ29udHJvbGxlciIpOwoKX2NsaWN0eC5nZXRDbGlDb250cm9sbGVyKCkuc3RvcCgpOwoKX0xPRy5pbmZvKCJlbmQgb2Ygc3RvcCBDbGlDb250cm9sbGVyIik7Cl9MT0cud2FybigiZXhlY3V0ZSBleGl0IGNvbW1hbmQsIHdpbGwgc3RvcCBKVk0gcHJvY2VzcyB7fSIsIE9TVXRpbC5nZXRDdXJyZW50UGlkKCkpOwoKU3lzdGVtLmV4aXQoMCk7
