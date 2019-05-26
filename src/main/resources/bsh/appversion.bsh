@@ -13,7 +13,25 @@ final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 
 final AppInfoMXBean appinfo = JMX.newMXBeanProxy(mbeanServer,  ObjectName.getInstance("org.jocean:type=appinfo"),  AppInfoMXBean.class);
     
-appinfo.getBuildNo();
+final String buildno = appinfo.getBuildNo();
+
+final String snapshotStr = "SNAPSHOT-";
+
+final int snapshotIdx = buildno.indexOf(snapshotStr);
+
+if (snapshotIdx > -1) {
+    final String versionWithDate = buildno.substring(snapshotIdx + snapshotStr.length());
+    final int dateIdx = versionWithDate.indexOf('-');
+    if (dateIdx > -1) {
+        return versionWithDate.substring(0, dateIdx);
+    }
+    else {
+        return versionWithDate;
+    }
+}
+else {
+    return "-1";
+}
 
 ======================================= BASE64 =================================
-CmltcG9ydCBqYXZhLmxhbmcubWFuYWdlbWVudC5NYW5hZ2VtZW50RmFjdG9yeTsKCmltcG9ydCBqYXZheC5tYW5hZ2VtZW50LkpNWDsKaW1wb3J0IGphdmF4Lm1hbmFnZW1lbnQuTUJlYW5TZXJ2ZXI7CmltcG9ydCBqYXZheC5tYW5hZ2VtZW50Lk9iamVjdE5hbWU7CgppbnRlcmZhY2UgQXBwSW5mb01YQmVhbiB7CiAgICBwdWJsaWMgU3RyaW5nIGdldEJ1aWxkTm8oKTsKfQoKZmluYWwgTUJlYW5TZXJ2ZXIgbWJlYW5TZXJ2ZXIgPSBNYW5hZ2VtZW50RmFjdG9yeS5nZXRQbGF0Zm9ybU1CZWFuU2VydmVyKCk7CgpmaW5hbCBBcHBJbmZvTVhCZWFuIGFwcGluZm8gPSBKTVgubmV3TVhCZWFuUHJveHkobWJlYW5TZXJ2ZXIsICBPYmplY3ROYW1lLmdldEluc3RhbmNlKCJvcmcuam9jZWFuOnR5cGU9YXBwaW5mbyIpLCAgQXBwSW5mb01YQmVhbi5jbGFzcyk7CiAgICAKYXBwaW5mby5nZXRCdWlsZE5vKCk7
+CmltcG9ydCBqYXZhLmxhbmcubWFuYWdlbWVudC5NYW5hZ2VtZW50RmFjdG9yeTsKCmltcG9ydCBqYXZheC5tYW5hZ2VtZW50LkpNWDsKaW1wb3J0IGphdmF4Lm1hbmFnZW1lbnQuTUJlYW5TZXJ2ZXI7CmltcG9ydCBqYXZheC5tYW5hZ2VtZW50Lk9iamVjdE5hbWU7CgppbnRlcmZhY2UgQXBwSW5mb01YQmVhbiB7CiAgICBwdWJsaWMgU3RyaW5nIGdldEJ1aWxkTm8oKTsKfQoKZmluYWwgTUJlYW5TZXJ2ZXIgbWJlYW5TZXJ2ZXIgPSBNYW5hZ2VtZW50RmFjdG9yeS5nZXRQbGF0Zm9ybU1CZWFuU2VydmVyKCk7CgpmaW5hbCBBcHBJbmZvTVhCZWFuIGFwcGluZm8gPSBKTVgubmV3TVhCZWFuUHJveHkobWJlYW5TZXJ2ZXIsICBPYmplY3ROYW1lLmdldEluc3RhbmNlKCJvcmcuam9jZWFuOnR5cGU9YXBwaW5mbyIpLCAgQXBwSW5mb01YQmVhbi5jbGFzcyk7CiAgICAKZmluYWwgU3RyaW5nIGJ1aWxkbm8gPSBhcHBpbmZvLmdldEJ1aWxkTm8oKTsKCmZpbmFsIFN0cmluZyBzbmFwc2hvdFN0ciA9ICJTTkFQU0hPVC0iOwoKZmluYWwgaW50IHNuYXBzaG90SWR4ID0gYnVpbGRuby5pbmRleE9mKHNuYXBzaG90U3RyKTsKCmlmIChzbmFwc2hvdElkeCA+IC0xKSB7CiAgICBmaW5hbCBTdHJpbmcgdmVyc2lvbldpdGhEYXRlID0gYnVpbGRuby5zdWJzdHJpbmcoc25hcHNob3RJZHggKyBzbmFwc2hvdFN0ci5sZW5ndGgoKSk7CiAgICBmaW5hbCBpbnQgZGF0ZUlkeCA9IHZlcnNpb25XaXRoRGF0ZS5pbmRleE9mKCctJyk7CiAgICBpZiAoZGF0ZUlkeCA+IC0xKSB7CiAgICAgICAgcmV0dXJuIHZlcnNpb25XaXRoRGF0ZS5zdWJzdHJpbmcoMCwgZGF0ZUlkeCk7CiAgICB9CiAgICBlbHNlIHsKICAgICAgICByZXR1cm4gdmVyc2lvbldpdGhEYXRlOwogICAgfQp9CmVsc2UgewogICAgcmV0dXJuICItMSI7Cn0=
