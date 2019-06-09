@@ -60,18 +60,19 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
                     };
                 }}, (String) msg);
             subscriber.onNext(result);
+            subscriber.onCompleted();
         }).subscribeOn(Schedulers.computation())
         .subscribe(result -> {
             if ( null != result ) {
                 ctx.write(result);
                 ctx.flush();
             }
-        });
+        }, e -> {}, () -> ctx.close());
     }
 
     @Override
     public void channelReadComplete(final ChannelHandlerContext ctx) {
-//        ctx.flush();
+        ctx.flush();
     }
 
     @Override
