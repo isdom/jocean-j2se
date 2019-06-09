@@ -1,9 +1,7 @@
 package org.jocean.j2se.cli;
 
-import java.util.Map;
+import javax.inject.Inject;
 
-import org.jocean.cli.AbstractCliContext;
-import org.jocean.cli.CliContext;
 import org.jocean.cli.CliShell;
 import org.jocean.cli.CommandRepository;
 import org.jocean.j2se.os.OSUtil;
@@ -30,37 +28,18 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 
 public class CliController {
 
-    class DefaultAppContext extends AbstractCliContext implements AppCliContext {
+    static final EventLoopGroup EPOLL_BOSS_GROUP = new EpollEventLoopGroup(1, new DefaultThreadFactory("cli-boss", true));
 
-        @Override
-        public <V> V getProperty(final String key) {
-            return null;
-        }
-        @Override
-        public <V> CliContext setProperty(final String key, final V obj) {
-            return null;
-        }
-        @Override
-        public Map<String, Object> getProperties() {
-            return null;
-        }
-        @Override
-        public CliController getCliController() {
-            return CliController.this;
-        }
-    }
-
-    static final EventLoopGroup EPOLL_BOSS_GROUP =
-            new EpollEventLoopGroup(1, new DefaultThreadFactory("cli-boss", true));
-
-    static final EventLoopGroup EPOLL_WORKER_GROUP =
-            new EpollEventLoopGroup(1, new DefaultThreadFactory("cli-worker", true));
+    static final EventLoopGroup EPOLL_WORKER_GROUP = new EpollEventLoopGroup(1, new DefaultThreadFactory("cli-worker", true));
 
     static final ByteBuf _SEMICOLON = Unpooled.wrappedBuffer(";".getBytes());
 
     Channel _bindChannel;
 
-    CliShell<CliContext> _shell = new CliShell<>();
+    @Inject
+    CommandRepository _commandRepository;
+
+    CliShell<AppCliContext> _shell = new CliShell<>();
 
     final String _socketPath;
 
@@ -68,16 +47,19 @@ public class CliController {
         this._socketPath = socketPath;
     }
 
+    /*
     public void setCommandRepository(final CommandRepository commandRepository) {
-        final DefaultAppContext ctx = new DefaultAppContext();
-
-        ctx.setCommandRepository(commandRepository);
-
-        _shell.setCommandContext(ctx);
+//        final AppContextSupport ctx = new AppContextSupport();
+//
+//        ctx.setCommandRepository(commandRepository);
+//
+//        _shell.setCommandContext(ctx);
+        _commandRepository = commandRepository;
     }
+    */
 
     public void start() throws InterruptedException {
-        final CliHandler cliHandler = new CliHandler(this._shell);
+        final CliHandler cliHandler = new CliHandler(this._shell, this._commandRepository, this);
 
         final ServerBootstrap sb = new ServerBootstrap().group(EPOLL_BOSS_GROUP, EPOLL_WORKER_GROUP)
                         .channel(EpollServerDomainSocketChannel.class)
