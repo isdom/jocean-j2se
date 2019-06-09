@@ -79,7 +79,6 @@
     
     <bean class="org.jocean.j2se.cli.CliController" init-method="start">
         <constructor-arg value="${user.dir:~}/"/>
-        <!-- property name="commandRepository" ref="commandRepository"/ -->
     </bean>
     
     <bean class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
