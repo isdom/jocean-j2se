@@ -71,7 +71,7 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelReadComplete(final ChannelHandlerContext ctx) {
-        ctx.flush();
+//        ctx.flush();
     }
 
     @Override
