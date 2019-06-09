@@ -1,10 +1,10 @@
 package org.jocean.j2se.cli;
 
-import javax.inject.Inject;
-
 import org.jocean.cli.CliShell;
 import org.jocean.cli.CommandRepository;
 import org.jocean.j2se.os.OSUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -36,7 +36,7 @@ public class CliController {
 
     Channel _bindChannel;
 
-    @Inject
+    @Autowired @Qualifier("commandRepository")
     CommandRepository _commandRepository;
 
     CliShell<AppCliContext> _shell = new CliShell<>();
