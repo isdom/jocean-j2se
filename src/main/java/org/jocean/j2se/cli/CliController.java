@@ -2,7 +2,6 @@ package org.jocean.j2se.cli;
 
 import org.jocean.cli.CliShell;
 import org.jocean.cli.CommandRepository;
-import org.jocean.j2se.logback.BytesShareAppender;
 import org.jocean.j2se.os.OSUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -67,7 +66,6 @@ public class CliController {
         future.sync();
 
         _bindChannel = future.channel();
-        BytesShareAppender.enableForRoot();
     }
 
     public void stop() throws InterruptedException {

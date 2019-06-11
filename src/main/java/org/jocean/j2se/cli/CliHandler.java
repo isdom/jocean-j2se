@@ -5,7 +5,7 @@ import java.util.Map;
 import org.jocean.cli.CliContext;
 import org.jocean.cli.CliShell;
 import org.jocean.cli.CommandRepository;
-import org.jocean.j2se.logback.BytesShareAppender;
+import org.jocean.j2se.logback.BytesAppender;
 import org.jocean.j2se.logback.OutputBytes;
 
 import com.google.common.base.Charsets;
@@ -28,15 +28,17 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void enableOutput(final ChannelHandlerContext ctx) {
-        final OutputBytes output = bytes -> {
-            if (null != bytes && ctx.channel().isActive()) {
-                ctx.write(new String(bytes, Charsets.UTF_8));
-                ctx.flush();
-            }
-        };
-        ctx.channel().attr(OUTPUT).set(output);
+        if (null == ctx.channel().attr(OUTPUT).get()) {
+            final OutputBytes output = bytes -> {
+                if (null != bytes && ctx.channel().isActive()) {
+                    ctx.write(new String(bytes, Charsets.UTF_8));
+                    ctx.flush();
+                }
+            };
+            ctx.channel().attr(OUTPUT).set(output);
 
-        BytesShareAppender.addOutput(output);
+            BytesAppender.addToRoot(ctx.channel().id().toString(), output);
+        }
     }
 
     @Override
@@ -49,7 +51,7 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     private void disableOutput(final ChannelHandlerContext ctx) {
         final OutputBytes output = ctx.channel().attr(OUTPUT).get();
         if (null != output) {
-            BytesShareAppender.removeOutput(output);
+            BytesAppender.detachFromRoot(ctx.channel().id().toString());
         }
     }
 

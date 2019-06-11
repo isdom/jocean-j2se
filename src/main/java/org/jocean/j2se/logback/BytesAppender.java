@@ -1,9 +1,6 @@
 package org.jocean.j2se.logback;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.LoggerFactory;
@@ -19,19 +16,10 @@ import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
 import ch.qos.logback.core.status.ErrorStatus;
 
-public class BytesShareAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
+public class BytesAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
-    private static List<OutputBytes> _OUTPUTS = new CopyOnWriteArrayList<>();
 
-    public static void addOutput(final OutputBytes output) {
-        _OUTPUTS.add(output);
-    }
-
-    public static void removeOutput(final OutputBytes output) {
-        _OUTPUTS.remove(output);
-    }
-
-    public static void enableForRoot() {
+    public static void addToRoot(final String name, final OutputBytes output) {
         final LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
 
         final PatternLayoutEncoder encoder = new PatternLayoutEncoder();
@@ -40,8 +28,8 @@ public class BytesShareAppender extends UnsynchronizedAppenderBase<ILoggingEvent
         encoder.setCharset(Charsets.UTF_8);
         encoder.setPattern("%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %5p |-%c{35}:%L - %m %n");
 
-        final BytesShareAppender appender = new BytesShareAppender();
-        appender.setName("BytesShareAppender");
+        final BytesAppender appender = new BytesAppender(output);
+        appender.setName(name);
         appender.setContext(lc);
         appender.setEncoder(encoder);
 
@@ -51,14 +39,18 @@ public class BytesShareAppender extends UnsynchronizedAppenderBase<ILoggingEvent
         lc.getLogger("ROOT").addAppender(appender);
     }
 
-    public static void disableForRoot() {
+    public static void detachFromRoot(final String name) {
         final LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
 
-        final Appender<ILoggingEvent> appender = lc.getLogger("ROOT").getAppender("BytesShareAppender");
+        final Appender<ILoggingEvent> appender = lc.getLogger("ROOT").getAppender(name);
         if (null != appender) {
             appender.stop();
             lc.getLogger("ROOT").detachAppender(appender);
         }
+    }
+
+    BytesAppender(final OutputBytes output) {
+        this._out = output;
     }
 
     @Override
@@ -138,17 +130,15 @@ public class BytesShareAppender extends UnsynchronizedAppenderBase<ILoggingEvent
 
         lock.lock();
         try {
-            for (final Iterator<OutputBytes> iter = _OUTPUTS.iterator(); iter.hasNext(); ) {
-                try {
-                    iter.next().output(byteArray);
-                } catch (final Exception e) {
-                    // just ignore
-                }
-            }
+            _out.output(byteArray);
+        } catch (final Exception e) {
+            // just ignore
         } finally {
             lock.unlock();
         }
     }
+
+    private final OutputBytes _out;
 
     protected Encoder<ILoggingEvent> encoder;
 
