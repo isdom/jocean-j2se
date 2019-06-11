@@ -7,6 +7,8 @@ import org.jocean.cli.CliShell;
 import org.jocean.cli.CommandRepository;
 import org.jocean.j2se.logback.BytesAppender;
 import org.jocean.j2se.logback.OutputBytes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 
@@ -19,6 +21,8 @@ import rx.schedulers.Schedulers;
 
 @Sharable
 public class CliHandler extends ChannelInboundHandlerAdapter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CliHandler.class);
 
     private static AttributeKey<OutputBytes> OUTPUT = AttributeKey.valueOf("LOG");
 
@@ -38,6 +42,8 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
             ctx.channel().attr(OUTPUT).set(output);
 
             BytesAppender.addToRoot(ctx.channel().id().toString(), output);
+
+            LOG.info("append BytesAppender instance named:{}", ctx.channel().id().toString());
         }
     }
 
@@ -51,6 +57,7 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     private void disableOutput(final ChannelHandlerContext ctx) {
         final OutputBytes output = ctx.channel().attr(OUTPUT).get();
         if (null != output) {
+            LOG.info("detach BytesAppender instance named:{}", ctx.channel().id().toString());
             BytesAppender.detachFromRoot(ctx.channel().id().toString());
         }
     }
