@@ -16,6 +16,17 @@ import rx.schedulers.Schedulers;
 @Sharable
 public class CliHandler extends ChannelInboundHandlerAdapter {
 
+    @Override
+    public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        UDSAppender._OUTPUT = ss -> {
+            if (null != ss) {
+                ctx.write(ss);
+                ctx.flush();
+            }
+        };
+    }
+
     abstract class AppContextSupport implements AppCliContext {
 
         @Override
