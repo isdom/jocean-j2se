@@ -5,6 +5,7 @@ import java.io.StringReader;
 import org.jocean.cli.CliCommand;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.j2se.cli.AppCliContext;
+import org.jocean.j2se.logback.BytesShareAppender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -27,6 +28,15 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
             return "FAILED: missing script params\n" + getHelp();
         }
 
+        try {
+            BytesShareAppender.enableForRoot();
+            return doBsh(ctx, args);
+        } finally {
+            BytesShareAppender.disableForRoot();
+        }
+    }
+
+    private String doBsh(final AppCliContext ctx, final String... args) {
         final Interpreter inter = new Interpreter();
 //      inter.setOut(new PrintStream(outputStream));
 
