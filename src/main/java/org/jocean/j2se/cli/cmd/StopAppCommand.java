@@ -1,8 +1,7 @@
 package org.jocean.j2se.cli.cmd;
 
 import org.jocean.cli.CliCommand;
-import org.jocean.cli.CliContext;
-import org.jocean.j2se.logback.BytesShareAppender;
+import org.jocean.j2se.cli.AppCliContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -10,7 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 
-public class StopAppCommand implements CliCommand<CliContext>, ApplicationContextAware {
+public class StopAppCommand implements CliCommand<AppCliContext>, ApplicationContextAware {
 
     @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(StopAppCommand.class);
@@ -23,17 +22,16 @@ public class StopAppCommand implements CliCommand<CliContext>, ApplicationContex
     }
 
     @Override
-    public String execute(final CliContext ctx, final String... args) throws Exception {
+    public String execute(final AppCliContext ctx, final String... args) throws Exception {
         if (this._applicationContext == null) {
             return "FAILED: already stopped";
         } else {
-            BytesShareAppender.enableForRoot();
+            ctx.enableSendbackLOG();
 
             try {
                 this._applicationContext.close();
             } finally {
                 this._applicationContext = null;
-                BytesShareAppender.disableForRoot();
             }
         }
 

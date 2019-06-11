@@ -11,10 +11,9 @@ import java.util.Properties;
 import javax.inject.Inject;
 
 import org.jocean.cli.CliCommand;
-import org.jocean.cli.CliContext;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.Pair;
-import org.jocean.j2se.logback.BytesShareAppender;
+import org.jocean.j2se.cli.AppCliContext;
 import org.jocean.j2se.os.OSUtil;
 import org.jocean.j2se.unit.InitializationMonitor;
 import org.jocean.j2se.unit.UnitAgent;
@@ -33,7 +32,7 @@ import com.google.common.io.ByteStreams;
 
 import rx.functions.Func2;
 
-public class StartAppCommand implements CliCommand<CliContext> {
+public class StartAppCommand implements CliCommand<AppCliContext> {
 
     private static final Logger LOG = LoggerFactory.getLogger(StartAppCommand.class);
 
@@ -46,7 +45,7 @@ public class StartAppCommand implements CliCommand<CliContext> {
     boolean _started = false;
 
     @Override
-    public String execute(final CliContext ctx, final String... args) throws Exception {
+    public String execute(final AppCliContext ctx, final String... args) throws Exception {
         if (_started) {
             return "FAILED: app already started.";
         }
@@ -57,13 +56,9 @@ public class StartAppCommand implements CliCommand<CliContext> {
             return "FAILED: missing startapp params\n" + getHelp();
         }
 
-        BytesShareAppender.enableForRoot();
+        ctx.enableSendbackLOG();
 
-        try {
-            return doStartApp(args);
-        } finally {
-            BytesShareAppender.disableForRoot();
-        }
+        return doStartApp(args);
     }
 
     private String doStartApp(final String... args) {

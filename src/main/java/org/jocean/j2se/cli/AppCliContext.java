@@ -4,4 +4,6 @@ import org.jocean.cli.CliContext;
 
 public interface AppCliContext extends CliContext {
     public CliController getCliController();
+    public void enableSendbackLOG();
+    public void disableSendbackLOG();
 }

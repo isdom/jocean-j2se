@@ -9,24 +9,19 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.jocean.cli.CliCommand;
-import org.jocean.cli.CliContext;
-import org.jocean.j2se.logback.BytesShareAppender;
+import org.jocean.j2se.cli.AppCliContext;
 import org.jocean.j2se.zk.ZKUpdaterMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UnforwardCommand implements CliCommand<CliContext> {
+public class UnforwardCommand implements CliCommand<AppCliContext> {
 
     private static final Logger LOG = LoggerFactory.getLogger(UnforwardCommand.class);
 
     @Override
-    public String execute(final CliContext ctx, final String... args) throws Exception {
-        try {
-            BytesShareAppender.enableForRoot();
-            return doUnforward();
-        } finally {
-            BytesShareAppender.disableForRoot();
-        }
+    public String execute(final AppCliContext ctx, final String... args) throws Exception {
+        ctx.enableSendbackLOG();
+        return doUnforward();
     }
 
     private String doUnforward() throws MalformedObjectNameException {

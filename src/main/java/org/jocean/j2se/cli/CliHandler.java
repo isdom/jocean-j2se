@@ -25,6 +25,9 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
+    }
+
+    private void enableOutput(final ChannelHandlerContext ctx) {
         final OutputBytes output = bytes -> {
             if (null != bytes && ctx.channel().isActive()) {
                 ctx.write(new String(bytes, Charsets.UTF_8));
@@ -40,13 +43,17 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
 
+        disableOutput(ctx);
+    }
+
+    private void disableOutput(final ChannelHandlerContext ctx) {
         final OutputBytes output = ctx.channel().attr(OUTPUT).get();
         if (null != output) {
             BytesShareAppender.removeOutput(output);
         }
     }
 
-    class AppContextSupport implements AppCliContext {
+    abstract class AppContextSupport implements AppCliContext {
 
         @Override
         public <V> V getProperty(final String key) {
@@ -79,7 +86,16 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
         Observable.unsafeCreate(subscriber -> {
-            final String result = this._shell.execute(new AppContextSupport(), (String) msg);
+            final String result = this._shell.execute(new AppContextSupport() {
+                @Override
+                public void enableSendbackLOG() {
+                    enableOutput(ctx);
+                }
+
+                @Override
+                public void disableSendbackLOG() {
+                    disableOutput(ctx);
+                }}, (String) msg);
             subscriber.onNext(result);
             subscriber.onCompleted();
         }).subscribeOn(Schedulers.computation())
