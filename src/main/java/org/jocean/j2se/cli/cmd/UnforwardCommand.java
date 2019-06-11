@@ -5,10 +5,12 @@ import java.util.Set;
 
 import javax.management.JMX;
 import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.jocean.cli.CliCommand;
 import org.jocean.cli.CliContext;
+import org.jocean.j2se.logback.BytesShareAppender;
 import org.jocean.j2se.zk.ZKUpdaterMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,15 @@ public class UnforwardCommand implements CliCommand<CliContext> {
 
     @Override
     public String execute(final CliContext ctx, final String... args) throws Exception {
+        try {
+            BytesShareAppender.enableForRoot();
+            return doUnforward();
+        } finally {
+            BytesShareAppender.disableForRoot();
+        }
+    }
+
+    private String doUnforward() throws MalformedObjectNameException {
         final MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 
         final Set<ObjectName> names = mbeanServer.queryNames(ObjectName.getInstance("org.jocean:*,type=zkupdater"), null);

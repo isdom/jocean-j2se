@@ -14,6 +14,7 @@ import org.jocean.cli.CliCommand;
 import org.jocean.cli.CliContext;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.Pair;
+import org.jocean.j2se.logback.BytesShareAppender;
 import org.jocean.j2se.os.OSUtil;
 import org.jocean.j2se.unit.InitializationMonitor;
 import org.jocean.j2se.unit.UnitAgent;
@@ -56,6 +57,16 @@ public class StartAppCommand implements CliCommand<CliContext> {
             return "FAILED: missing startapp params\n" + getHelp();
         }
 
+        BytesShareAppender.enableForRoot();
+
+        try {
+            return doStartApp(args);
+        } finally {
+            BytesShareAppender.disableForRoot();
+        }
+    }
+
+    private String doStartApp(final String... args) {
         // 从控制台命名空间管理中拷贝对应值
         final Properties props = new Properties();
         props.put("endpoint", args[0]);

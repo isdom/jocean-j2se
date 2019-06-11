@@ -2,6 +2,7 @@ package org.jocean.j2se.cli.cmd;
 
 import org.jocean.cli.CliCommand;
 import org.jocean.cli.CliContext;
+import org.jocean.j2se.logback.BytesShareAppender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -26,8 +27,14 @@ public class StopAppCommand implements CliCommand<CliContext>, ApplicationContex
         if (this._applicationContext == null) {
             return "FAILED: already stopped";
         } else {
-            this._applicationContext.close();
-            this._applicationContext = null;
+            BytesShareAppender.enableForRoot();
+
+            try {
+                this._applicationContext.close();
+            } finally {
+                this._applicationContext = null;
+                BytesShareAppender.disableForRoot();
+            }
         }
 
         return "OK";

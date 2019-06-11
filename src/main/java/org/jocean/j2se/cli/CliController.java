@@ -51,12 +51,10 @@ public class CliController {
         final ServerBootstrap sb = new ServerBootstrap().group(EPOLL_BOSS_GROUP, EPOLL_WORKER_GROUP)
             .channel(EpollServerDomainSocketChannel.class)
             .option(ChannelOption.SO_BACKLOG, 100)
-//            .handler(new LoggingHandler(LogLevel.INFO))
             .childHandler(new ChannelInitializer<Channel>() {
                 @Override
                 protected void initChannel(final Channel channel) throws Exception {
                     final ChannelPipeline p = channel.pipeline();
-//                    p.addLast(new LoggingHandler(LogLevel.INFO));
                     p.addLast(new DelimiterBasedFrameDecoder(2048, _SEMICOLON));
                     p.addLast(new StringDecoder(CharsetUtil.UTF_8));
                     p.addLast(new StringEncoder(CharsetUtil.UTF_8));

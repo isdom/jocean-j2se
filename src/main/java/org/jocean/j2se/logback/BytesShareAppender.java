@@ -1,20 +1,65 @@
-package org.jocean.j2se.cli;
+package org.jocean.j2se.logback;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
 import ch.qos.logback.core.status.ErrorStatus;
-import rx.functions.Action1;
 
-public class UDSAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
+public class BytesShareAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
-    static Action1<String> _OUTPUT;
+    private static List<OutputBytes> _OUTPUTS = new CopyOnWriteArrayList<>();
+
+    public static void addOutput(final OutputBytes output) {
+        _OUTPUTS.add(output);
+    }
+
+    public static void removeOutput(final OutputBytes output) {
+        _OUTPUTS.remove(output);
+    }
+
+    public static void enableForRoot() {
+        final LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+
+        final PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+
+        encoder.setContext(lc);
+        encoder.setCharset(Charsets.UTF_8);
+        encoder.setPattern("%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %5p |-%c{35}:%L - %m %n");
+
+        final BytesShareAppender appender = new BytesShareAppender();
+        appender.setName("BytesShareAppender");
+        appender.setContext(lc);
+        appender.setEncoder(encoder);
+
+        encoder.start();
+        appender.start();
+
+        lc.getLogger("ROOT").addAppender(appender);
+    }
+
+    public static void disableForRoot() {
+        final LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+
+        final Appender<ILoggingEvent> appender = lc.getLogger("ROOT").getAppender("BytesShareAppender");
+        if (null != appender) {
+            appender.stop();
+            lc.getLogger("ROOT").detachAppender(appender);
+        }
+    }
 
     @Override
     protected void append(final ILoggingEvent eventObject) {
@@ -64,7 +109,7 @@ public class UDSAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     }
 
     void encoderClose() {
-        if (encoder != null && _OUTPUT != null) {
+        if (encoder != null) {
             try {
                 final byte[] footer = encoder.footerBytes();
                 writeBytes(footer);
@@ -76,7 +121,7 @@ public class UDSAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     }
 
     void encoderInit() {
-        if (encoder != null && _OUTPUT != null) {
+        if (encoder != null) {
             try {
                 final byte[] header = encoder.headerBytes();
                 writeBytes(header);
@@ -93,7 +138,13 @@ public class UDSAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
         lock.lock();
         try {
-            _OUTPUT.call(new String(byteArray, Charsets.UTF_8));
+            for (final Iterator<OutputBytes> iter = _OUTPUTS.iterator(); iter.hasNext(); ) {
+                try {
+                    iter.next().output(byteArray);
+                } catch (final Exception e) {
+                    // just ignore
+                }
+            }
         } finally {
             lock.unlock();
         }

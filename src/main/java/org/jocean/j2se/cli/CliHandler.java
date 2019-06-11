@@ -5,51 +5,48 @@ import java.util.Map;
 import org.jocean.cli.CliContext;
 import org.jocean.cli.CliShell;
 import org.jocean.cli.CommandRepository;
-import org.slf4j.LoggerFactory;
+import org.jocean.j2se.logback.BytesShareAppender;
+import org.jocean.j2se.logback.OutputBytes;
 
 import com.google.common.base.Charsets;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.AttributeKey;
 import rx.Observable;
-import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 @Sharable
 public class CliHandler extends ChannelInboundHandlerAdapter {
 
+    private static AttributeKey<OutputBytes> OUTPUT = AttributeKey.valueOf("LOG");
+
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        UDSAppender._OUTPUT = ss -> {
-            if (null != ss) {
-                ctx.write(ss);
+        final OutputBytes output = bytes -> {
+            if (null != bytes && ctx.channel().isActive()) {
+                ctx.write(new String(bytes, Charsets.UTF_8));
                 ctx.flush();
             }
         };
-        final LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ctx.channel().attr(OUTPUT).set(output);
 
-        final PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-
-        encoder.setContext(lc);
-        encoder.setCharset(Charsets.UTF_8);
-        encoder.setPattern("%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %5p |-%c{35}:%L - %m %n");
-
-        final UDSAppender appender = new UDSAppender();
-        appender.setName("cliuds");
-        appender.setContext(lc);
-        appender.setEncoder(encoder);
-
-        encoder.start();
-        appender.start();
-
-        lc.getLogger("ROOT").addAppender(appender);
+        BytesShareAppender.addOutput(output);
     }
 
-    abstract class AppContextSupport implements AppCliContext {
+    @Override
+    public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
+
+        final OutputBytes output = ctx.channel().attr(OUTPUT).get();
+        if (null != output) {
+            BytesShareAppender.removeOutput(output);
+        }
+    }
+
+    class AppContextSupport implements AppCliContext {
 
         @Override
         public <V> V getProperty(final String key) {
@@ -82,16 +79,7 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
         Observable.unsafeCreate(subscriber -> {
-            final String result = this._shell.execute(new AppContextSupport() {
-                @Override
-                public Action1<Object> logger() {
-                    return obj -> {
-                        if (null != obj) {
-                            ctx.write(obj.toString());
-                            ctx.flush();
-                        }
-                    };
-                }}, (String) msg);
+            final String result = this._shell.execute(new AppContextSupport(), (String) msg);
             subscriber.onNext(result);
             subscriber.onCompleted();
         }).subscribeOn(Schedulers.computation())
