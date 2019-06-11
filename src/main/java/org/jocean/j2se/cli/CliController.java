@@ -21,8 +21,6 @@ import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
@@ -53,12 +51,12 @@ public class CliController {
         final ServerBootstrap sb = new ServerBootstrap().group(EPOLL_BOSS_GROUP, EPOLL_WORKER_GROUP)
             .channel(EpollServerDomainSocketChannel.class)
             .option(ChannelOption.SO_BACKLOG, 100)
-            .handler(new LoggingHandler(LogLevel.INFO))
+//            .handler(new LoggingHandler(LogLevel.INFO))
             .childHandler(new ChannelInitializer<Channel>() {
                 @Override
                 protected void initChannel(final Channel channel) throws Exception {
                     final ChannelPipeline p = channel.pipeline();
-                    p.addLast(new LoggingHandler(LogLevel.INFO));
+//                    p.addLast(new LoggingHandler(LogLevel.INFO));
                     p.addLast(new DelimiterBasedFrameDecoder(2048, _SEMICOLON));
                     p.addLast(new StringDecoder(CharsetUtil.UTF_8));
                     p.addLast(new StringEncoder(CharsetUtil.UTF_8));
