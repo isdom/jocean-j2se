@@ -5,7 +5,12 @@ import java.util.Map;
 import org.jocean.cli.CliContext;
 import org.jocean.cli.CliShell;
 import org.jocean.cli.CommandRepository;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
+
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -25,6 +30,23 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
                 ctx.flush();
             }
         };
+        final LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+
+        final PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+
+        encoder.setContext(lc);
+        encoder.setCharset(Charsets.UTF_8);
+        encoder.setPattern("%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %5p |-%c{35}:%L - %m %n");
+
+        final UDSAppender appender = new UDSAppender();
+        appender.setName("cliuds");
+        appender.setContext(lc);
+        appender.setEncoder(encoder);
+
+        encoder.start();
+        appender.start();
+
+        lc.getLogger("ROOT").addAppender(appender);
     }
 
     abstract class AppContextSupport implements AppCliContext {
