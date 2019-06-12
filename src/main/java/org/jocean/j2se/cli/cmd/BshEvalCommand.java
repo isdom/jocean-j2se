@@ -47,7 +47,8 @@ public class BshEvalCommand implements CliCommand<AppCliContext>, ApplicationCon
                     inter.set(args[idx], args[idx + 1]);
                 }
             }
-            return inter.eval( new StringReader(new String(BaseEncoding.base64().decode(args[0]), Charsets.UTF_8)) ).toString();
+            final Object ret = inter.eval( new StringReader(new String(BaseEncoding.base64().decode(args[0]), Charsets.UTF_8)) );
+            return null != ret ? ret.toString() : null;
         }
         catch (final Exception e) {
             LOG.error("exception when inter.eval, detail: {}", ExceptionUtils.exception2detail(e));

@@ -126,7 +126,9 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
                             ctx.flush();
                         }};
                 }}, (String) msg);
-            subscriber.onNext(result);
+            if (null != result) {
+                subscriber.onNext(result);
+            }
             subscriber.onCompleted();
         }).subscribeOn(Schedulers.computation())
         .subscribe(result -> {
