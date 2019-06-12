@@ -60,7 +60,7 @@
     <bean id="cmd3" class="org.jocean.j2se.cli.cmd.ExitSrvCommand"/>
     <bean id="cmd4" class="org.jocean.j2se.cli.cmd.TradeCountCommand"/>
     <bean id="cmd5" class="org.jocean.j2se.cli.cmd.UnforwardCommand"/>
-    <bean id="cmd6" class="org.jocean.j2se.cli.cmd.BshCommand"/>
+    <bean id="cmd6" class="org.jocean.j2se.cli.cmd.BshEvalCommand"/>
     <bean id="cmd7" class="org.jocean.cli.cmd.HelpCommand"/>
     
     <bean factory-bean="commandRepository" factory-method="addCommands">

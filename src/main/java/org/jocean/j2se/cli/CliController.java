@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -18,7 +16,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -29,7 +27,7 @@ public class CliController {
 
     static final EventLoopGroup EPOLL_WORKER_GROUP = new EpollEventLoopGroup(1, new DefaultThreadFactory("cli-worker", true));
 
-    static final ByteBuf _SEMICOLON = Unpooled.wrappedBuffer(";".getBytes());
+//    static final ByteBuf _SEMICOLON = Unpooled.wrappedBuffer(";".getBytes());
 
     Channel _bindChannel;
 
@@ -54,7 +52,7 @@ public class CliController {
                 @Override
                 protected void initChannel(final Channel channel) throws Exception {
                     final ChannelPipeline p = channel.pipeline();
-                    p.addLast(new DelimiterBasedFrameDecoder(2048, _SEMICOLON));
+                    p.addLast(new LineBasedFrameDecoder(2048, true, false));
                     p.addLast(new StringDecoder(CharsetUtil.UTF_8));
                     p.addLast(cliHandler);
                 }});
