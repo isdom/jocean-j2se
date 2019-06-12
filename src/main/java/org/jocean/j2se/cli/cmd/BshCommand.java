@@ -1,7 +1,9 @@
 package org.jocean.j2se.cli.cmd;
 
+import java.io.IOException;
 import java.io.PrintStream;
-import java.io.StringReader;
+import java.io.Reader;
+import java.util.concurrent.Executors;
 
 import org.jocean.cli.CliCommand;
 import org.jocean.idiom.ExceptionUtils;
@@ -13,9 +15,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.BaseEncoding;
-
 import bsh.Interpreter;
 
 public class BshCommand implements CliCommand<AppCliContext>, ApplicationContextAware {
@@ -24,30 +23,28 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
 
     @Override
     public String execute(final AppCliContext ctx, final String... args) throws Exception {
-        if (args.length < 1) {
-            return "FAILED: missing script params\n" + getHelp();
-        }
-
-        ctx.enableSendbackLOG();
         return doBsh(ctx, args);
     }
 
     private String doBsh(final AppCliContext ctx, final String... args) {
-        final Interpreter inter = new Interpreter();
-        inter.setOut(new PrintStream(ctx.outputStream()));
+        final Reader in = ctx.redirectInput();
+        final PrintStream out = new PrintStream(ctx.outputStream());
+
+        final Interpreter inter = new Interpreter(in, out, out, true);
 
         // 注入 CliContext 环境上下文，可以在 bsh 脚本中与 命令行 环境进行交互，实现类似 stopapp；exitapp 的功能
         try {
             inter.set("_LOG", LOG);
             inter.set("_clictx", ctx);
             inter.set("_appctx", this._applicationContext);
-            for (int idx = 1; idx < args.length; idx += 2) {
-                if (idx + 1 < args.length) {
-                    //  inject extern args for bsh env
-                    inter.set(args[idx], args[idx + 1]);
+            Executors.newFixedThreadPool(1).submit(() -> {
+                inter.run();
+                try {
+                    in.close();
+                } catch (final IOException e) {
                 }
-            }
-            return inter.eval( new StringReader(new String(BaseEncoding.base64().decode(args[0]), Charsets.UTF_8)) ).toString();
+            });
+            return "bsh started";
         }
         catch (final Exception e) {
             LOG.error("exception when inter.eval, detail: {}", ExceptionUtils.exception2detail(e));
@@ -62,7 +59,7 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
 
     @Override
     public String getHelp() {
-        return "bsh [script's content encode as base64] [arg1 name] [value1] [arg2 name] [value2] ...";
+        return "bsh";
     }
 
     @Override

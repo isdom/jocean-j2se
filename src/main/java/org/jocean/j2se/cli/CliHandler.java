@@ -2,7 +2,13 @@ package org.jocean.j2se.cli;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.jocean.cli.CliContext;
 import org.jocean.cli.CliShell;
@@ -94,8 +100,52 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
         this._repo = commandRepository;
     }
 
+    Reader buildReader(final BlockingQueue<String> queue, final ChannelHandlerContext ctx) {
+        final AtomicReference<StringReader> _currentStringReader = new AtomicReference<>(null);
+
+        return new Reader() {
+            @Override
+            public int read(final char[] cbuf, final int off, final int len) throws IOException {
+                final StringReader stringReader = _currentStringReader.get();
+                if (null != stringReader) {
+                    final int readed = stringReader.read(cbuf, off, len);
+                    if (readed > -1) {
+                        return readed;
+                    }
+                    _currentStringReader.set(null);
+                }
+
+                do {
+                    try {
+                        final String ss = queue.poll(100, TimeUnit.MILLISECONDS);
+                        if (null != ss) {
+                            _currentStringReader.set(new StringReader(ss));
+                            return _currentStringReader.get().read(cbuf, off, len);
+                        }
+                    } catch (final InterruptedException e) {
+                    }
+                } while (ctx.channel().isActive());
+
+                return -1;
+            }
+
+            @Override
+            public void close() throws IOException {
+                ctx.close();
+            }};
+    }
+
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
+        if (_queue != null) {
+            _queue.offer((String)msg + "\n");
+        }
+        else {
+            executeCommand(ctx, (String)msg);
+        }
+    }
+
+    private void executeCommand(final ChannelHandlerContext ctx, final String cmd) {
         Observable.<String>unsafeCreate(subscriber -> {
             final String result = this._shell.execute(new AppContextSupport() {
                 @Override
@@ -125,11 +175,19 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
                         public void flush() throws IOException {
                             ctx.flush();
                         }};
-                }}, (String) msg);
+                }
+
+                @Override
+                public Reader redirectInput() {
+                    _queue = new LinkedBlockingQueue<String>(100);
+                    return buildReader(_queue, ctx);
+                }}, cmd);
             if (null != result) {
                 subscriber.onNext(result);
             }
-            subscriber.onCompleted();
+            if (null == _queue) {
+                subscriber.onCompleted();
+            }
         }).subscribeOn(Schedulers.computation())
         .subscribe(result -> {
             if ( null != result ) {
@@ -155,4 +213,5 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     private final CliShell<AppCliContext> _shell;
     private final CliController _ctrl;
     private final CommandRepository _repo;
+    private BlockingQueue<String> _queue;
 }

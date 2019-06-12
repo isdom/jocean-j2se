@@ -61,7 +61,8 @@
     <bean id="cmd4" class="org.jocean.j2se.cli.cmd.TradeCountCommand"/>
     <bean id="cmd5" class="org.jocean.j2se.cli.cmd.UnforwardCommand"/>
     <bean id="cmd6" class="org.jocean.j2se.cli.cmd.BshEvalCommand"/>
-    <bean id="cmd7" class="org.jocean.cli.cmd.HelpCommand"/>
+    <bean id="cmd7" class="org.jocean.j2se.cli.cmd.BshCommand"/>
+    <bean id="cmd8" class="org.jocean.cli.cmd.HelpCommand"/>
     
     <bean factory-bean="commandRepository" factory-method="addCommands">
         <constructor-arg>
@@ -73,6 +74,7 @@
                 <ref bean="cmd5"/>
                 <ref bean="cmd6"/>
                 <ref bean="cmd7"/>
+                <ref bean="cmd8"/>
             </list>
         </constructor-arg>
     </bean>
