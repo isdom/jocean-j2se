@@ -138,7 +138,12 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
         if (_queue != null) {
-            _queue.offer((String)msg + "\n");
+            if (msg.equals("quit")) {
+                ctx.close();
+            }
+            else {
+                _queue.offer((String)msg + "\n");
+            }
         }
         else {
             executeCommand(ctx, (String)msg);
