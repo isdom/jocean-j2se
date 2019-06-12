@@ -1,5 +1,6 @@
 package org.jocean.j2se.cli.cmd;
 
+import java.io.PrintStream;
 import java.io.StringReader;
 
 import org.jocean.cli.CliCommand;
@@ -33,7 +34,7 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
 
     private String doBsh(final AppCliContext ctx, final String... args) {
         final Interpreter inter = new Interpreter();
-//      inter.setOut(new PrintStream(outputStream));
+        inter.setOut(new PrintStream(ctx.outputStream()));
 
         // 注入 CliContext 环境上下文，可以在 bsh 脚本中与 命令行 环境进行交互，实现类似 stopapp；exitapp 的功能
         try {

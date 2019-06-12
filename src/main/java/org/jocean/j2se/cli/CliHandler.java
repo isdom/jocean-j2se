@@ -1,5 +1,8 @@
 package org.jocean.j2se.cli;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.jocean.cli.CliContext;
@@ -35,7 +38,7 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
         if (null == ctx.channel().attr(OUTPUT).get()) {
             final OutputBytes output = bytes -> {
                 if (null != bytes && ctx.channel().isActive()) {
-                    ctx.write(new String(bytes, Charsets.UTF_8));
+                    ctx.write(bytes);
                     ctx.flush();
                 }
             };
@@ -94,7 +97,7 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
-        Observable.unsafeCreate(subscriber -> {
+        Observable.<String>unsafeCreate(subscriber -> {
             final String result = this._shell.execute(new AppContextSupport() {
                 @Override
                 public void enableSendbackLOG() {
@@ -104,13 +107,37 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
                 @Override
                 public void disableSendbackLOG() {
                     disableOutput(ctx);
+                }
+
+                @Override
+                public OutputStream outputStream() {
+                    return new OutputStream() {
+                        @Override
+                        public void write(final int b) throws IOException {
+                            ctx.write(new byte[]{(byte)b});
+                        }
+
+                        @Override
+                        public void write(final byte[] b, final int off, final int len) throws IOException {
+                            if (off == 0 && b.length == len) {
+                                ctx.write(b);
+                            }
+                            else {
+                                ctx.write(Arrays.copyOfRange(b, off, off + len));
+                            }
+                        }
+
+                        @Override
+                        public void flush() throws IOException {
+                            ctx.flush();
+                        }};
                 }}, (String) msg);
             subscriber.onNext(result);
             subscriber.onCompleted();
         }).subscribeOn(Schedulers.computation())
         .subscribe(result -> {
             if ( null != result ) {
-                ctx.write(result);
+                ctx.write(result.getBytes(Charsets.UTF_8));
                 ctx.flush();
             }
         }, e -> {}, () -> ctx.close());
