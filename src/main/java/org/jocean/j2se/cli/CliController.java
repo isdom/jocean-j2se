@@ -19,7 +19,6 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -57,7 +56,7 @@ public class CliController {
                     final ChannelPipeline p = channel.pipeline();
                     p.addLast(new DelimiterBasedFrameDecoder(2048, _SEMICOLON));
                     p.addLast(new StringDecoder(CharsetUtil.UTF_8));
-                    p.addLast(new ByteArrayEncoder());
+//                    p.addLast(new ByteArrayEncoder());
                     p.addLast(cliHandler);
                 }});
         final DomainSocketAddress localAddress = new DomainSocketAddress(this._socketPath + OSUtil.getCurrentPid() + ".socket");

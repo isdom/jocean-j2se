@@ -2,7 +2,6 @@ package org.jocean.j2se.cli;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Map;
 
 import org.jocean.cli.CliContext;
@@ -15,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -38,7 +38,7 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
         if (null == ctx.channel().attr(OUTPUT).get()) {
             final OutputBytes output = bytes -> {
                 if (null != bytes && ctx.channel().isActive()) {
-                    ctx.write(bytes);
+                    ctx.write(Unpooled.wrappedBuffer(bytes));
                     ctx.flush();
                 }
             };
@@ -114,17 +114,19 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
                     return new OutputStream() {
                         @Override
                         public void write(final int b) throws IOException {
-                            ctx.write(new byte[]{(byte)b});
+                            ctx.write(ctx.alloc().buffer(1).writeByte(b));
+//                            ctx.write(Unpooled.wrappedBuffer(new byte[]{(byte)b}));
                         }
 
                         @Override
                         public void write(final byte[] b, final int off, final int len) throws IOException {
-                            if (off == 0 && b.length == len) {
-                                ctx.write(b);
-                            }
-                            else {
-                                ctx.write(Arrays.copyOfRange(b, off, off + len));
-                            }
+                            ctx.write(Unpooled.wrappedBuffer(b, off, len));
+//                            if (off == 0 && b.length == len) {
+//                                ctx.write(b);
+//                            }
+//                            else {
+//                                ctx.write(Arrays.copyOfRange(b, off, off + len));
+//                            }
                         }
 
                         @Override
@@ -137,7 +139,7 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
         }).subscribeOn(Schedulers.computation())
         .subscribe(result -> {
             if ( null != result ) {
-                ctx.write(result.getBytes(Charsets.UTF_8));
+                ctx.write(Unpooled.wrappedBuffer(result.getBytes(Charsets.UTF_8)));
                 ctx.flush();
             }
         }, e -> {}, () -> ctx.close());
