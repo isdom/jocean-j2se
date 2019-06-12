@@ -32,6 +32,8 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
 
         final Interpreter inter = new Interpreter(in, out, out, true);
 
+        inter.setExitOnEOF(false);
+
         // 注入 CliContext 环境上下文，可以在 bsh 脚本中与 命令行 环境进行交互，实现类似 stopapp；exitapp 的功能
         try {
             inter.set("_LOG", LOG);
