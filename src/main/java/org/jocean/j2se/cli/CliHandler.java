@@ -33,6 +33,7 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(CliHandler.class);
 
     private static AttributeKey<OutputBytes> OUTPUT = AttributeKey.valueOf("LOG");
+    private static AttributeKey<BlockingQueue<String>> QUEUE = AttributeKey.valueOf("QUEUE");
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
@@ -137,12 +138,13 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
-        if (_queue != null) {
+        final BlockingQueue<String> queue = ctx.channel().attr(QUEUE).get();
+        if (queue != null) {
             if (msg.equals("quit")) {
                 ctx.close();
             }
             else {
-                _queue.offer((String)msg + "\n");
+                queue.offer((String)msg + "\n");
             }
         }
         else {
@@ -184,13 +186,13 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
 
                 @Override
                 public Reader redirectInput() {
-                    _queue = new LinkedBlockingQueue<String>(100);
-                    return buildReader(_queue, ctx);
+                    ctx.channel().attr(QUEUE).setIfAbsent(new LinkedBlockingQueue<String>(100));
+                    return buildReader(ctx.channel().attr(QUEUE).get(), ctx);
                 }}, cmd);
             if (null != result) {
                 subscriber.onNext(result);
             }
-            if (null == _queue) {
+            if (null == ctx.channel().attr(QUEUE).get()) {
                 subscriber.onCompleted();
             }
         }).subscribeOn(Schedulers.computation())
@@ -218,5 +220,4 @@ public class CliHandler extends ChannelInboundHandlerAdapter {
     private final CliShell<AppCliContext> _shell;
     private final CliController _ctrl;
     private final CommandRepository _repo;
-    private BlockingQueue<String> _queue;
 }
