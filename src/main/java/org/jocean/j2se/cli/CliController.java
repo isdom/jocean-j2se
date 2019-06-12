@@ -56,7 +56,6 @@ public class CliController {
                     final ChannelPipeline p = channel.pipeline();
                     p.addLast(new DelimiterBasedFrameDecoder(2048, _SEMICOLON));
                     p.addLast(new StringDecoder(CharsetUtil.UTF_8));
-//                    p.addLast(new ByteArrayEncoder());
                     p.addLast(cliHandler);
                 }});
         final DomainSocketAddress localAddress = new DomainSocketAddress(this._socketPath + OSUtil.getCurrentPid() + ".socket");
