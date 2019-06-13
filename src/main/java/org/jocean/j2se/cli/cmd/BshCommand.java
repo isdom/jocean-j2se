@@ -1,5 +1,6 @@
 package org.jocean.j2se.cli.cmd;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.util.concurrent.Executors;
@@ -40,6 +41,10 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
             inter.set("_appctx", this._applicationContext);
             Executors.newFixedThreadPool(1).submit(() -> {
                 inter.run();
+                try {
+                    in.close();
+                } catch (final IOException e) {
+                }
             });
             return "bsh started";
         }
