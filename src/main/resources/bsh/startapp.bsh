@@ -1,16 +1,15 @@
-
 import org.jocean.cli.CliCommand;
 
-CliCommand startcmd = _clictx.getCommandRepository().findCommandByAction("startapp");
+CliCommand startcmd = cli.ctx.getCommandRepository().findCommandByAction("startapp");
 
 if (null != startcmd) {
-    _LOG.info("found startapp {}", startcmd);
+    cli.log.info("found startapp {}", startcmd);
 
-    startcmd.execute(_clictx, new String[]{endpoint, namespace, rolename, config});
+    startcmd.execute(cli.ctx, new String[]{endpoint, namespace, rolename, config});
 }
 else {
-    _LOG.info("NOT found startapp");
+    cli.log.info("NOT found startapp");
 }
 
 ======================================= BASE64 =================================
-CmltcG9ydCBvcmcuam9jZWFuLmNsaS5DbGlDb21tYW5kOwoKQ2xpQ29tbWFuZCBzdGFydGNtZCA9IF9jbGljdHguZ2V0Q29tbWFuZFJlcG9zaXRvcnkoKS5maW5kQ29tbWFuZEJ5QWN0aW9uKCJzdGFydGFwcCIpOwoKaWYgKG51bGwgIT0gc3RhcnRjbWQpIHsKICAgIF9MT0cuaW5mbygiZm91bmQgc3RhcnRhcHAge30iLCBzdGFydGNtZCk7CgogICAgc3RhcnRjbWQuZXhlY3V0ZShfY2xpY3R4LCBuZXcgU3RyaW5nW117ZW5kcG9pbnQsIG5hbWVzcGFjZSwgcm9sZW5hbWUsIGNvbmZpZ30pOwp9CmVsc2UgewogICAgX0xPRy5pbmZvKCJOT1QgZm91bmQgc3RhcnRhcHAiKTsKfQ==
+aW1wb3J0IG9yZy5qb2NlYW4uY2xpLkNsaUNvbW1hbmQ7CgpDbGlDb21tYW5kIHN0YXJ0Y21kID0gY2xpLmN0eC5nZXRDb21tYW5kUmVwb3NpdG9yeSgpLmZpbmRDb21tYW5kQnlBY3Rpb24oInN0YXJ0YXBwIik7CgppZiAobnVsbCAhPSBzdGFydGNtZCkgewogICAgY2xpLmxvZy5pbmZvKCJmb3VuZCBzdGFydGFwcCB7fSIsIHN0YXJ0Y21kKTsKCiAgICBzdGFydGNtZC5leGVjdXRlKGNsaS5jdHgsIG5ldyBTdHJpbmdbXXtlbmRwb2ludCwgbmFtZXNwYWNlLCByb2xlbmFtZSwgY29uZmlnfSk7Cn0KZWxzZSB7CiAgICBjbGkubG9nLmluZm8oIk5PVCBmb3VuZCBzdGFydGFwcCIpOwp9Cg==

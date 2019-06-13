@@ -1,13 +1,13 @@
 import org.jocean.j2se.os.OSUtil;
 
-_LOG.info("begin to stop CliController");
+cli.log.info("begin to stop CliController");
 
-_clictx.getCliController().stop();
+cli.ctx.getCliController().stop();
 
-_LOG.info("end of stop CliController");
-_LOG.warn("execute exit command, will stop JVM process {}", OSUtil.getCurrentPid());
+cli.log.info("end of stop CliController");
+cli.log.warn("execute exit command, will stop JVM process {}", OSUtil.getCurrentPid());
 
 System.exit(0);
 
 ======================================= BASE64 =================================
-aW1wb3J0IG9yZy5qb2NlYW4uajJzZS5vcy5PU1V0aWw7CgpfTE9HLmluZm8oImJlZ2luIHRvIHN0b3AgQ2xpQ29udHJvbGxlciIpOwoKX2NsaWN0eC5nZXRDbGlDb250cm9sbGVyKCkuc3RvcCgpOwoKX0xPRy5pbmZvKCJlbmQgb2Ygc3RvcCBDbGlDb250cm9sbGVyIik7Cl9MT0cud2FybigiZXhlY3V0ZSBleGl0IGNvbW1hbmQsIHdpbGwgc3RvcCBKVk0gcHJvY2VzcyB7fSIsIE9TVXRpbC5nZXRDdXJyZW50UGlkKCkpOwoKU3lzdGVtLmV4aXQoMCk7
+aW1wb3J0IG9yZy5qb2NlYW4uajJzZS5vcy5PU1V0aWw7CgpjbGkubG9nLmluZm8oImJlZ2luIHRvIHN0b3AgQ2xpQ29udHJvbGxlciIpOwoKY2xpLmN0eC5nZXRDbGlDb250cm9sbGVyKCkuc3RvcCgpOwoKY2xpLmxvZy5pbmZvKCJlbmQgb2Ygc3RvcCBDbGlDb250cm9sbGVyIik7CmNsaS5sb2cud2FybigiZXhlY3V0ZSBleGl0IGNvbW1hbmQsIHdpbGwgc3RvcCBKVk0gcHJvY2VzcyB7fSIsIE9TVXRpbC5nZXRDdXJyZW50UGlkKCkpOwoKU3lzdGVtLmV4aXQoMCk7

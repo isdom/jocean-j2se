@@ -36,9 +36,9 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
 
         // 注入 CliContext 环境上下文，可以在 bsh 脚本中与 命令行 环境进行交互，实现类似 stopapp；exitapp 的功能
         try {
-            inter.set("_LOG", LOG);
-            inter.set("_clictx", ctx);
-            inter.set("_appctx", this._applicationContext);
+            inter.set("cli.log", LOG);
+            inter.set("cli.ctx", ctx);
+            inter.set("spring.root", this._applicationContext);
             Executors.newFixedThreadPool(1).submit(() -> {
                 inter.run();
                 try {
@@ -46,7 +46,7 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
                 } catch (final IOException e) {
                 }
             });
-            return "bsh started";
+            return null;
         }
         catch (final Exception e) {
             LOG.error("exception when inter.eval, detail: {}", ExceptionUtils.exception2detail(e));
