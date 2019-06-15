@@ -39,10 +39,15 @@ public class MBeanPublisher {
     }
 
     public Observable<MBeanStatus> watch(final ObjectName objectName) {
-        return Observable.unsafeCreate(genOnSubscribe(objectName)).serialize();
+        return Observable.unsafeCreate(genOnSubscribe(objectName, null)).serialize();
     }
 
-    private OnSubscribe<MBeanStatus> genOnSubscribe(final ObjectName objectName) {
+    public Observable<MBeanStatus> watch(final ObjectName objectName, final String notificationType) {
+        // TODO
+        return Observable.unsafeCreate(genOnSubscribe(objectName, notificationType)).serialize();
+    }
+
+    private OnSubscribe<MBeanStatus> genOnSubscribe(final ObjectName objectName, final String notificationType) {
         return new OnSubscribe<MBeanStatus>() {
             @Override
             public void call(final Subscriber<? super MBeanStatus> subscriber) {
@@ -98,8 +103,7 @@ public class MBeanPublisher {
         }
 
         @Override
-        public void handleNotification(final Notification notification,
-                final Object handback) {
+        public void handleNotification(final Notification notification, final Object handback) {
             if (notification.getType().equals(MBeanServerNotification.REGISTRATION_NOTIFICATION)) {
                 //  a new MBean added
                 final MBeanServerNotification mbeanNotification = (MBeanServerNotification)notification;
