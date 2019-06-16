@@ -73,12 +73,13 @@ public class MBeanPublisher {
                     try {
                         final Set<ObjectName> mbeans = _mbsc.queryNames(objectName, null);
                         final Iterator<ObjectName> itr = mbeans.iterator();
-                        while ( itr.hasNext() ) {
+                        while (itr.hasNext()) {
                             subscriber.onNext(new MBeanStatusSupport(itr.next()) {
                                 @Override
                                 public int status() {
                                     return MS_REGISTERED;
                                 }});
+                            addNotificationListener(objectName, notificationType, subscriber);
                         }
                     } catch (final Exception e) {
                         LOG.warn("exception when queryNames for {}, detail:{}",
@@ -141,7 +142,7 @@ public class MBeanPublisher {
                             public int status() {
                                 return MS_REGISTERED;
                             }} );
-                        addNotificationListener(objectName);
+                        addNotificationListener(objectName, this._notificationType, this._subscriber);
                     }
                 }
             }
@@ -151,7 +152,7 @@ public class MBeanPublisher {
                     final MBeanServerNotification mbeanNotification = (MBeanServerNotification)notification;
                     final ObjectName objectName = mbeanNotification.getMBeanName();
                     if (this._objectName.apply(objectName)) {
-                        removeNotificationListener(objectName);
+                        removeNotificationListener(objectName, this._notificationType);
                         this._subscriber.onNext(new MBeanStatusSupport(mbeanNotification.getMBeanName()) {
                             @Override
                             public int status() {
@@ -162,29 +163,29 @@ public class MBeanPublisher {
             }
 
         }
+    }
 
-        private void addNotificationListener(final ObjectName objectName) {
-            if (null != this._notificationType) {
-                try {
-                    _mbsc.addNotificationListener(objectName, _mbeanChangedListener, null,
-                            new NotificationContext(objectName, this._notificationType, this._subscriber) );
-                    this._subscriber.add(Subscriptions.create(() -> removeNotificationListener(objectName)));
-                } catch (final Exception e) {
-                    e.printStackTrace();
-                }
+    private void addNotificationListener(final ObjectName objectName, final String notificationType,
+            final Subscriber<? super MBeanStatus> subscriber ) {
+        if (null != notificationType) {
+            try {
+                _mbsc.addNotificationListener(objectName, _mbeanChangedListener, null,
+                        new NotificationContext(objectName, notificationType, subscriber) );
+                subscriber.add(Subscriptions.create(() -> removeNotificationListener(objectName, notificationType)));
+            } catch (final Exception e) {
+                e.printStackTrace();
             }
         }
+    }
 
-        private void removeNotificationListener(final ObjectName objectName) {
-            if (null != this._notificationType) {
-                try {
-                    _mbsc.removeNotificationListener(objectName, _mbeanChangedListener);
-                } catch (final Exception e) {
-                    e.printStackTrace();
-                }
+    private void removeNotificationListener(final ObjectName objectName, final String notificationType) {
+        if (null != notificationType) {
+            try {
+                _mbsc.removeNotificationListener(objectName, _mbeanChangedListener);
+            } catch (final Exception e) {
+                e.printStackTrace();
             }
         }
-
     }
 
     private abstract class MBeanStatusSupport implements MBeanStatus {
