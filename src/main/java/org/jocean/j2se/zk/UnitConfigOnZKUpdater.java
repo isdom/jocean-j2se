@@ -30,7 +30,7 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
     private static final Logger LOG = LoggerFactory.getLogger(UnitConfigOnZKUpdater.class);
 
     public Subscription start() {
-        return _publisher.watch(this._objectName).subscribe(mbeanStatus -> processStatus(mbeanStatus),
+        return _publisher.watch(this._objectName, this._notificationType).subscribe(mbeanStatus -> processStatus(mbeanStatus),
                 e -> LOG.warn("exception when subscriber MBeanStatus for path {}, detail:{}",
                         this._path, ExceptionUtils.exception2detail(e)),
                 () -> {
@@ -56,41 +56,49 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
 
     private void processStatus(final MBeanStatus mbeanStatus) {
         if ( mbeanStatus.status() == MBeanStatus.MS_REGISTERED ) {
-            final PlaceholderResolver placeholderResolver = new PlaceholderResolver() {
-                @Override
-                public String resolvePlaceholder(final Object resolveContext,
-                        final String placeholderName) {
-                    final String propertyValue = System.getProperty(placeholderName);
-                    if (null!=propertyValue) {
-                        return propertyValue;
-                    }
-                    final String envValue = System.getenv(placeholderName);
-                    if (null!=envValue) {
-                        return envValue;
-                    }
-                    final Object value = mbeanStatus.getValue(placeholderName);
-                    return null != value ? value.toString() : "";
-                }};
-            final PropertyPlaceholderHelper placeholderReplacer = new PropertyPlaceholderHelper("{", "}");
-            final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
-
-            try {
-                addZKPath(mbeanStatus.mbeanName(),
-                    this._curator.create()
-                        .creatingParentsIfNeeded()
-                        .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-                        .forPath(placeholderReplacer.replacePlaceholders(null, this._path, placeholderResolver, null),
-                            config.getBytes(Charsets.UTF_8)));
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("create config for path {}, config\n{}", this._path, config);
-                }
-            } catch (final Exception e) {
-                LOG.warn("exception when create config for path {}, detail:{}",
-                        this._path, ExceptionUtils.exception2detail(e));
-            }
-
+            createZKPath(mbeanStatus);
+        } else if (mbeanStatus.status() == MBeanStatus.MS_CHANGED) {
+            updateZKPath(mbeanStatus);
         } else if (mbeanStatus.status() == MBeanStatus.MS_UNREGISTERED) {
             removeZKPath(mbeanStatus.mbeanName());
+        }
+    }
+
+    private void createZKPath(final MBeanStatus mbeanStatus) {
+        final PlaceholderResolver placeholderResolver = buildResolver(mbeanStatus);
+        final PropertyPlaceholderHelper placeholderReplacer = new PropertyPlaceholderHelper("{", "}");
+        final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
+
+        try {
+            addZKPath(mbeanStatus.mbeanName(),
+                this._curator.create()
+                    .creatingParentsIfNeeded()
+                    .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+                    .forPath(placeholderReplacer.replacePlaceholders(null, this._path, placeholderResolver, null),
+                        config.getBytes(Charsets.UTF_8)));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("create config for path {}, config\n{}", this._path, config);
+            }
+        } catch (final Exception e) {
+            LOG.warn("exception when create config for path {}, detail:{}",
+                    this._path, ExceptionUtils.exception2detail(e));
+        }
+    }
+
+    private void updateZKPath(final MBeanStatus mbeanStatus) {
+        final PlaceholderResolver placeholderResolver = buildResolver(mbeanStatus);
+        final PropertyPlaceholderHelper placeholderReplacer = new PropertyPlaceholderHelper("{", "}");
+        final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
+
+        try {
+            final String path = this._createdPaths.remove(mbeanStatus.mbeanName());
+            if (null!=path) {
+                this._curator.setData().forPath(path, config.getBytes(Charsets.UTF_8));
+            }
+            LOG.debug("update config for path {}, config\n{}", this._path, config);
+        } catch (final Exception e) {
+            LOG.warn("exception when create config for path {}, detail:{}",
+                    this._path, ExceptionUtils.exception2detail(e));
         }
     }
 
@@ -119,6 +127,24 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
         while (!this._createdPaths.keySet().isEmpty()) {
             removeZKPath(this._createdPaths.keySet().iterator().next());
         }
+    }
+
+    private PlaceholderResolver buildResolver(final MBeanStatus mbeanStatus) {
+        return new PlaceholderResolver() {
+            @Override
+            public String resolvePlaceholder(final Object resolveContext,
+                    final String placeholderName) {
+                final String propertyValue = System.getProperty(placeholderName);
+                if (null!=propertyValue) {
+                    return propertyValue;
+                }
+                final String envValue = System.getenv(placeholderName);
+                if (null!=envValue) {
+                    return envValue;
+                }
+                final Object value = mbeanStatus.getValue(placeholderName);
+                return null != value ? value.toString() : "";
+            }};
     }
 
     static {
@@ -152,6 +178,9 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
     }
 
     ObjectName _objectName;
+
+    @Value("${notification.type}")
+    String _notificationType = null;
 
     String _path;
 

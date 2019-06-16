@@ -43,7 +43,6 @@ public class MBeanPublisher {
     }
 
     public Observable<MBeanStatus> watch(final ObjectName objectName, final String notificationType) {
-        // TODO
         return Observable.unsafeCreate(genOnSubscribe(objectName, notificationType)).serialize();
     }
 
