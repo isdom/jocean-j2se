@@ -173,7 +173,7 @@ public class MBeanPublisher {
                         new NotificationContext(objectName, notificationType, subscriber) );
                 subscriber.add(Subscriptions.create(() -> removeNotificationListener(objectName, notificationType)));
             } catch (final Exception e) {
-                e.printStackTrace();
+                LOG.warn("exception when addNotificationListener for {}, detail:{}", objectName, ExceptionUtils.exception2detail(e));
             }
         }
     }
@@ -183,7 +183,7 @@ public class MBeanPublisher {
             try {
                 _mbsc.removeNotificationListener(objectName, _mbeanChangedListener);
             } catch (final Exception e) {
-                e.printStackTrace();
+                LOG.warn("exception when removeNotificationListener for {}, detail:{}", objectName, ExceptionUtils.exception2detail(e));
             }
         }
     }
