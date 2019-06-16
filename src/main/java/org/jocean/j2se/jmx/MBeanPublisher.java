@@ -75,12 +75,8 @@ public class MBeanPublisher {
                         while ( itr.hasNext() ) {
                             subscriber.onNext(new MBeanStatusSupport(itr.next()) {
                                 @Override
-                                public boolean isRegistered() {
-                                    return true;
-                                }
-                                @Override
-                                public boolean isUnregistered() {
-                                    return false;
+                                public int status() {
+                                    return MS_REGISTERED;
                                 }});
                         }
                     } catch (final Exception e) {
@@ -110,12 +106,8 @@ public class MBeanPublisher {
                 if (this._objectName.apply(mbeanNotification.getMBeanName())) {
                     this._subscriber.onNext(new MBeanStatusSupport(mbeanNotification.getMBeanName()) {
                         @Override
-                        public boolean isRegistered() {
-                            return true;
-                        }
-                        @Override
-                        public boolean isUnregistered() {
-                            return false;
+                        public int status() {
+                            return MS_REGISTERED;
                         }} );
                 }
             }
@@ -125,12 +117,8 @@ public class MBeanPublisher {
                 if (this._objectName.apply(mbeanNotification.getMBeanName())) {
                     this._subscriber.onNext(new MBeanStatusSupport(mbeanNotification.getMBeanName()) {
                         @Override
-                        public boolean isRegistered() {
-                            return false;
-                        }
-                        @Override
-                        public boolean isUnregistered() {
-                            return true;
+                        public int status() {
+                            return MS_UNREGISTERED;
                         }} );
                 }
             }

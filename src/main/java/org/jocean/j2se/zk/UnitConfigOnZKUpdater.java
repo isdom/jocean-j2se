@@ -55,7 +55,7 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
     }
 
     private void processStatus(final MBeanStatus mbeanStatus) {
-        if ( mbeanStatus.isRegistered() ) {
+        if ( mbeanStatus.status() == MBeanStatus.MS_REGISTERED ) {
             final PlaceholderResolver placeholderResolver = new PlaceholderResolver() {
                 @Override
                 public String resolvePlaceholder(final Object resolveContext,
@@ -89,7 +89,7 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
                         this._path, ExceptionUtils.exception2detail(e));
             }
 
-        } else if (mbeanStatus.isUnregistered()) {
+        } else if (mbeanStatus.status() == MBeanStatus.MS_UNREGISTERED) {
             removeZKPath(mbeanStatus.mbeanName());
         }
     }
