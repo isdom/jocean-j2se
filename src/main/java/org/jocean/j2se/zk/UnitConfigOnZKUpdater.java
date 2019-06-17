@@ -70,18 +70,15 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
         final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
 
         try {
-            addZKPath(mbeanStatus.mbeanName(),
-                this._curator.create()
-                    .creatingParentsIfNeeded()
-                    .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-                    .forPath(placeholderReplacer.replacePlaceholders(null, this._path, placeholderResolver, null),
-                        config.getBytes(Charsets.UTF_8)));
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("create config for path {}, config\n{}", this._path, config);
-            }
+            final String createdPath = this._curator.create()
+                .creatingParentsIfNeeded()
+                .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+                .forPath(placeholderReplacer.replacePlaceholders(null, this._path, placeholderResolver, null),
+                    config.getBytes(Charsets.UTF_8));
+            addZKPath(mbeanStatus.mbeanName(), createdPath);
+            LOG.info("create config for path {}, config\n{}", createdPath, config);
         } catch (final Exception e) {
-            LOG.warn("exception when create config for path {}, detail:{}",
-                    this._path, ExceptionUtils.exception2detail(e));
+            LOG.warn("exception when create config for path {}, detail:{}", this._path, ExceptionUtils.exception2detail(e));
         }
     }
 
@@ -91,19 +88,19 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
         final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
 
         try {
-            final String path = this._createdPaths.remove(mbeanStatus.mbeanName());
+            final String path = this._createdPaths.get(mbeanStatus.mbeanName());
             if (null!=path) {
                 this._curator.setData().forPath(path, config.getBytes(Charsets.UTF_8));
             }
-            LOG.debug("update config for path {}, config\n{}", this._path, config);
+            LOG.info("update config for path {}, config\n{}", path, config);
         } catch (final Exception e) {
-            LOG.warn("exception when create config for path {}, detail:{}",
-                    this._path, ExceptionUtils.exception2detail(e));
+            LOG.warn("exception when create config for path {}, detail:{}", this._path, ExceptionUtils.exception2detail(e));
         }
     }
 
     private void addZKPath(final ObjectName mbeanName, final String createdPath) {
         this._createdPaths.put(mbeanName, createdPath);
+        LOG.info("add path:{} for mbeanName {}", createdPath, mbeanName);
     }
 
     private void removeZKPath(final ObjectName mbeanName) {
@@ -113,12 +110,9 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
                 this._curator.delete()
                     .deletingChildrenIfNeeded()
                     .forPath(path);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("delete config for path {}", path);
-                }
+                LOG.info("delete config for path {}", path);
             } catch (final Exception e) {
-                LOG.warn("exception when delete config for path {}, detail:{}",
-                        path, ExceptionUtils.exception2detail(e));
+                LOG.warn("exception when delete config for path {}, detail:{}", path, ExceptionUtils.exception2detail(e));
             }
         }
     }
