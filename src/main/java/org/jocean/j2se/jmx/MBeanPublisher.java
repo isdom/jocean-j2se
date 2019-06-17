@@ -73,12 +73,13 @@ public class MBeanPublisher {
                         final Set<ObjectName> mbeans = _mbsc.queryNames(objectName, null);
                         final Iterator<ObjectName> itr = mbeans.iterator();
                         while (itr.hasNext()) {
-                            subscriber.onNext(new MBeanStatusSupport(itr.next()) {
+                            final ObjectName instanceObjectName = itr.next();
+                            subscriber.onNext(new MBeanStatusSupport(instanceObjectName) {
                                 @Override
                                 public int status() {
                                     return MS_REGISTERED;
                                 }});
-                            addNotificationListener(objectName, notificationType, subscriber);
+                            addNotificationListener(instanceObjectName, notificationType, subscriber);
                         }
                     } catch (final Exception e) {
                         LOG.warn("exception when queryNames for {}, detail:{}",
