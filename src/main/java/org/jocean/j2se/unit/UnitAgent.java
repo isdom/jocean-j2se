@@ -493,13 +493,11 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     private Node getParentNode(final String unitName) {
         final String parentPath = FilenameUtils.getPathNoEndSeparator(unitName);
         final Node parentNode = "".equals(parentPath) ? null : name2node(parentPath);
-        if (LOG.isDebugEnabled()) {
-            if (null != parentNode) {
-                LOG.debug("found parent node {} for path {} ", parentNode, parentPath);
-            }
-            else {
-                LOG.debug("can not found parent node for path {} ", parentPath);
-            }
+        if (null != parentNode) {
+            LOG.debug("found parent node {} for path {} ", parentNode, parentPath);
+        }
+        else {
+            LOG.debug("can not found parent node for path {} ", parentPath);
         }
         return parentNode;
     }
@@ -568,9 +566,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             final String[] newSource,
             final Map<String, String> newUnitParameters) {
         if (null == name2node(unitName)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("can't found unit named {}, update failed.", unitName);
-            }
+            LOG.debug("can't found unit named {}, update failed.", unitName);
             addLog(" can't found unit named "+ unitName + ", update failed.");
             return null;
         }
@@ -587,9 +583,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             final String unitName,
             final Map<String, String> newUnitParameters) {
         if (null == name2node(unitName)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("can't found unit named {}, update failed.", unitName);
-            }
+            LOG.debug("can't found unit named {}, update failed.", unitName);
             addLog(" can't found unit named "+ unitName + ", update failed.");
             return null;
         }
@@ -833,9 +827,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         protected void processProperties(final ConfigurableListableBeanFactory beanFactoryToProcess, final Properties props)
                                 throws BeansException {
                             super.processProperties(beanFactoryToProcess, props);
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("after processProperties for source {}", unitSource);
-                            }
+                            LOG.debug("after processProperties for source {}", unitSource);
                             throw new StopInitCtxException();
                         }
                     };
@@ -906,7 +898,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         try {
                             return ctx.getBean(requiredType);
                         } catch (final Exception e) {
-                            LOG.info("can't found {} locally, try find global.", requiredType);
+                            LOG.debug("can't found {} locally, try find global.", requiredType);
                         }
                         final T bean = UnitAgent.this.getBean(requiredType);
                         if (null != bean) {
@@ -921,7 +913,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         try {
                             return ctx.getBean(name, requiredType);
                         } catch (final Exception e) {
-                            LOG.info("can't found {}/{} locally, try find global.", name, requiredType);
+                            LOG.debug("can't found {}/{} locally, try find global.", name, requiredType);
                         }
                         final T bean = UnitAgent.this.getBean(name, requiredType);
                         if (null != bean) {
@@ -936,7 +928,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         try {
                             return ctx.getBean(name);
                         } catch (final Exception e) {
-                            LOG.info("can't found {} locally, try find global.", name);
+                            LOG.debug("can't found {} locally, try find global.", name);
                         }
                         final Object bean = UnitAgent.this.getBean(name);
                         if (null != bean) {
@@ -958,15 +950,10 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 if (event instanceof ContextClosedEvent) {
                     if (event.getApplicationContext() == ctx) {
                         register.destroy();
-                        if (LOG.isInfoEnabled()) {
-                            LOG.info("application {} closed, so destroy it's MBeanRegister {}",
-                                    ctx, register);
-                        }
+                        LOG.info("application {} closed, so destroy it's MBeanRegister {}", ctx, register);
                     } else {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("application {} raised close event, and received by parent application {}, just ignore.",
-                                    event.getApplicationContext(), ctx);
-                        }
+                        LOG.debug("application {} raised close event, and received by parent application {}, just ignore.",
+                                event.getApplicationContext(), ctx);
                     }
                 }
             }});
@@ -979,9 +966,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
 
     private String[] searchUnitSourceOf(final String[] sourcePatterns) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("try to match pattern: {}", Arrays.toString(sourcePatterns));
-        }
+        LOG.debug("try to match pattern: {}", Arrays.toString(sourcePatterns));
         final List<String> sources = new ArrayList<>();
         try {
             final Map<URL, String[]> allRes = PackageUtils.getAllCPResourceAsPathlike();
@@ -992,9 +977,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                     }
                     for (final String pattern : sourcePatterns) {
                         if (SelectorUtils.match(pattern, res)) {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("found matched unit source: {}", res);
-                            }
+                            LOG.debug("found matched unit source: {}", res);
                             sources.add(res);
                         }
                     }
