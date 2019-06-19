@@ -31,6 +31,8 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
 
     private static final String SPRING_XML_KEY = "__spring.xml";
 
+    private static final String UPDATABLE_KEY = "__updatable__";
+
     public ZKUnitUpdater(final UnitAgent unitAgent) {
         this._unitAgent = unitAgent;
     }
@@ -99,6 +101,7 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
             final String template = getTemplateFromFullPathName(pathName);
             final Map<String, String> props = data2props(data);
             final String[] source = genSourceFrom(props);
+            final boolean updatable = getUpdatable(props);
             UnitMXBean unit = null;
             if (null != source ) {
                 unit = this._unitAgent.createUnitWithSource(pathName, source, props);
@@ -108,10 +111,11 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
                         props,
                         true);
             }
-            if (null == unit) {
-                LOG.info("create unit {} failed.", pathName);
-            } else {
+            if (null != unit) {
+                unit.setUpdatable(updatable);
                 LOG.info("create unit {} success with active status:{}", pathName, unit.isActive());
+            } else {
+                LOG.info("create unit {} failed.", pathName);
             }
 
         }
@@ -155,6 +159,11 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
                 LOG.info("remove unit {} failure", pathName);
             }
         }
+    }
+
+    private static boolean getUpdatable(final Map<String, String> props) {
+        final String value = props.get(UPDATABLE_KEY);
+        return null!=value ? value.equals("true") : false;
     }
 
     private static String[] genSourceFrom(final Map<String, String> props) {

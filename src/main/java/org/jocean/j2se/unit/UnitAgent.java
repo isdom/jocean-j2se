@@ -415,6 +415,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
 
             final UnitMXBean unit =
                     newUnitMXBean(
+                            node,
                             null!=ctx,
                             unitName,
                             unitSource,
@@ -520,6 +521,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
 
         final UnitMXBean unit =
                 newUnitMXBean(
+                        node,
                         false,
                         unitName,
                         unitSource,
@@ -627,6 +629,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     }
 
     private UnitMXBean newUnitMXBean(
+            final Node node,
             final boolean isActive,
             final String name,
             final String[] source,
@@ -680,6 +683,16 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             @Override
             public String getUnactiveReason() {
                 return unactiveReason;
+            }
+
+            @Override
+            public boolean isUpdatable() {
+                return node._isUpdatable;
+            }
+
+            @Override
+            public void setUpdatable(final boolean updatable) {
+                node.setUpdatable(updatable);
             }
         };
     }
@@ -741,6 +754,15 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             @Override
             public String getUnactiveReason() {
                 return null;
+            }
+
+            @Override
+            public boolean isUpdatable() {
+                return false;
+            }
+
+            @Override
+            public void setUpdatable(final boolean updatable) {
             }
         };
     }
@@ -993,6 +1015,10 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             this._unitAgent = unitAgent;
         }
 
+        void setUpdatable(final boolean updatable) {
+            this._isUpdatable = updatable;
+        }
+
         ApplicationContext rootApplicationContext() {
             return null != this._implApplicationContext
                     ? this._implApplicationContext
@@ -1036,6 +1062,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         private final String[] _unitSource;
         private final Map<String, String>   _unitParameters;
         private final UnitAgent _unitAgent;
+        private boolean _isUpdatable = false;
     }
 
     @Override
