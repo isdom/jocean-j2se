@@ -52,9 +52,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ReflectionUtils;
 
-import rx.functions.Action1;
-
 public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, ApplicationContextAware, SpringBeanHolder {
+
+    private static final Node[] EMPTY_NODE = new Node[0];
 
     private final static String[] _DEFAULT_SOURCE_PATTERNS = new String[]{"**/units/**.xml"};
 
@@ -77,8 +77,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         }
         else {
             if ( !this._unitListenerSupport.addComponent(listener) ) {
-                LOG.warn("addUnitListener: listener {} has already added",
-                        listener);
+                LOG.warn("addUnitListener: listener {} has already added", listener);
             }
         }
     }
@@ -368,8 +367,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             }
         };
 
-        final ValueAwarePlaceholderConfigurer configurer =
-                new ValueAwarePlaceholderConfigurer() {
+        final ValueAwarePlaceholderConfigurer configurer = new ValueAwarePlaceholderConfigurer() {
                     {
                         this.setProperties(properties);
                     }
@@ -428,14 +426,10 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
 
             this._unitsRegister.replaceRegisteredMBean(objectNameSuffix, mock, unit);
 
-            addLog(" newUnit(" + unitName + ") succeed.");
+            addLog("newUnit(" + unitName + ") succeed.");
 
             if (!this._unitListenerSupport.isEmpty()) {
-                this._unitListenerSupport.foreachComponent(new Action1<UnitListener> () {
-                    @Override
-                    public void call(final UnitListener listener) {
-                        listener.postUnitCreated(unitName, ctx);
-                    }});
+                this._unitListenerSupport.foreachComponent(listener -> listener.postUnitCreated(unitName, ctx));
             }
 
             if (null != unitKeeprAwareHolder.getUnitKeeperAware()) {
@@ -570,7 +564,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             addLog(" can't found unit named "+ unitName + ", update failed.");
             return null;
         }
-        final Node[] nodes = doDeleteUnit(unitName).toArray(new Node[0]);
+        final Node[] nodes = doDeleteUnit(unitName).toArray(EMPTY_NODE);
         final UnitMXBean mbean = doCreateUnit(nodes[0]._unitName, newSource, newUnitParameters);
         for (int idx = 1; idx < nodes.length; idx++) {
             final Node node = nodes[idx];
@@ -579,15 +573,13 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         return mbean;
     }
 
-    public UnitMXBean updateUnit(
-            final String unitName,
-            final Map<String, String> newUnitParameters) {
+    public UnitMXBean updateUnit(final String unitName, final Map<String, String> newUnitParameters) {
         if (null == name2node(unitName)) {
             LOG.debug("can't found unit named {}, update failed.", unitName);
             addLog(" can't found unit named "+ unitName + ", update failed.");
             return null;
         }
-        final Node[] nodes = doDeleteUnit(unitName).toArray(new Node[0]);
+        final Node[] nodes = doDeleteUnit(unitName).toArray(EMPTY_NODE);
         final UnitMXBean mbean = doCreateUnit(nodes[0]._unitName, nodes[0]._unitSource, newUnitParameters);
         for (int idx = 1; idx < nodes.length; idx++) {
             final Node node = nodes[idx];
@@ -772,11 +764,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             }
             final ConfigurableApplicationContext ctx = node._applicationContext;
             if (null != ctx && !this._unitListenerSupport.isEmpty()) {
-                this._unitListenerSupport.foreachComponent(new Action1<UnitListener> () {
-                    @Override
-                    public void call(final UnitListener listener) {
-                        listener.beforeUnitClosed(unitName, ctx);
-                    }});
+                this._unitListenerSupport.foreachComponent(listener -> listener.beforeUnitClosed(unitName, ctx));
             }
             node.closeApplicationContext();
             final Node parentNode = getParentNode(unitName);

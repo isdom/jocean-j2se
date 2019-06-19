@@ -29,10 +29,21 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
 
     private static final Logger LOG = LoggerFactory.getLogger(UnitConfigOnZKUpdater.class);
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("UnitConfigOnZKUpdater [objectName=").append(_objectName)
+                .append(", notificationType=") .append(_notificationType)
+                .append(", path=").append(_path)
+                .append(", template=").append(_template)
+                .append("]");
+        return builder.toString();
+    }
+
     public Subscription start() {
         return _publisher.watch(this._objectName, this._notificationType).subscribe(mbeanStatus -> processStatus(mbeanStatus),
-                e -> LOG.warn("exception when subscriber MBeanStatus for path {}, detail:{}",
-                        this._path, ExceptionUtils.exception2detail(e)),
+                e -> LOG.warn("exception when subscriber MBeanStatus for {}, detail:{}",
+                        this, ExceptionUtils.exception2detail(e)),
                 () -> {
                     LOG.info("Subscriber MBeanStatus for path {} onCompleted", this._path);
                     removeAllZKPath();
@@ -78,7 +89,7 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
             addZKPath(mbeanStatus.mbeanName(), createdPath);
             LOG.info("create config for path {}, config\n{}", createdPath, config);
         } catch (final Exception e) {
-            LOG.warn("exception when create config for path {}, detail:{}", this._path, ExceptionUtils.exception2detail(e));
+            LOG.warn("exception when create config for {}, detail:{}", this, ExceptionUtils.exception2detail(e));
         }
     }
 
@@ -94,7 +105,7 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
             }
             LOG.info("update config for path {}, config\n{}", path, config);
         } catch (final Exception e) {
-            LOG.warn("exception when create config for path {}, detail:{}", this._path, ExceptionUtils.exception2detail(e));
+            LOG.warn("exception when update config for {}, detail:{}", this, ExceptionUtils.exception2detail(e));
         }
     }
 
