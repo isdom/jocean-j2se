@@ -130,17 +130,18 @@ public class ZKUnitUpdater implements ZKAgent.Listener {
             }
             final Map<String, String> props = data2props(data);
             final String[] source = genSourceFrom(props);
-
+            final boolean updatable = getUpdatable(props);
             UnitMXBean unit = null;
             if (null != source ) {
                 unit = this._unitAgent.updateUnitWithSource(pathName, source, props);
             } else {
                 unit = this._unitAgent.updateUnit(pathName, props);
             }
-            if (null == unit) {
-                LOG.info("update unit {} failed.", pathName);
-            } else {
+            if (null != unit) {
+                unit.setUpdatable(updatable);
                 LOG.info("update unit {} success with active status:{}", pathName, unit.isActive());
+            } else {
+                LOG.info("update unit {} failed.", pathName);
             }
         }
     }
