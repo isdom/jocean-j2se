@@ -22,6 +22,7 @@ import org.jocean.idiom.COWCompositeSupport;
 import org.jocean.idiom.ExceptionUtils;
 import org.jocean.idiom.jmx.MBeanRegister;
 import org.jocean.idiom.jmx.MBeanRegisterAware;
+import org.jocean.j2se.annotation.Updatable;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
 import org.jocean.j2se.spring.BeanHolderBasedInjector;
@@ -40,6 +41,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ApplicationContext;
@@ -576,18 +578,48 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
     }
 
     public UnitMXBean updateUnit(final String unitName, final Map<String, String> newUnitParameters) {
-        if (null == name2node(unitName)) {
+        final Node self = name2node(unitName);
+        if (null == self) {
             LOG.debug("can't found unit named {}, update failed.", unitName);
             addLog(" can't found unit named "+ unitName + ", update failed.");
             return null;
         }
-        final Node[] nodes = doDeleteUnit(unitName).toArray(EMPTY_NODE);
-        final UnitMXBean mbean = doCreateUnit(nodes[0]._unitName, nodes[0]._unitSource, newUnitParameters);
-        for (int idx = 1; idx < nodes.length; idx++) {
-            final Node node = nodes[idx];
-            doCreateUnit(node._unitName, node._unitSource, node._unitParameters);
+        else if (self._isUpdatable && null!=self._applicationContext) {
+            final Properties properties = new Properties();
+            properties.putAll(newUnitParameters);
+            final ValueAwarePlaceholderConfigurer configurer = new ValueAwarePlaceholderConfigurer();
+            configurer.setProperties(properties);
+
+            final BeanPostProcessor processor = new FieldAndMethodValueSetter(configurer.buildStringValueResolver());
+            final Map<String, Object> beans = self._applicationContext.getBeansWithAnnotation(Updatable.class);
+            for (final Map.Entry<String, Object> entry : beans.entrySet()) {
+                processor.postProcessBeforeInitialization(entry.getValue(), entry.getKey());
+            }
+            final UnitMXBean mbean =
+                    newUnitMXBean(
+                            self,
+                            true,
+                            unitName,
+                            self._unitSource,
+                            new Date().toString(),
+                            map2StringArray(newUnitParameters),
+                            configurer.getTextedResolvedPlaceholdersAsStringArray(),
+                            self.childrenUnits(),
+                            "upateUnit(" + unitName + ") succeed.");
+
+            final String objectNameSuffix = genUnitSuffix(unitName);
+            this._unitsRegister.replaceRegisteredMBean(objectNameSuffix, this._unitsRegister.getMBean(objectNameSuffix), mbean);
+            return mbean;
         }
-        return mbean;
+        else {
+            final Node[] nodes = doDeleteUnit(unitName).toArray(EMPTY_NODE);
+            final UnitMXBean mbean = doCreateUnit(nodes[0]._unitName, nodes[0]._unitSource, newUnitParameters);
+            for (int idx = 1; idx < nodes.length; idx++) {
+                final Node node = nodes[idx];
+                doCreateUnit(node._unitName, node._unitSource, node._unitParameters);
+            }
+            return mbean;
+        }
     }
 
     private void updateDescendantUnitsOf(final String unitName, final String skipName) {
