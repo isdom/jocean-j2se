@@ -78,7 +78,12 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
     private void createZKPath(final MBeanStatus mbeanStatus) {
         final PlaceholderResolver placeholderResolver = buildResolver(mbeanStatus);
         final PropertyPlaceholderHelper placeholderReplacer = new PropertyPlaceholderHelper("{", "}");
-        final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
+        String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
+
+        // for generate JSON format config
+        if (config.isEmpty()) {
+            config = new PropertyPlaceholderHelper("${", "}").replacePlaceholders(null, this._template, placeholderResolver, null);
+        }
 
         try {
             final String createdPath = this._curator.create()
@@ -96,7 +101,12 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
     private void updateZKPath(final MBeanStatus mbeanStatus) {
         final PlaceholderResolver placeholderResolver = buildResolver(mbeanStatus);
         final PropertyPlaceholderHelper placeholderReplacer = new PropertyPlaceholderHelper("{", "}");
-        final String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
+        String config = placeholderReplacer.replacePlaceholders(null, this._template, placeholderResolver, null);
+
+        // for generate JSON format config
+        if (config.isEmpty()) {
+            config = new PropertyPlaceholderHelper("${", "}").replacePlaceholders(null, this._template, placeholderResolver, null);
+        }
 
         try {
             final String path = this._createdPaths.get(mbeanStatus.mbeanName());
