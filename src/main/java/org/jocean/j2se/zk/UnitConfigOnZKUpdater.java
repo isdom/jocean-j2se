@@ -82,7 +82,7 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
 
         // for generate JSON format config
         if (config.isEmpty()) {
-            config = new PropertyPlaceholderHelper("${", "}").replacePlaceholders(null, this._template, placeholderResolver, null);
+            config = new PropertyPlaceholderHelper("#{", "}").replacePlaceholders(null, this._template, placeholderResolver, null);
         }
 
         try {
@@ -105,7 +105,7 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
 
         // for generate JSON format config
         if (config.isEmpty()) {
-            config = new PropertyPlaceholderHelper("${", "}").replacePlaceholders(null, this._template, placeholderResolver, null);
+            config = new PropertyPlaceholderHelper("#{", "}").replacePlaceholders(null, this._template, placeholderResolver, null);
         }
 
         try {
