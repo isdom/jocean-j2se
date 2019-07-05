@@ -35,7 +35,7 @@ dependencies {
     compile 'org.apache-extras.beanshell:bsh:2.0b6'
     
     /* log */
-    runtime 'org.slf4j:jcl-over-slf4j:1.7.25'
+    runtime 'org.slf4j:jcl-over-slf4j:1.7.26'
     optional("org.logback-extensions:logback-ext-spring:0.1.2") { transitive = false }
 
     /* basics */
@@ -74,6 +74,7 @@ dependencies {
     compile 'io.prometheus:simpleclient_httpserver:0.6.0'
     
     compile 'io.micrometer:micrometer-registry-prometheus:1.2.0'
+    compile 'io.github.mweirauch:micrometer-jvm-extras:0.1.4'
     
     // dbpool
     compile 'com.jolbox:bonecp:0.8.0.RELEASE'

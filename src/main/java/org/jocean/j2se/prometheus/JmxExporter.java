@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 
 import org.springframework.beans.factory.annotation.Value;
 
+import io.github.mweirauch.micrometer.jvm.extras.ProcessMemoryMetrics;
+import io.github.mweirauch.micrometer.jvm.extras.ProcessThreadMetrics;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
@@ -37,6 +39,9 @@ public class JmxExporter {
             new JvmGcMetrics().bindTo(_prometheusRegistry);
             new ProcessorMetrics().bindTo(_prometheusRegistry);
             new JvmThreadMetrics().bindTo(_prometheusRegistry);
+
+            new ProcessMemoryMetrics().bindTo(_prometheusRegistry);
+            new ProcessThreadMetrics().bindTo(_prometheusRegistry);
         }
 
         _httpserver = new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
