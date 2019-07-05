@@ -5,6 +5,11 @@ import java.net.InetSocketAddress;
 import org.springframework.beans.factory.annotation.Value;
 
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.prometheus.client.CollectorRegistry;
@@ -27,11 +32,11 @@ public class JmxExporter {
         if (null == _prometheusRegistry) {
             _prometheusRegistry = new PrometheusMeterRegistry(
                     PrometheusConfig.DEFAULT, CollectorRegistry.defaultRegistry, Clock.SYSTEM);
-//            new ClassLoaderMetrics().bindTo(_prometheusRegistry);
-//            new JvmMemoryMetrics().bindTo(_prometheusRegistry);
-//            new JvmGcMetrics().bindTo(_prometheusRegistry);
-//            new ProcessorMetrics().bindTo(_prometheusRegistry);
-//            new JvmThreadMetrics().bindTo(_prometheusRegistry);
+            new ClassLoaderMetrics().bindTo(_prometheusRegistry);
+            new JvmMemoryMetrics().bindTo(_prometheusRegistry);
+            new JvmGcMetrics().bindTo(_prometheusRegistry);
+            new ProcessorMetrics().bindTo(_prometheusRegistry);
+            new JvmThreadMetrics().bindTo(_prometheusRegistry);
         }
 
         _httpserver = new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
