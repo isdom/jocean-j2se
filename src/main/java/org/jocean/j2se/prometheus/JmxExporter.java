@@ -1,5 +1,6 @@
 package org.jocean.j2se.prometheus;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -8,10 +9,13 @@ import io.github.mweirauch.micrometer.jvm.extras.ProcessMemoryMetrics;
 import io.github.mweirauch.micrometer.jvm.extras.ProcessThreadMetrics;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
+import io.micrometer.core.instrument.binder.jvm.DiskSpaceMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
+import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
+import io.micrometer.core.instrument.binder.system.UptimeMetrics;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.prometheus.client.CollectorRegistry;
@@ -37,8 +41,13 @@ public class JmxExporter {
             new ClassLoaderMetrics().bindTo(_prometheusRegistry);
             new JvmMemoryMetrics().bindTo(_prometheusRegistry);
             new JvmGcMetrics().bindTo(_prometheusRegistry);
-            new ProcessorMetrics().bindTo(_prometheusRegistry);
             new JvmThreadMetrics().bindTo(_prometheusRegistry);
+            new DiskSpaceMetrics(new File("~")).bindTo(_prometheusRegistry);
+//            new ExecutorServiceMetrics().bindTo(_prometheusRegistry);
+
+            new UptimeMetrics().bindTo(_prometheusRegistry);
+            new FileDescriptorMetrics().bindTo(_prometheusRegistry);
+            new ProcessorMetrics().bindTo(_prometheusRegistry);
 
             new ProcessMemoryMetrics().bindTo(_prometheusRegistry);
             new ProcessThreadMetrics().bindTo(_prometheusRegistry);
