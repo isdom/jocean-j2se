@@ -13,6 +13,7 @@ import io.micrometer.core.instrument.binder.jvm.DiskSpaceMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
+import io.micrometer.core.instrument.binder.logging.LogbackMetrics;
 import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import io.micrometer.core.instrument.binder.system.UptimeMetrics;
@@ -42,12 +43,15 @@ public class JmxExporter {
             new JvmMemoryMetrics().bindTo(_prometheusRegistry);
             new JvmGcMetrics().bindTo(_prometheusRegistry);
             new JvmThreadMetrics().bindTo(_prometheusRegistry);
-            new DiskSpaceMetrics(new File("~")).bindTo(_prometheusRegistry);
+            new DiskSpaceMetrics(new File(System.getProperty("user.home"))).bindTo(_prometheusRegistry);
 //            new ExecutorServiceMetrics().bindTo(_prometheusRegistry);
 
             new UptimeMetrics().bindTo(_prometheusRegistry);
             new FileDescriptorMetrics().bindTo(_prometheusRegistry);
             new ProcessorMetrics().bindTo(_prometheusRegistry);
+
+            // logback metrics
+            new LogbackMetrics().bindTo(_prometheusRegistry);
 
             new ProcessMemoryMetrics().bindTo(_prometheusRegistry);
             new ProcessThreadMetrics().bindTo(_prometheusRegistry);
