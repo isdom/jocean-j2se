@@ -4,6 +4,9 @@ import java.net.InetSocketAddress;
 
 import org.springframework.beans.factory.annotation.Value;
 
+import io.micrometer.core.instrument.Clock;
+import io.micrometer.prometheus.PrometheusConfig;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.jmx.BuildInfoCollector;
@@ -15,8 +18,20 @@ public class JmxExporter {
             _buildInfoCollector = new BuildInfoCollector().register();
         }
 
+        // JVM MBean Collector
         if (null == _jmxCollector) {
             _jmxCollector = new JmxCollector(_config).register();
+        }
+
+        // MicroMeter Collector
+        if (null == _prometheusRegistry) {
+            _prometheusRegistry = new PrometheusMeterRegistry(
+                    PrometheusConfig.DEFAULT, CollectorRegistry.defaultRegistry, Clock.SYSTEM);
+//            new ClassLoaderMetrics().bindTo(_prometheusRegistry);
+//            new JvmMemoryMetrics().bindTo(_prometheusRegistry);
+//            new JvmGcMetrics().bindTo(_prometheusRegistry);
+//            new ProcessorMetrics().bindTo(_prometheusRegistry);
+//            new JvmThreadMetrics().bindTo(_prometheusRegistry);
         }
 
         _httpserver = new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
@@ -31,6 +46,7 @@ public class JmxExporter {
     private HTTPServer _httpserver;
     static private JmxCollector _jmxCollector = null;
     static private BuildInfoCollector _buildInfoCollector = null;
+    static private PrometheusMeterRegistry _prometheusRegistry = null;
 
     @Value("${config}")
     String _config;
