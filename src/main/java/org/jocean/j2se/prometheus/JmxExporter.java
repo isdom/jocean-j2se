@@ -3,7 +3,11 @@ package org.jocean.j2se.prometheus;
 import java.io.File;
 import java.net.InetSocketAddress;
 
+import javax.inject.Inject;
+import javax.management.ObjectName;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jmx.export.MBeanExporter;
 
 import io.github.mweirauch.micrometer.jvm.extras.ProcessMemoryMetrics;
 import io.github.mweirauch.micrometer.jvm.extras.ProcessThreadMetrics;
@@ -58,18 +62,26 @@ public class JmxExporter {
         }
 
         _httpserver = new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
+
+        _mbeanExporter.registerManagedResource(this, ObjectName.getInstance("prometheus:type=exporter"));
+        _mbeanExporter.registerManagedResource(_httpserver, ObjectName.getInstance("prometheus:type=httpendpoint"));
     }
 
-    public void stop() {
+    public void stop() throws Exception {
         if (null != _httpserver) {
             _httpserver.stop();
+            _mbeanExporter.unregisterManagedResource(ObjectName.getInstance("prometheus:type=httpendpoint"));
         }
+        _mbeanExporter.unregisterManagedResource(ObjectName.getInstance("prometheus:type=exporter"));
     }
 
     private HTTPServer _httpserver;
     static private JmxCollector _jmxCollector = null;
     static private BuildInfoCollector _buildInfoCollector = null;
     static private PrometheusMeterRegistry _prometheusRegistry = null;
+
+    @Inject
+    MBeanExporter _mbeanExporter;
 
     @Value("${config}")
     String _config;

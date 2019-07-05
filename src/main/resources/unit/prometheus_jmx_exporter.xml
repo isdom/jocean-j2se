@@ -11,17 +11,7 @@
        http://www.springframework.org/schema/util
              http://www.springframework.org/schema/util/spring-util.xsd">
 
-    <bean name="server" id="jmxExporter" class="org.jocean.j2se.prometheus.JmxExporter"
+    <bean class="org.jocean.j2se.prometheus.JmxExporter"
         init-method="start" 
-        destroy-method="stop" />
-      
-    <bean class="org.springframework.jmx.export.MBeanExporter"
-          lazy-init="false">
-        <property name="beans">
-            <map>
-                <entry key="prometheus:type=exporter" value-ref="jmxExporter"/>
-            </map>
-        </property>
-    </bean>
-  
+        destroy-method="stop"/>
 </beans>
