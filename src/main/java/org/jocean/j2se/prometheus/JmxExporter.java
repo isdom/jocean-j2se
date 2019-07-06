@@ -43,6 +43,8 @@ public class JmxExporter {
         if (null == _prometheusRegistry) {
             _prometheusRegistry = new PrometheusMeterRegistry(
                     PrometheusConfig.DEFAULT, CollectorRegistry.defaultRegistry, Clock.SYSTEM);
+            _prometheusRegistry.config().commonTags("application", System.getProperty("app.name"));
+
             new ClassLoaderMetrics().bindTo(_prometheusRegistry);
             new JvmMemoryMetrics().bindTo(_prometheusRegistry);
             new JvmGcMetrics().bindTo(_prometheusRegistry);
@@ -59,8 +61,6 @@ public class JmxExporter {
 
             new ProcessMemoryMetrics().bindTo(_prometheusRegistry);
             new ProcessThreadMetrics().bindTo(_prometheusRegistry);
-
-            _prometheusRegistry.config().commonTags("application", System.getProperty("app.name"));
         }
 
         _httpserver = new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
