@@ -59,6 +59,8 @@ public class JmxExporter {
 
             new ProcessMemoryMetrics().bindTo(_prometheusRegistry);
             new ProcessThreadMetrics().bindTo(_prometheusRegistry);
+
+            _prometheusRegistry.config().commonTags("application", System.getProperty("app.name"));
         }
 
         _httpserver = new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
