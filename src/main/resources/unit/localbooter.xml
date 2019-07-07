@@ -6,6 +6,19 @@
         
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
     
+    <bean id="compositeMeterRegistry" class="io.micrometer.core.instrument.composite.CompositeMeterRegistry" />
+
+    <bean id="meterRegistryConfig" factory-bean="compositeMeterRegistry" factory-method="config"/>
+    
+    <bean factory-bean="meterRegistryConfig" factory-method="commonTags">
+        <constructor-arg>
+            <array>
+                 <value>application</value>
+                 <value>${app.name:root}</value>
+             </array>
+        </constructor-arg>
+    </bean>
+    
     <bean class="org.jocean.j2se.jmx.MBeanRegisterSetter">
         <constructor-arg>
             <bean class="org.jocean.j2se.jmx.MBeanRegisterSupport">

@@ -21,6 +21,7 @@ import io.micrometer.core.instrument.binder.logging.LogbackMetrics;
 import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import io.micrometer.core.instrument.binder.system.UptimeMetrics;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.prometheus.client.CollectorRegistry;
@@ -43,7 +44,10 @@ public class JmxExporter {
         if (null == _prometheusRegistry) {
             _prometheusRegistry = new PrometheusMeterRegistry(
                     PrometheusConfig.DEFAULT, CollectorRegistry.defaultRegistry, Clock.SYSTEM);
-            _prometheusRegistry.config().commonTags("application", System.getProperty("app.name"));
+
+            _compositeMeterRegistry.add(_prometheusRegistry);
+
+//            _prometheusRegistry.config().commonTags("application", System.getProperty("app.name"));
 
             new ClassLoaderMetrics().bindTo(_prometheusRegistry);
             new JvmMemoryMetrics().bindTo(_prometheusRegistry);
@@ -84,6 +88,9 @@ public class JmxExporter {
 
     @Inject
     MBeanExporter _mbeanExporter;
+
+    @Inject
+    CompositeMeterRegistry _compositeMeterRegistry;
 
     @Value("${config}")
     String _config;
