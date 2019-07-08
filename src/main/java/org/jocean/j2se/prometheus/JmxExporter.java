@@ -36,9 +36,7 @@ public class JmxExporter {
         }
 
         // JVM MBean Collector
-        if (null == _jmxCollector) {
-            _jmxCollector = new JmxCollector(_config).register();
-        }
+        this._jmxCollector = new JmxCollector(_config).register(CollectorRegistry.defaultRegistry);
 
         // MicroMeter Collector
         if (null == _prometheusRegistry) {
@@ -79,10 +77,16 @@ public class JmxExporter {
             _mbeanExporter.unregisterManagedResource(ObjectName.getInstance("prometheus:type=httpendpoint"));
         }
         _mbeanExporter.unregisterManagedResource(ObjectName.getInstance("prometheus:type=exporter"));
+
+        if (null != this._jmxCollector) {
+            CollectorRegistry.defaultRegistry.unregister(this._jmxCollector);
+            this._jmxCollector = null;
+        }
     }
 
     private HTTPServer _httpserver;
-    static private JmxCollector _jmxCollector = null;
+    private JmxCollector _jmxCollector = null;
+
     static private BuildInfoCollector _buildInfoCollector = null;
     static private PrometheusMeterRegistry _prometheusRegistry = null;
 
