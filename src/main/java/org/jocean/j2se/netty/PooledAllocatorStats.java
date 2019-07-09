@@ -7,9 +7,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.BaseUnits;
 import io.netty.buffer.PoolArenaMetric;
 import io.netty.buffer.PoolChunkListMetric;
 import io.netty.buffer.PoolChunkMetric;
@@ -283,14 +281,10 @@ public class PooledAllocatorStats {
 
     @Inject
     public void setMeterRegistry(final MeterRegistry meterRegistry) {
-        Gauge.builder("netty.pooled.active.allocations", PooledByteBufAllocator.DEFAULT.metric(),
-                metric -> getActiveAllocationsInBytes(metric))
-            .baseUnit(BaseUnits.BYTES)
-            .description("The active allocations of default netty pool") // optional
-            .register(meterRegistry);
+        new NettyPooledAllocatorMetrics(PooledByteBufAllocator.DEFAULT.metric()).bindTo(meterRegistry);
     }
 
-    private long getActiveAllocationsInBytes(final PooledByteBufAllocatorMetric allocatorMetric) {
+    static long getActiveAllocationsInBytes(final PooledByteBufAllocatorMetric allocatorMetric) {
         long totalBytes = 0;
         for (final PoolArenaMetric poolArenaMetric : allocatorMetric.directArenas()) {
             totalBytes += activeAllocationsInBytes(poolArenaMetric);
