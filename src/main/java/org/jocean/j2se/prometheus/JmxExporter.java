@@ -45,7 +45,9 @@ public class JmxExporter {
 
             _compositeMeterRegistry.add(_prometheusRegistry);
 
-            _prometheusRegistry.config().commonTags("application", System.getProperty("app.name"));
+            _prometheusRegistry.config().commonTags(
+                    "application", System.getProperty("app.name"),
+                    "hostname", System.getenv("HOSTNAME"));
 
             new ClassLoaderMetrics().bindTo(_prometheusRegistry);
             new JvmMemoryMetrics().bindTo(_prometheusRegistry);
