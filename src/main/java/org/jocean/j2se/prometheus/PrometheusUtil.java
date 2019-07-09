@@ -20,7 +20,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.prometheus.client.CollectorRegistry;
 
 public class PrometheusUtil {
-    public static void addPrometheusMeterRegistry(final CompositeMeterRegistry compositeMeterRegistry) {
+    public static int addPrometheusMeterRegistry(final CompositeMeterRegistry compositeMeterRegistry) {
         final PrometheusMeterRegistry prometheusRegistry = new PrometheusMeterRegistry(
                 PrometheusConfig.DEFAULT, CollectorRegistry.defaultRegistry, Clock.SYSTEM);
 
@@ -46,5 +46,7 @@ public class PrometheusUtil {
 
         new ProcessMemoryMetrics().bindTo(compositeMeterRegistry);
         new ProcessThreadMetrics().bindTo(compositeMeterRegistry);
+
+        return 0;
     }
 }
