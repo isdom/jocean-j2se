@@ -18,8 +18,12 @@
         
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
 
-    <bean class="io.micrometer.core.instrument.composite.CompositeMeterRegistry" />
+    <bean id="compositeMeterRegistry" class="io.micrometer.core.instrument.composite.CompositeMeterRegistry" />
 
+    <bean class="org.jocean.j2se.prometheus.PrometheusUtil" factory-method="addPrometheusMeterRegistry">
+        <constructor-arg ref="compositeMeterRegistry"/>
+    </bean>
+    
     <bean class="org.jocean.j2se.spring.ApplicationContextNameSetter">
         <property name="displayName" value="${app.name:root}"/>
     </bean>
