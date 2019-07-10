@@ -35,7 +35,6 @@ public class PrometheusUtil {
         new JvmGcMetrics().bindTo(compositeMeterRegistry);
         new JvmThreadMetrics().bindTo(compositeMeterRegistry);
         new DiskSpaceMetrics(new File(System.getProperty("user.home"))).bindTo(compositeMeterRegistry);
-//        new ExecutorServiceMetrics().bindTo(_prometheusRegistry);
 
         new UptimeMetrics().bindTo(compositeMeterRegistry);
         new FileDescriptorMetrics().bindTo(compositeMeterRegistry);
