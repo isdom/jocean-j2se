@@ -7,5 +7,5 @@ public interface Tracing {
         void close();
     }
 
-    public Scope activate();
+    public Scope activate(final String location);
 }
