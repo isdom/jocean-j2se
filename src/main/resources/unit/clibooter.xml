@@ -15,9 +15,25 @@
         JSR-250的@Resource 
     -->
     <context:annotation-config />
-        
+
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
 
+    <bean id="appinfo" class="org.jocean.j2se.AppInfo" />
+    
+    <bean class="java.lang.System" factory-method="setProperty">
+        <constructor-arg value="service.buildno"/>
+        <constructor-arg>
+            <bean factory-bean="appinfo" factory-method="getBuild"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean class="java.lang.System" factory-method="setProperty">
+        <constructor-arg value="service.version"/>
+        <constructor-arg>
+            <bean factory-bean="appinfo" factory-method="getVersion"/>
+        </constructor-arg>
+    </bean>
+    
     <bean id="compositeMeterRegistry" class="io.micrometer.core.instrument.composite.CompositeMeterRegistry" />
 
     <bean class="org.jocean.j2se.prometheus.PrometheusUtil" factory-method="addPrometheusMeterRegistry">
@@ -45,15 +61,6 @@
         
     <bean id="beanFinder" class="org.jocean.j2se.unit.DefaultBeanFinder">
         <property name="beanHolder" ref="unitAgent"/>
-    </bean>
-    
-    <bean id="appinfo" class="org.jocean.j2se.AppInfo" />
-    
-    <bean class="java.lang.System" factory-method="setProperty">
-        <constructor-arg value="service.buildno"/>
-        <constructor-arg>
-            <bean factory-bean="appinfo" factory-method="getBuildNo"/>
-        </constructor-arg>
     </bean>
     
     <!-- Tracing 切面 -->
