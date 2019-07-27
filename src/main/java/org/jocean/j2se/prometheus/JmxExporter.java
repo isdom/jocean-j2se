@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jmx.export.MBeanExporter;
 
 import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.jmx.BuildInfoCollector;
 import io.prometheus.jmx.JmxCollector;
 
@@ -22,7 +21,8 @@ public class JmxExporter {
         // JVM MBean Collector
         this._jmxCollector = new JmxCollector(_config).register(CollectorRegistry.defaultRegistry);
 
-        _httpserver = new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
+        _httpserver = new MyHttpServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
+                //new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
 
         _mbeanExporter.registerManagedResource(this, ObjectName.getInstance("prometheus:type=exporter"));
         _mbeanExporter.registerManagedResource(_httpserver, ObjectName.getInstance("prometheus:type=httpendpoint"));
@@ -41,7 +41,7 @@ public class JmxExporter {
         }
     }
 
-    private HTTPServer _httpserver;
+    private /*HTTPServer*/ MyHttpServer _httpserver;
     private JmxCollector _jmxCollector = null;
 
     static private BuildInfoCollector _buildInfoCollector = null;
