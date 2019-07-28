@@ -48,7 +48,7 @@ public class MyHttpServer {
         }
     }
 
-    static class HTTPMetricHandler implements HttpHandler {
+    class HTTPMetricHandler implements HttpHandler {
         private final CollectorRegistry registry;
         private final LocalByteArray response = new LocalByteArray();
 
@@ -72,7 +72,7 @@ public class MyHttpServer {
             osw.close();
             response.flush();
             response.close();
-            LOG.info("sun httpserver /metrics's TextFormat.write004 cost: {}", System.currentTimeMillis() - start);
+            LOG.info("sun httpserver:{} /metrics's TextFormat.write004 cost: {}", getPort(), System.currentTimeMillis() - start);
 
             t.getResponseHeaders().set("Content-Type",
                     TextFormat.CONTENT_TYPE_004);
