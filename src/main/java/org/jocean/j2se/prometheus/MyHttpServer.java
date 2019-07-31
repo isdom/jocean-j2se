@@ -6,6 +6,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +24,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
 
@@ -66,8 +68,13 @@ public class MyHttpServer {
 
             final long start = System.currentTimeMillis();
             final OutputStreamWriter osw = new OutputStreamWriter(response);
-            TextFormat.write004(osw,
-                    registry.filteredMetricFamilySamples(parseQuery(query)));
+            final Enumeration<Collector.MetricFamilySamples> mfs = registry.filteredMetricFamilySamples(parseQuery(query));
+            while(mfs.hasMoreElements()) {
+                final Collector.MetricFamilySamples metricFamilySamples = mfs.nextElement();
+                TextFormatUtil.write004(osw, metricFamilySamples, commonLabels);
+            }
+//            TextFormat.write004(osw,
+//                    registry.filteredMetricFamilySamples(parseQuery(query)));
             osw.flush();
             osw.close();
             response.flush();
@@ -146,12 +153,14 @@ public class MyHttpServer {
 
     protected final HttpServer server;
     protected final ExecutorService executorService;
+    private final String[] commonLabels;
 
 
     /**
      * Start a HTTP server serving Prometheus metrics from the given registry.
      */
-    public MyHttpServer(final InetSocketAddress addr, final CollectorRegistry registry, final boolean daemon) throws IOException {
+    public MyHttpServer(final InetSocketAddress addr, final CollectorRegistry registry, final boolean daemon, final String...commonLabels) throws IOException {
+        this.commonLabels = commonLabels;
         server = HttpServer.create();
         server.bind(addr, 3);
         final HttpHandler mHandler = new HTTPMetricHandler(registry);
@@ -165,8 +174,8 @@ public class MyHttpServer {
     /**
      * Start a HTTP server serving Prometheus metrics from the given registry using non-daemon threads.
      */
-    public MyHttpServer(final InetSocketAddress addr, final CollectorRegistry registry) throws IOException {
-        this(addr, registry, false);
+    public MyHttpServer(final InetSocketAddress addr, final CollectorRegistry registry, final String...commonLabels) throws IOException {
+        this(addr, registry, false, commonLabels);
     }
 
     /**

@@ -21,7 +21,11 @@ public class JmxExporter {
         // JVM MBean Collector
         this._jmxCollector = new JmxCollector(_config).register(CollectorRegistry.defaultRegistry);
 
-        _httpserver = new MyHttpServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
+        _httpserver = new MyHttpServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry,
+                "application",  System.getProperty("app.name"),
+                "hostname",     System.getenv("HOSTNAME"),
+                "app.build",    System.getProperty("service.buildno")
+                );
                 //new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
 
         _mbeanExporter.registerManagedResource(this, ObjectName.getInstance("prometheus:type=exporter"));
@@ -48,9 +52,6 @@ public class JmxExporter {
 
     @Inject
     MBeanExporter _mbeanExporter;
-
-//    @Inject
-//    CompositeMeterRegistry _compositeMeterRegistry;
 
     @Value("${config}")
     String _config;

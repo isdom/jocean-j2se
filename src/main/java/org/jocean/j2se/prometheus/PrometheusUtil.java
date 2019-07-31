@@ -26,10 +26,10 @@ public class PrometheusUtil {
 
         compositeMeterRegistry.add(prometheusRegistry);
 
-        prometheusRegistry.config().commonTags(
-                "application", System.getProperty("app.name"),
-                "hostname", System.getenv("HOSTNAME"),
-                "app.build", System.getProperty("service.buildno"));
+//        prometheusRegistry.config().commonTags(
+//                "application", System.getProperty("app.name"),
+//                "hostname", System.getenv("HOSTNAME"),
+//                "app.build", System.getProperty("service.buildno"));
 
         new ClassLoaderMetrics().bindTo(compositeMeterRegistry);
         new JvmMemoryMetrics().bindTo(compositeMeterRegistry);
