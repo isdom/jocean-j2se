@@ -206,13 +206,14 @@ public class StartAppCommand implements CliCommand<AppCliContext> {
         }
         final String unitName = nameAndParentPath.first;
         final String parentPath = nameAndParentPath.second;
-        final String pathName = pathOf(parentPath, (null != aliasName && !aliasName.isEmpty()) ? aliasName : unitName);
+        final String pathName = pathOf(parentPath, aliasOr(aliasName, unitName));
         final Map<String, String> props = data2props(desc.parametersAsByteArray(), externProps);
         if (unitName.contains(REF_KEY)) {
             final String[] ss = unitName.split(REF_KEY);
-            final UnitDescription ref = buildRef(ss[1], ss[0], props, unitAgent, parentPath, getConfig);
+            final String alias = aliasOr(aliasName, ss[0]);
+            final UnitDescription ref = buildRef(ss[1], alias, props, unitAgent, parentPath, getConfig);
             if (null != ref) {
-                buildChildren(desc.getChildren(), unitAgent, getConfig, pathOf(parentPath, !ss[0].isEmpty() ? ss[0] : ref.getName()));
+                buildChildren(desc.getChildren(), unitAgent, getConfig, pathOf(parentPath, !alias.isEmpty() ? alias : ref.getName()));
             } else {
                 LOG.warn("can't build unit by ref: {}, skip all it's children", unitName);
             }
@@ -233,6 +234,10 @@ public class StartAppCommand implements CliCommand<AppCliContext> {
             }
             buildChildren(desc.getChildren(), unitAgent, getConfig, pathName);
         }
+    }
+
+    private static String aliasOr(final String alias, final String org) {
+        return (null != alias && !alias.isEmpty()) ? alias : org;
     }
 
     private Pair<String, String> initNameAndPath(final String orgParentPath, final String rawname, final UnitAgent unitAgent) {
