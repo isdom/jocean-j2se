@@ -22,9 +22,9 @@ public class JmxExporter {
         this._jmxCollector = new JmxCollector(_config).register(CollectorRegistry.defaultRegistry);
 
         _httpserver = new MyHttpServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry,
+                "app_build",    System.getProperty("service.buildno"),
                 "application",  System.getProperty("app.name"),
-                "hostname",     System.getenv("HOSTNAME"),
-                "app.build",    System.getProperty("service.buildno")
+                "hostname",     System.getenv("HOSTNAME")
                 );
                 //new HTTPServer(new InetSocketAddress(_port), CollectorRegistry.defaultRegistry);
 
