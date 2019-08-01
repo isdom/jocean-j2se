@@ -36,16 +36,16 @@ public class TextFormatUtil {
             writer.write(sample.name);
             if (sample.labelNames.size() + commonLabels.length > 0) {
                 writer.write('{');
-                for (int i = 0; i < sample.labelNames.size(); ++i) {
-                    writer.write(sample.labelNames.get(i));
-                    writer.write("=\"");
-                    writeEscapedLabelValue(writer, sample.labelValues.get(i));
-                    writer.write("\",");
-                }
                 for (int i = 0; i < commonLabels.length - 1; i+=2) {
                     writer.write(commonLabels[i]);
                     writer.write("=\"");
                     writeEscapedLabelValue(writer, commonLabels[i+1]);
+                    writer.write("\",");
+                }
+                for (int i = 0; i < sample.labelNames.size(); ++i) {
+                    writer.write(sample.labelNames.get(i));
+                    writer.write("=\"");
+                    writeEscapedLabelValue(writer, sample.labelValues.get(i));
                     writer.write("\",");
                 }
                 writer.write('}');
