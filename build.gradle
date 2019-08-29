@@ -59,7 +59,6 @@ dependencies {
     /* for yaml */
     compile 'org.yaml:snakeyaml:1.18'
     
-    // compile 'com.google.guava:guava:20.0'
     compile 'com.google.guava:guava:28.0-jre'
     compile "com.alibaba:fastjson:${fastjsonVersion}"
     compile 'javax.ws.rs:javax.ws.rs-api:2.1'
