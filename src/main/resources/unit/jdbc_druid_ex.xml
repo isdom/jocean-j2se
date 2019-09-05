@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/context  http://www.springframework.org/schema/context/spring-context-3.0.xsd
+                           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+                           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!-- force load mysql jdbc driver -->
+    <bean class="java.lang.Class" factory-method="forName">
+        <constructor-arg value="com.mysql.jdbc.Driver"/>
+    </bean>
+    
+    <bean id="passwdSet" class="org.jocean.idiom.MapUtil"
+        factory-method="fromStringArray">
+        <constructor-arg>
+            <bean class="org.springframework.util.StringUtils"
+                factory-method="commaDelimitedListToStringArray">
+                <constructor-arg value="${user2passwds}"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="passwd" factory-bean="passwdSet" factory-method="get">
+        <constructor-arg value="${jdbc.username}"/>
+    </bean>
+    
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" 
+        init-method="init" destroy-method="close">
+        <!-- Connection Info -->
+        <property name="driverClassName" value="${jdbc.driver:org.jocean.opentracing.jdbc.TracingDriver}" />
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" ref="passwd" />
+        
+        <property name="filters" value="stat" />
+        
+        <!-- Connection Pooling Info -->
+        <property name="maxActive" value="${druid.maxActive:20}" />
+        <property name="initialSize" value="${druid.initialSize:1}" />
+        <property name="maxWait" value="${druid.maxWait:60000}" />
+        <property name="minIdle" value="${druid.minIdle:1}" />
+        
+        <property name="timeBetweenEvictionRunsMillis" value="${druid.timeBetweenEvictionRunsMillis:60000}" />
+        <property name="minEvictableIdleTimeMillis" value="${druid.minEvictableIdleTimeMillis:300000}" />
+        
+        <property name="validationQuery" value="${druid.validationQuery:SELECT 'x'}" />
+        <property name="testWhileIdle" value="${druid.testWhileIdle:true}" />
+        <property name="testOnBorrow" value="${druid.testOnBorrow:false}" />
+        <property name="testOnReturn" value="${druid.testOnReturn:false}" />
+        
+        <property name="poolPreparedStatements" value="${druid.poolPreparedStatements:true}" />
+        <property name="maxOpenPreparedStatements" value="${druid.maxOpenPreparedStatements:20}" />
+        
+        <property name="asyncInit" value="${druid.asyncInit:true}" />
+        
+    </bean>
+
+    <!-- transaction manager, use JtaTransactionManager for global tx -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <!--1:配置一个JdbcTemplate实例，并将这个“共享的”，“安全的”实例注入到不同的DAO类中去-->
+    <bean class = "org.springframework.jdbc.core.JdbcTemplate">   
+         <property name = "dataSource" ref="dataSource"/>   
+    </bean>
+    
+</beans>
