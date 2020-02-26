@@ -10,6 +10,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCache;
@@ -88,16 +89,21 @@ public class ZKAgent {
     private static final Logger LOG = LoggerFactory.getLogger(ZKAgent.class);
 
     @Inject
+    @Named("this.connName")
     public void setClient(final CuratorFramework client) {
-        LOG.info("inject CuratorFramework {}", client);
+        LOG.info("inject zkconn named[{}]/CuratorFramework {}", this.connName, client);
         this._client = client;
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("ZKAgent [root=").append(_root).append("]");
+        builder.append("ZKAgent [root=").append(_root).append(", zkconn=").append(this.connName).append("]");
         return builder.toString();
+    }
+
+    public ZKAgent(final String connName) {
+        this.connName = connName;
     }
 
     /**
@@ -367,7 +373,9 @@ public class ZKAgent {
 
     boolean _initialized = false;
 
-    @Inject
+    private final String connName;
+
+   @Inject
     InitializationMonitor _initializationMonitor;
 
     private final InterfaceSelector _selector = new InterfaceSelector();

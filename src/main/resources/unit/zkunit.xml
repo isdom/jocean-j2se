@@ -8,7 +8,9 @@
         
     <bean id="__zkagent" class="org.jocean.j2se.zk.ZKAgent"
         init-method="start" 
-        destroy-method="stop"/>
+        destroy-method="stop">
+        <constructor-arg value="${zkconn.name:zkconn.default}"/>
+    </bean>
 
     <bean factory-bean="__zkagent" factory-method="addListener"
         destroy-method="call">
