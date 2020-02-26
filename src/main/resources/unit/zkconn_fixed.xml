@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="zkClient" class="org.jocean.j2se.zk.ZKUtils"
+        factory-method="buildWithFixedEnsembleProvider"
+        init-method="start"
+        destroy-method="close">
+        <constructor-arg value="${zk.connectionString}"/>
+        <constructor-arg>
+            <bean class="org.apache.curator.retry.ExponentialBackoffRetry">
+                <constructor-arg value="1000"/>
+                <constructor-arg value="3"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+    <alias name="zkClient" alias="${zkconn.name:zkconn.default}"/>
+
+    <bean class="org.springframework.jmx.export.MBeanExporter"
+          lazy-init="false">
+        <property name="beans">
+            <map>
+                <entry key="org.jocean:type=zkclient" value-ref="zkClient"/>
+            </map>
+        </property>
+    </bean>
+</beans>

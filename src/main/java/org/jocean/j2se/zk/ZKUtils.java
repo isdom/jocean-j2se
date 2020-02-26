@@ -9,6 +9,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.ensemble.exhibitor.ExhibitorEnsembleProvider;
 import org.apache.curator.ensemble.exhibitor.Exhibitors;
 import org.apache.curator.ensemble.exhibitor.Exhibitors.BackupConnectionStringProvider;
+import org.apache.curator.ensemble.fixed.FixedEnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.jocean.idiom.ExceptionUtils;
@@ -54,6 +55,17 @@ public class ZKUtils {
         }
         return CuratorFrameworkFactory.builder().
             ensembleProvider(exhibitorEnsembleProvider)
+            .sessionTimeoutMs(60 * 1000)
+            .connectionTimeoutMs(15 * 1000)
+            .retryPolicy(retryPolicy)
+            .build();
+    }
+
+    public static CuratorFramework buildWithFixedEnsembleProvider(
+            final String connectionString,
+            final RetryPolicy retryPolicy) {
+        return CuratorFrameworkFactory.builder().
+            ensembleProvider(new FixedEnsembleProvider(connectionString))
             .sessionTimeoutMs(60 * 1000)
             .connectionTimeoutMs(15 * 1000)
             .retryPolicy(retryPolicy)
