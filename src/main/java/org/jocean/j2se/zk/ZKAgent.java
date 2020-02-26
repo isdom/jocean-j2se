@@ -375,7 +375,7 @@ public class ZKAgent {
 
     private final String connName;
 
-   @Inject
+    @Inject
     InitializationMonitor _initializationMonitor;
 
     private final InterfaceSelector _selector = new InterfaceSelector();

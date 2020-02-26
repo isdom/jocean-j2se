@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.management.ObjectName;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -28,6 +29,17 @@ import rx.Subscription;
 public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
 
     private static final Logger LOG = LoggerFactory.getLogger(UnitConfigOnZKUpdater.class);
+
+    public UnitConfigOnZKUpdater(final String connName) {
+        this.connName = connName;
+    }
+
+    @Inject
+    @Named("this.connName")
+    public void setCurator(final CuratorFramework curator) {
+        LOG.info("inject zkconn named[{}]/CuratorFramework {}", this.connName, curator);
+        this._curator = curator;
+    }
 
     @Override
     public String toString() {
@@ -179,7 +191,8 @@ public class UnitConfigOnZKUpdater implements MBeanRegisterAware {
     @Inject
     private MBeanPublisher _publisher;
 
-    @Inject
+    private final String connName;
+
     private CuratorFramework _curator;
 
     @Value("${mbean.name}")

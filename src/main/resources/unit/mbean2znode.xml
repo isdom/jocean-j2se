@@ -4,7 +4,9 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
         
-    <bean id="updater" class="org.jocean.j2se.zk.UnitConfigOnZKUpdater"/>
+    <bean id="updater" class="org.jocean.j2se.zk.UnitConfigOnZKUpdater">
+        <constructor-arg value="${zkconn.name:zkconn.default}"/>
+    </bean>
     
     <bean factory-bean="updater" factory-method="start" destroy-method="unsubscribe"/>
 </beans>
