@@ -22,7 +22,7 @@
           lazy-init="false">
         <property name="beans">
             <map>
-                <entry key="org.jocean:type=zkclient" value-ref="zkClient"/>
+                <entry key="org.jocean:name=${zkconn.name:zkconn.default}" value-ref="zkClient"/>
             </map>
         </property>
     </bean>
