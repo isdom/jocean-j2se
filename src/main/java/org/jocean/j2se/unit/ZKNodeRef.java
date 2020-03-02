@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -19,6 +20,17 @@ import com.google.common.collect.Maps;
 
 public class ZKNodeRef implements UnitKeeperAware {
     private static final Logger LOG = LoggerFactory.getLogger(ZKNodeRef.class);
+
+    public ZKNodeRef(final String connName) {
+        this.connName = connName;
+    }
+
+    @Inject
+    @Named("this.connName")
+    public void setClient(final CuratorFramework client) {
+        LOG.info("inject zkconn named[{}]/CuratorFramework {}", this.connName, client);
+        this._client = client;
+    }
 
     public void setPath(final String path) {
         this._path = path;
@@ -101,7 +113,7 @@ public class ZKNodeRef implements UnitKeeperAware {
         start();
     }
 
-    @Inject
+    private final String connName;
     private CuratorFramework _client;
 
     private NodeCache _cache;

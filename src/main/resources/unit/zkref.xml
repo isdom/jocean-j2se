@@ -4,8 +4,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean class="org.jocean.j2se.unit.ZKNodeRef"
-        destroy-method="stop">
+    <bean class="org.jocean.j2se.unit.ZKNodeRef" destroy-method="stop">
+        <constructor-arg value="${zkconn.name:zkconn.default}"/>
         <property name="path" value="${zk.ref.path}"/>
     </bean>
 </beans>
