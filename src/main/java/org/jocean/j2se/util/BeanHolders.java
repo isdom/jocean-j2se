@@ -12,14 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 public class BeanHolders {
-    
-    private static final Logger LOG = LoggerFactory
-            .getLogger(BeanHolders.class);
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(BeanHolders.class);
+
     private BeanHolders() {
         throw new IllegalStateException("No instances!");
     }
-    
+
     public static Object getBean(final BeanHolder holder, final Class<?> type, final Annotation named) {
         if (named != null) {
             final String name = getName(named);
@@ -63,7 +62,7 @@ public class BeanHolders {
                     return value.toString();
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOG.warn("exception when getNameByExpression for ({}) with exp ({}), detail: {}",
                     owner, expression, ExceptionUtils.exception2detail(e));
         }
