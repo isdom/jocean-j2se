@@ -35,7 +35,7 @@ dependencies {
     compile 'org.apache-extras.beanshell:bsh:2.0b6'
     
     /* log */
-    runtime 'org.slf4j:jcl-over-slf4j:1.7.26'
+    runtime 'org.slf4j:jcl-over-slf4j:1.7.30'
     optional("org.logback-extensions:logback-ext-spring:0.1.2") { transitive = false }
 
     /* basics */
@@ -59,7 +59,7 @@ dependencies {
     /* for yaml */
     compile 'org.yaml:snakeyaml:1.18'
     
-    compile 'com.google.guava:guava:28.1-jre'
+    compile 'com.google.guava:guava:28.2-jre'
     compile "com.alibaba:fastjson:${fastjsonVersion}"
     compile 'javax.ws.rs:javax.ws.rs-api:2.1'
     compile 'org.apache.curator:curator-recipes:2.12.0'
