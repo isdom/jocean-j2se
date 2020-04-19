@@ -10,6 +10,7 @@ import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.util.StringValueResolver;
 
 public class BeanHolders {
 
@@ -34,8 +35,11 @@ public class BeanHolders {
                 : named instanceof Qualifier ? ((Qualifier) named).value() : null;
     }
 
-    public static Object getBean(final BeanHolder holder, final Class<?> type, final Annotation named,
-            final Object owner) {
+    public static Object getBean(final BeanHolder holder,
+            final Class<?> type,
+            final Annotation named,
+            final Object owner,
+            final StringValueResolver stringValueResolver) {
         if (named != null) {
             String name = getName(named);
             if (null != name && !name.equals("")) {
@@ -46,10 +50,24 @@ public class BeanHolders {
                         return null;
                     }
                 }
-                return holder.getBean(name, type);
+                return holder.getBean(resolveValue(stringValueResolver, name), type);
             }
         }
         return holder.getBean(type);
+    }
+
+    private static String resolveValue(final StringValueResolver stringValueResolver, final String strVal) {
+        if (null == stringValueResolver) {
+            LOG.debug("getBean: stringValueResolver is null, use input {} as resolved", strVal);
+            return strVal;
+        }
+        try {
+            final String resolvedStringValue = stringValueResolver.resolveStringValue(strVal);
+            LOG.debug("getBean: resolveValue for input {} --> resolved: {}", strVal, resolvedStringValue);
+            return resolvedStringValue;
+        } catch (final Exception e) {
+            return null;
+        }
     }
 
     private static String getNameByExpression(final Object owner, final String expression) {

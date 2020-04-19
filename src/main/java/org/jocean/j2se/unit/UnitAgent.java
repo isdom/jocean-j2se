@@ -53,6 +53,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringValueResolver;
 
 public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, ApplicationContextAware, SpringBeanHolder {
 
@@ -933,7 +934,10 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 beanFactory.addBeanPostProcessor(new PropertyPlaceholderConfigurerSetter(configurer));
                 beanFactory.addBeanPostProcessor(new MBeanRegisterSetter(register));
                 beanFactory.addBeanPostProcessor(new BeanHolderSetter(UnitAgent.this));
-                beanFactory.addBeanPostProcessor(new FieldAndMethodValueSetter(configurer.buildStringValueResolver()));
+
+                final StringValueResolver stringValueResolver = configurer.buildStringValueResolver();
+
+                beanFactory.addBeanPostProcessor(new FieldAndMethodValueSetter(stringValueResolver));
                 beanFactory.addBeanPostProcessor(new BeanHolderBasedInjector(new BeanHolder(){
                     @Override
                     public <T> T getBean(final Class<T> requiredType) {
@@ -978,7 +982,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         }
                         // TODO, fix for real async find
                         return _beanFinder.find(name, Object.class).toBlocking().single();
-                    }}));
+                    }}, stringValueResolver));
                 if (null!=unitAgentAware) {
                     beanFactory.addBeanPostProcessor(unitAgentAware);
                 }

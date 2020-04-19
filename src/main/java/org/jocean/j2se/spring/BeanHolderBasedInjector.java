@@ -18,13 +18,15 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.util.StringValueResolver;
 
 public class BeanHolderBasedInjector implements BeanPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(BeanHolderBasedInjector.class);
 
-    public BeanHolderBasedInjector(final BeanHolder beanHolder) {
+    public BeanHolderBasedInjector(final BeanHolder beanHolder, final StringValueResolver stringValueResolver) {
         this._beanHolder = beanHolder;
+        this._stringValueResolver = stringValueResolver;
     }
 
     @Override
@@ -44,7 +46,8 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
         final Field[] fields = ReflectUtils.getAnnotationFieldsOf(bean.getClass(), injectCls);
         for (final Field field : fields) {
             try {
-                final Object value = BeanHolders.getBean(this._beanHolder, field.getType(), field.getAnnotation(namedCls), bean);
+                final Object value = BeanHolders.getBean(this._beanHolder,
+                        field.getType(), field.getAnnotation(namedCls), bean, this._stringValueResolver);
                 if (null != value) {
                     field.set(bean, value);
                     LOG.debug("inject {} to bean({})'s field({})", value, beanName, field);
@@ -70,7 +73,8 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
 
             try {
                 final Parameter p1st = method.getParameters()[0];
-                final Object value = BeanHolders.getBean(this._beanHolder, p1st.getType(), method.getAnnotation(namedCls), bean);
+                final Object value = BeanHolders.getBean(this._beanHolder,
+                        p1st.getType(), method.getAnnotation(namedCls), bean, this._stringValueResolver);
 
                 if (null != value) {
                     method.invoke(bean, value);
@@ -93,4 +97,5 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
     }
 
     private final BeanHolder _beanHolder;
+    private final StringValueResolver _stringValueResolver;
 }
