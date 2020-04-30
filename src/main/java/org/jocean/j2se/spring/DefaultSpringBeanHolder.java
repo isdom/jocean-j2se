@@ -26,7 +26,12 @@ public class DefaultSpringBeanHolder implements SpringBeanHolder, BeanFactoryAwa
     public Object getBean(final String name) {
         return this._beanFactory.getBean(name);
     }
-    
+
+    @Override
+    public Object getBean(final String name, final Object... args) {
+        return this._beanFactory.getBean(name, args);
+    }
+
     @Override
     public ConfigurableListableBeanFactory[] allBeanFactory() {
         return ( this._beanFactory instanceof ConfigurableListableBeanFactory)
@@ -34,6 +39,6 @@ public class DefaultSpringBeanHolder implements SpringBeanHolder, BeanFactoryAwa
                 : new ConfigurableListableBeanFactory[0]
         ;
     }
-    
+
     private BeanFactory _beanFactory;
 }

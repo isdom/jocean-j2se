@@ -65,6 +65,29 @@ public class DefaultBeanFinder implements BeanFinder, BeanHolderAware {
     }
 
     @Override
+    public Observable<Object> find(final String name, final Object... args) {
+        return Observable.unsafeCreate(subscriber -> {
+            if (!subscriber.isUnsubscribed()) {
+                final ConcurrentMap<String, Object> cache = this._cached.get();
+                final String key = name;
+                Object bean = cache.get(key);
+                if (null == bean) {
+                    bean = this._holder.getBean(name, args);
+                    if (null != bean) {
+                        cache.putIfAbsent(key, bean);
+                    }
+                }
+                if (null != bean) {
+                    subscriber.onNext(bean);
+                    subscriber.onCompleted();
+                } else {
+                    subscriber.onError(new RuntimeException("no bean with name(" + name + ") and args available"));
+                }
+            }
+        });
+    }
+
+    @Override
     public void setBeanHolder(final BeanHolder beanHolder) {
         this._holder = beanHolder;
     }

@@ -197,6 +197,32 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         return null;
     }
 
+    @Override
+    public Object getBean(final String name, final Object... args) {
+        Object bean = null;
+        if (null != this._rootApplicationContext) {
+            bean = getBeanOf(this._rootApplicationContext, name, args);
+        }
+        if (null != bean) {
+            return bean;
+        }
+        for ( final Node node : this._units.values()) {
+            if (null != node._applicationContext) {
+                bean = getBeanOf(node._applicationContext, name, args);
+                if (null != bean) {
+                    return bean;
+                }
+            }
+            if (null != node._unitAgent) {
+                bean = node._unitAgent.getBean(name, args);
+                if (null != bean) {
+                    return bean;
+                }
+            }
+        }
+        return null;
+    }
+
     private static <T> T getBeanOf(final BeanFactory factory, final Class<T> requiredType) {
         try {
             return factory.getBean(requiredType);
@@ -227,6 +253,18 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
         } catch (final Exception e) {
             if (!(e instanceof NoSuchBeanDefinitionException)) {
                 LOG.warn("exception when get ({}) bean from ({}), detail:{}",
+                        name, factory, ExceptionUtils.exception2detail(e));
+            }
+            return null;
+        }
+    }
+
+    private static Object getBeanOf(final BeanFactory factory, final String name, final Object... args) {
+        try {
+            return factory.getBean(name, args);
+        } catch (final Exception e) {
+            if (!(e instanceof NoSuchBeanDefinitionException)) {
+                LOG.warn("exception when get ({}) bean with args from ({}), detail:{}",
                         name, factory, ExceptionUtils.exception2detail(e));
             }
             return null;
@@ -982,6 +1020,21 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         }
                         // TODO, fix for real async find
                         return _beanFinder.find(name, Object.class).toBlocking().single();
+                    }
+
+                    @Override
+                    public Object getBean(final String name, final Object... args) {
+                        try {
+                            return ctx.getBean(name, args);
+                        } catch (final Exception e) {
+                            LOG.debug("can't found {} with args locally, try find global.", name);
+                        }
+                        final Object bean = UnitAgent.this.getBean(name, args);
+                        if (null != bean) {
+                            return bean;
+                        }
+                        // TODO, fix for real async find
+                        return _beanFinder.find(name, args).toBlocking().single();
                     }}, stringValueResolver));
                 if (null!=unitAgentAware) {
                     beanFactory.addBeanPostProcessor(unitAgentAware);

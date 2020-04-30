@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.jocean.j2se.spring;
 
@@ -18,9 +18,8 @@ import org.springframework.beans.factory.FactoryBean;
  */
 public class BeanProxy<T> implements FactoryBean<T> {
 
-    private static final Logger LOG = 
-    	LoggerFactory.getLogger(BeanProxy.class);
-    
+    private static final Logger LOG = LoggerFactory.getLogger(BeanProxy.class);
+
 	@SuppressWarnings("unchecked")
     public BeanProxy(final Class<T> intf) {
 		this._intf = new Class[]{intf};
@@ -30,12 +29,12 @@ public class BeanProxy<T> implements FactoryBean<T> {
 	@SuppressWarnings("unchecked")
 	public T buildProxy() {
 		return (T)Proxy.newProxyInstance(
-		        Thread.currentThread().getContextClassLoader(), 
-		        this._intf, 
+		        Thread.currentThread().getContextClassLoader(),
+		        this._intf,
 				new InvocationHandler() {
                     @Override
                     public Object invoke(
-                            final Object proxy, 
+                            final Object proxy,
                             final Method method,
                             final Object[] args) throws Throwable {
                         final T impl = _ref.get();
@@ -55,11 +54,11 @@ public class BeanProxy<T> implements FactoryBean<T> {
     public void setImplForced(final T impl) {
         this._ref.set(impl);
     }
-    
+
 	@Override
 	public String toString() {
 		final T impl = this._ref.get();
-		
+
 		if ( null != impl ) {
 			return impl.toString();
 		}
@@ -86,5 +85,5 @@ public class BeanProxy<T> implements FactoryBean<T> {
     private final AtomicReference<T> _ref = new AtomicReference<T>(null);
     private final Class<T>[]  _intf;
     private final T _proxy;
-    
+
 }
