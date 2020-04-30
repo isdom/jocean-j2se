@@ -69,12 +69,11 @@ public class DefaultBeanFinder implements BeanFinder, BeanHolderAware {
         return Observable.unsafeCreate(subscriber -> {
             if (!subscriber.isUnsubscribed()) {
                 final ConcurrentMap<String, Object> cache = this._cached.get();
-                final String key = name;
-                Object bean = cache.get(key);
+                Object bean = cache.get(name);
                 if (null == bean) {
                     bean = this._holder.getBean(name, args);
                     if (null != bean) {
-                        cache.putIfAbsent(key, bean);
+                        cache.putIfAbsent(name, bean);
                     }
                 }
                 if (null != bean) {
@@ -82,6 +81,29 @@ public class DefaultBeanFinder implements BeanFinder, BeanHolderAware {
                     subscriber.onCompleted();
                 } else {
                     subscriber.onError(new RuntimeException("no bean with name(" + name + ") and args available"));
+                }
+            }
+        });
+    }
+
+    @Override
+    public <T> Observable<T> find(final Class<T> requiredType, final Object... args) {
+        return Observable.unsafeCreate(subscriber -> {
+            if (!subscriber.isUnsubscribed()) {
+                final ConcurrentMap<String, Object> cache = this._cached.get();
+                @SuppressWarnings("unchecked")
+                T bean = (T)cache.get(requiredType.getName());
+                if (null == bean) {
+                    bean = this._holder.getBean(requiredType, args);
+                    if (null != bean) {
+                        cache.putIfAbsent(requiredType.getName(), bean);
+                    }
+                }
+                if (null != bean) {
+                    subscriber.onNext(bean);
+                    subscriber.onCompleted();
+                } else {
+                    subscriber.onError(new RuntimeException("no bean with type " + requiredType + " and args available"));
                 }
             }
         });
