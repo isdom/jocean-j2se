@@ -7,6 +7,7 @@ import javax.inject.Named;
 
 import org.jocean.idiom.BeanHolder;
 import org.jocean.idiom.ExceptionUtils;
+import org.jocean.idiom.ReflectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,7 +73,7 @@ public class BeanHolders {
 
     private static String getNameByExpression(final Object owner, final String expression) {
         try {
-            final Field field = owner.getClass().getDeclaredField(expression);
+            final Field field = ReflectUtils.getFieldNamedDeep(owner.getClass(), expression);
             if (null != field) {
                 field.setAccessible(true);
                 final Object value = field.get(owner);
