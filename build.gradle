@@ -45,9 +45,9 @@ dependencies {
     compile "org.springframework:spring-aspects:${springVersion}"
     compile 'aopalliance:aopalliance:1.0'
 
-    compile 'ch.qos.logback:logback-classic:1.2.2'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
     
-    runtime 'org.javassist:javassist:3.24.0-GA'
+    runtime 'org.javassist:javassist:3.27.0-GA'
     runtime 'com.jcraft:jzlib:1.1.3'
     runtime('cglib:cglib:3.2.5') { transitive = false }
     runtime 'org.aspectj:aspectjweaver:1.8.10'
