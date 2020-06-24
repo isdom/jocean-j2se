@@ -79,7 +79,7 @@ dependencies {
     compile 'io.github.mweirauch:micrometer-jvm-extras:0.1.4'
     
     // dbpool
-    compile 'com.alibaba:druid:1.1.22'
+    compile 'com.alibaba:druid:1.1.12'
     
     testCompile 'junit:junit:4.12'
     testCompile 'org.apache.curator:curator-examples:2.12.0'
