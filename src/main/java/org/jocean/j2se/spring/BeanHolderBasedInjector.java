@@ -50,9 +50,9 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
                         field.getType(), field.getAnnotation(namedCls), bean, this._stringValueResolver);
                 if (null != value) {
                     field.set(bean, value);
-                    LOG.debug("inject {} to bean({})'s field({})", value, beanName, field);
+                    LOG.info("inject {} to bean({})'s field({})", value, beanName, field);
                 } else {
-                    LOG.debug("NOT Found global bean for type {}, unable auto inject bean({})'s field({})!",
+                    LOG.info("NOT Found global bean for type {}, unable auto inject bean({})'s field({})!",
                             field.getType(), beanName, field);
                 }
             } catch (final Exception e) {
@@ -78,9 +78,9 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
 
                 if (null != value) {
                     method.invoke(bean, value);
-                    LOG.debug("inject {} to bean({})'s method({})", value, beanName, method);
+                    LOG.info("inject {} to bean({})'s method({})", value, beanName, method);
                 } else {
-                    LOG.debug("NOT Found global bean for type {}, unable auto inject bean({})'s method({})!",
+                    LOG.info("NOT Found global bean for type {}, unable auto inject bean({})'s method({})!",
                             p1st.getType(), beanName, method);
                 }
             } catch (final Exception e) {
