@@ -26,6 +26,8 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
         if (null!=bean) {
+            LOG.info("FieldAndMethodValueSetter: handle ({})/{}", beanName, bean);
+
             assignAnnotatedFields(bean, beanName);
             assignAnnotatedMethods(bean, beanName);
         }

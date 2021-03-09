@@ -10,13 +10,12 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 
 public class BeanHolderSetter implements BeanPostProcessor {
 
-    private static final Logger LOG = 
-            LoggerFactory.getLogger(BeanHolderSetter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BeanHolderSetter.class);
 
     public BeanHolderSetter(final BeanHolder beanHolder) {
         this._beanHoler = beanHolder;
     }
-    
+
     @Override
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
@@ -24,7 +23,7 @@ public class BeanHolderSetter implements BeanPostProcessor {
             if (bean instanceof BeanHolderAware) {
                 try {
                     ((BeanHolderAware)bean).setBeanHolder(_beanHoler);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOG.warn("exception when setBeanHolder for bean({}), detail: {}",
                             beanName, ExceptionUtils.exception2detail(e));
                 }

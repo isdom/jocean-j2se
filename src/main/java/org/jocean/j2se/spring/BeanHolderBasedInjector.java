@@ -33,7 +33,7 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
         if (null!=bean) {
-            LOG.info("postProcessBeforeInitialization: handle ({})/{}", beanName, bean);
+            LOG.info("BeanHolderBasedInjector: handle ({})/{}", beanName, bean);
 
             injectAnnotatedFields(bean, beanName, Inject.class, Named.class);
             injectAnnotatedFields(bean, beanName, Autowired.class, Qualifier.class);
