@@ -11,13 +11,12 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 
 public class PropertiesResourceSetter implements BeanPostProcessor {
 
-    private static final Logger LOG = 
-            LoggerFactory.getLogger(PropertiesResourceSetter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PropertiesResourceSetter.class);
 
     public PropertiesResourceSetter(final Properties properties) {
         this._properties = properties;
     }
-    
+
     @Override
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
@@ -25,7 +24,7 @@ public class PropertiesResourceSetter implements BeanPostProcessor {
             if (bean instanceof PropertiesResourceAware) {
                 try {
                     ((PropertiesResourceAware)bean).setPropertiesResource(this._properties);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOG.warn("exception when setPropertiesResource for bean({}), detail: {}",
                             beanName, ExceptionUtils.exception2detail(e));
                 }
