@@ -76,6 +76,7 @@
     <bean id="cmd6" class="org.jocean.j2se.cli.cmd.BshEvalCommand"/>
     <bean id="cmd7" class="org.jocean.j2se.cli.cmd.BshCommand"/>
     <bean id="cmd8" class="org.jocean.cli.cmd.HelpCommand"/>
+    <bean id="cmd9" class="org.jocean.j2se.cli.cmd.AKStartAppCommand"/>
     
     <bean factory-bean="commandRepository" factory-method="addCommands">
         <constructor-arg>
@@ -88,6 +89,7 @@
                 <ref bean="cmd6"/>
                 <ref bean="cmd7"/>
                 <ref bean="cmd8"/>
+                <ref bean="cmd9"/>
             </list>
         </constructor-arg>
     </bean>
