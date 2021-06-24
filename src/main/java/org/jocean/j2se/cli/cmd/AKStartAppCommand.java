@@ -71,6 +71,8 @@ public class AKStartAppCommand implements CliCommand<AppCliContext> {
         props.put("accessKey", ak[0]);
         props.put("secretKey", ak[1]);
 
+        LOG.info("{}-{}", ak[0], ak[1]);
+
         // 如果是加密配置，则添加下面两行进行自动解密
         //props.put("openKMSFilter", true);
         //props.put("regionId", "$regionId");
