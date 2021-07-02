@@ -25,9 +25,11 @@ import org.jocean.idiom.jmx.MBeanRegisterAware;
 import org.jocean.j2se.annotation.Updatable;
 import org.jocean.j2se.jmx.MBeanRegisterSetter;
 import org.jocean.j2se.jmx.MBeanRegisterSupport;
-import org.jocean.j2se.spring.BeanHolderBasedInjector;
+import org.jocean.j2se.spring.BeanHolderBasedFieldInjector;
+import org.jocean.j2se.spring.BeanHolderBasedMethodInjector;
 import org.jocean.j2se.spring.BeanHolderSetter;
-import org.jocean.j2se.spring.FieldAndMethodValueSetter;
+import org.jocean.j2se.spring.FieldValueSetter;
+import org.jocean.j2se.spring.MethodValueSetter;
 import org.jocean.j2se.spring.PropertiesResourceSetter;
 import org.jocean.j2se.spring.PropertyPlaceholderConfigurerSetter;
 import org.jocean.j2se.spring.SpringBeanHolder;
@@ -667,7 +669,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
             final ValueAwarePlaceholderConfigurer configurer = new ValueAwarePlaceholderConfigurer();
             configurer.setProperties(properties);
 
-            final BeanPostProcessor processor = new FieldAndMethodValueSetter(configurer.buildStringValueResolver());
+            final BeanPostProcessor processor = new FieldValueSetter(configurer.buildStringValueResolver());
             final Map<String, Object> beans = self._applicationContext.getBeansWithAnnotation(Updatable.class);
             for (final Map.Entry<String, Object> entry : beans.entrySet()) {
                 processor.postProcessBeforeInitialization(entry.getValue(), entry.getKey());
@@ -1012,9 +1014,7 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                 beanFactory.addBeanPostProcessor(new BeanHolderSetter(UnitAgent.this));
 
                 final StringValueResolver stringValueResolver = configurer.buildStringValueResolver();
-
-                beanFactory.addBeanPostProcessor(new FieldAndMethodValueSetter(stringValueResolver));
-                beanFactory.addBeanPostProcessor(new BeanHolderBasedInjector(new BeanHolder(){
+                final BeanHolder localHolder = new BeanHolder(){
                     @Override
                     public <T> T getBean(final Class<T> requiredType) {
                         try {
@@ -1088,7 +1088,14 @@ public class UnitAgent implements MBeanRegisterAware, UnitAgentMXBean, Applicati
                         }
                         // TODO, fix for real async find
                         return _beanFinder.find(requiredType, args).toBlocking().single();
-                    }}, stringValueResolver));
+                    }};
+
+                beanFactory.addBeanPostProcessor(new FieldValueSetter(stringValueResolver));
+                beanFactory.addBeanPostProcessor(new BeanHolderBasedFieldInjector(localHolder, stringValueResolver));
+
+                beanFactory.addBeanPostProcessor(new MethodValueSetter(stringValueResolver));
+                beanFactory.addBeanPostProcessor(new BeanHolderBasedMethodInjector(localHolder, stringValueResolver));
+
                 if (null!=unitAgentAware) {
                     beanFactory.addBeanPostProcessor(unitAgentAware);
                 }

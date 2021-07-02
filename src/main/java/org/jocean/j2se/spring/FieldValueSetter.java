@@ -1,8 +1,6 @@
 package org.jocean.j2se.spring;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 
 import org.jocean.idiom.Beans;
 import org.jocean.idiom.ExceptionUtils;
@@ -14,11 +12,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.util.StringValueResolver;
 
-public class FieldAndMethodValueSetter implements BeanPostProcessor {
+public class FieldValueSetter implements BeanPostProcessor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(FieldAndMethodValueSetter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FieldValueSetter.class);
 
-    public FieldAndMethodValueSetter(final StringValueResolver stringValueResolver) {
+    public FieldValueSetter(final StringValueResolver stringValueResolver) {
         this._stringValueResolver = stringValueResolver;
     }
 
@@ -26,10 +24,9 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
         if (null!=bean) {
-            LOG.info("FieldAndMethodValueSetter: handle ({})/{}", beanName, bean);
+            LOG.info("FieldValueSetter: handle ({})/{}", beanName, bean);
 
             assignAnnotatedFields(bean, beanName);
-            assignAnnotatedMethods(bean, beanName);
         }
         return bean;
     }
@@ -50,35 +47,7 @@ public class FieldAndMethodValueSetter implements BeanPostProcessor {
                     LOG.warn("NOT resolve value {}, unable auto set bean({})'s field({})!", v.value(), beanName, field);
                 }
             } catch (final Exception e) {
-                LOG.warn("exception when FieldAndMethodValueSetter.postProcessBeforeInitialization for bean({}), detail: {}",
-                        beanName, ExceptionUtils.exception2detail(e));
-            }
-        }
-    }
-
-    private void assignAnnotatedMethods(final Object bean, final String beanName) {
-        final Method[] methods = ReflectUtils.getAnnotationMethodsOf(bean.getClass(), Value.class);
-        for (final Method method : methods) {
-            if (method.getParameterCount()!=1) {
-                LOG.warn("method {}'s parameter count != 1, ignore invoke by @Value key", method);
-                continue;
-            }
-
-            try {
-                final Value v = method.getAnnotation(Value.class);
-                final String value = resolveValue(v.value());
-
-                if (null!=value) {
-                    final Parameter p1st = method.getParameters()[0];
-                    method.invoke(bean, Beans.fromString(value, p1st.getType()));
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("invoke bean({})'s method {} with value {}, which original is {}", beanName, method, value, v.value());
-                    }
-                } else {
-                    LOG.warn("NOT resolve value {}, unable invoke bean({})'s method({})!", v.value(), beanName, method);
-                }
-            } catch (final Exception e) {
-                LOG.warn("exception when FieldAndMethodValueSetter.postProcessBeforeInitialization for bean({}), detail: {}",
+                LOG.warn("exception when FieldValueSetter.postProcessBeforeInitialization for bean({}), detail: {}",
                         beanName, ExceptionUtils.exception2detail(e));
             }
         }

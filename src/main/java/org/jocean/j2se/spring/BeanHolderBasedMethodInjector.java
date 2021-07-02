@@ -1,7 +1,6 @@
 package org.jocean.j2se.spring;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
@@ -20,11 +19,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.util.StringValueResolver;
 
-public class BeanHolderBasedInjector implements BeanPostProcessor {
+public class BeanHolderBasedMethodInjector implements BeanPostProcessor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BeanHolderBasedInjector.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BeanHolderBasedMethodInjector.class);
 
-    public BeanHolderBasedInjector(final BeanHolder beanHolder, final StringValueResolver stringValueResolver) {
+    public BeanHolderBasedMethodInjector(final BeanHolder beanHolder, final StringValueResolver stringValueResolver) {
         this._beanHolder = beanHolder;
         this._stringValueResolver = stringValueResolver;
     }
@@ -33,35 +32,12 @@ public class BeanHolderBasedInjector implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
         if (null!=bean) {
-            LOG.info("BeanHolderBasedInjector: handle ({})/{}", beanName, bean);
+            LOG.info("BeanHolderBasedMethodInjector: handle ({})/{}", beanName, bean);
 
-            injectAnnotatedFields(bean, beanName, Inject.class, Named.class);
-            injectAnnotatedFields(bean, beanName, Autowired.class, Qualifier.class);
             injectAnnotatedMethods(bean, beanName, Inject.class, Named.class);
             injectAnnotatedMethods(bean, beanName, Autowired.class, Qualifier.class);
         }
         return bean;
-    }
-
-    private void injectAnnotatedFields(final Object bean, final String beanName,
-            final Class<? extends Annotation> injectCls, final Class<? extends Annotation> namedCls) {
-        final Field[] fields = ReflectUtils.getAnnotationFieldsOf(bean.getClass(), injectCls);
-        for (final Field field : fields) {
-            try {
-                final Object value = BeanHolders.getBean(this._beanHolder,
-                        field.getType(), field.getAnnotation(namedCls), bean, this._stringValueResolver);
-                if (null != value) {
-                    field.set(bean, value);
-                    LOG.info("inject {} to bean({})'s field({})", value, beanName, field);
-                } else {
-                    LOG.info("NOT Found global bean for type {}, unable auto inject bean({})'s field({})!",
-                            field.getType(), beanName, field);
-                }
-            } catch (final Exception e) {
-                LOG.warn("exception when postProcessBeforeInitialization for bean({}), detail: {}",
-                        beanName, ExceptionUtils.exception2detail(e));
-            }
-        }
     }
 
     private void injectAnnotatedMethods(final Object bean, final String beanName,
