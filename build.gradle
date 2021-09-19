@@ -57,7 +57,7 @@ dependencies {
     compile "commons-io:commons-io:2.5"
 
     /* for yaml */
-    compile 'org.yaml:snakeyaml:1.18'
+    compile 'org.yaml:snakeyaml:1.29'
     
     compile "com.google.guava:guava:${guavaVersion}"
     compile "com.alibaba:fastjson:${fastjsonVersion}"
