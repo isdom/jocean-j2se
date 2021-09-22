@@ -35,7 +35,7 @@ dependencies {
     compile 'org.apache-extras.beanshell:bsh:2.0b6'
     
     /* log */
-    runtime 'org.slf4j:jcl-over-slf4j:1.7.30'
+    runtime 'org.slf4j:jcl-over-slf4j:1.7.32'
     optional("org.logback-extensions:logback-ext-spring:0.1.2") { transitive = false }
 
     /* basics */
