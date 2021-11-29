@@ -49,7 +49,7 @@ dependencies {
     
     runtime 'org.javassist:javassist:3.28.0-GA'
     runtime 'com.jcraft:jzlib:1.1.3'
-    runtime('cglib:cglib:3.2.5') { transitive = false }
+    runtime('cglib:cglib:3.2.12') { transitive = false }
     runtime 'org.aspectj:aspectjweaver:1.8.14'
     runtime 'org.jvnet.opendmk:jmxremote_optional:1.0_01-ea'
     
