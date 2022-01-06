@@ -82,5 +82,5 @@ dependencies {
     compile 'com.alibaba:druid:1.2.8'
     
     testCompile 'junit:junit:4.13.2'
-    testCompile 'org.apache.curator:curator-examples:2.12.0'
+    testCompile 'org.apache.curator:curator-examples:2.13.0'
 }
