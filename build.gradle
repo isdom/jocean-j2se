@@ -36,7 +36,7 @@ dependencies {
     
     /* log */
     runtime 'org.slf4j:jcl-over-slf4j:1.7.32'
-    optional("org.logback-extensions:logback-ext-spring:0.1.2") { transitive = false }
+    optional("org.logback-extensions:logback-ext-spring:0.1.5") { transitive = false }
 
     /* basics */
     compile "org.springframework:spring-context-support:${springVersion}"
