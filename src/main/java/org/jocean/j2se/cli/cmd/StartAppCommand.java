@@ -84,8 +84,12 @@ public class StartAppCommand implements CliCommand<AppCliContext> {
 
         final Func2<String, String, String> getACMConfig = (dataid, group) -> {
             try {
-                return ConfigService.getConfig(dataid, null != group ? group : defaultGroup, 6000);
+                LOG.info("ConfigService.getConfig: {}@{}", dataid, group);
+                final String strval = ConfigService.getConfig(dataid, null != group ? group : defaultGroup, 6000);
+                LOG.info("===>: {}", strval);
+                return strval;
             } catch (final ConfigException e) {
+                LOG.warn("exception when ConfigService.getConfig: detail {}", ExceptionUtils.exception2detail(e));
                 return null;
             }
         };
