@@ -23,6 +23,8 @@ public class StopAppCommand implements CliCommand<AppCliContext>, ApplicationCon
 
     @Override
     public String execute(final AppCliContext ctx, final String... args) throws Exception {
+        LOG.info("exxecute StopAppCommand");
+        
         if (this._applicationContext == null) {
             return "FAILED: already stopped";
         } else {
