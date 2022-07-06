@@ -62,6 +62,8 @@ public class AKStartAppCommand implements CliCommand<AppCliContext> {
     }
 
     private String doStartApp(final String... args) {
+        LOG.info("AKStartAppCommand: doStartApp with {} {} {} {}", args[0], args[1], args[2], args[3]);
+        
         // 从控制台命名空间管理中拷贝对应值
         final Properties props = new Properties();
         props.put("endpoint", args[0]);
