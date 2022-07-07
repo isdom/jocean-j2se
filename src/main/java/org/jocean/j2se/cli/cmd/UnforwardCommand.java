@@ -20,6 +20,7 @@ public class UnforwardCommand implements CliCommand<AppCliContext> {
 
     @Override
     public String execute(final AppCliContext ctx, final String... args) throws Exception {
+        LOG.info("UnforwardCommand.execute()");
         ctx.enableSendbackLOG();
         return doUnforward();
     }
