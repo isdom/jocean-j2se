@@ -23,6 +23,7 @@ public class BshCommand implements CliCommand<AppCliContext>, ApplicationContext
 
     @Override
     public String execute(final AppCliContext ctx, final String... args) throws Exception {
+        LOG.info("BshCommand.execute()");
         return doBsh(ctx, args);
     }
 
