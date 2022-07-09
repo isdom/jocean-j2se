@@ -28,6 +28,7 @@ public class BshEvalCommand implements CliCommand<AppCliContext>, ApplicationCon
             return "FAILED: missing script params\n" + getHelp();
         }
 
+        LOG.info("BshEvalCommand.execute()");
         return doBsh(ctx, args);
     }
 
