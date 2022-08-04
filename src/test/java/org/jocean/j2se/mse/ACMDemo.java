@@ -2,6 +2,7 @@ package org.jocean.j2se.mse;
 
 import java.util.Properties;
 
+import org.jocean.idiom.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,7 @@ public class ACMDemo {
             final String strval = ConfigService.getConfig("demo", "demo_group", 6000);
             LOG.info("===>: {}", strval);
         } catch (final ConfigException e) {
-            e.printStackTrace();
+        	LOG.warn("exception: {}", ExceptionUtils.exception2detail(e));
         }
     }
 
