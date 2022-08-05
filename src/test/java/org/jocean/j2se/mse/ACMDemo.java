@@ -25,7 +25,7 @@ public class ACMDemo {
 
         try {
             LOG.info("before ConfigService.getConfig");
-            final String strval = ConfigService.getConfig("demo", "demo_group", 6000);
+            final String strval = ConfigService.getConfig(args[3], args[4], 6000);
             LOG.info("===>: {}", strval);
         } catch (final ConfigException e) {
         	LOG.warn("exception: {}", ExceptionUtils.exception2detail(e));
