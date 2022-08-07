@@ -26,7 +26,7 @@ public class ACMDemo {
         try {
             LOG.info("before ConfigService.getConfig");
             final String strval = ConfigService.getConfig(args[3], args[4], 6000);
-            LOG.info("ConfigService.getConfig{}/{}: {}", args[3], args[4], strval);
+            LOG.info("ConfigService.getConfig dataId/group --> {}/{}: {}", args[3], args[4], strval);
         } catch (final ConfigException e) {
         	LOG.warn("exception: {}", ExceptionUtils.exception2detail(e));
         }
