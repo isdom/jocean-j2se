@@ -14,6 +14,8 @@ public class ACMDemo {
     private static final Logger LOG = LoggerFactory.getLogger(ACMDemo.class);
 
     public static void main(final String[] args) {
+        LOG.info("ConfigService.init");
+        
         // 从控制台命名空间管理中拷贝对应值
         final Properties props = new Properties();
         props.put("endpoint", args[0]);
