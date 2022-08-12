@@ -14,7 +14,7 @@ public class ACMDemo {
     private static final Logger LOG = LoggerFactory.getLogger(ACMDemo.class);
 
     public static void main(final String[] args) {
-        LOG.info("ConfigService.init");
+        LOG.info("before ConfigService.init");
         
         // 从控制台命名空间管理中拷贝对应值
         final Properties props = new Properties();
@@ -25,6 +25,8 @@ public class ACMDemo {
 
         ConfigService.init(props);
 
+        LOG.info("after ConfigService.init");
+        
         try {
             LOG.info("before ConfigService.getConfig");
             final String strval = ConfigService.getConfig(args[3], args[4], 6000);
