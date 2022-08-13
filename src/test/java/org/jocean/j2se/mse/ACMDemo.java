@@ -14,6 +14,7 @@ public class ACMDemo {
     private static final Logger LOG = LoggerFactory.getLogger(ACMDemo.class);
 
     public static void main(final String[] args) {
+        LOG.info("start ACMDemo");
         LOG.info("before ConfigService.init");
         
         // 从控制台命名空间管理中拷贝对应值
@@ -35,6 +36,8 @@ public class ACMDemo {
         } catch (final ConfigException e) {
         	LOG.warn("exception: {}", ExceptionUtils.exception2detail(e));
         }
+        
+        LOG.info("end of ACMDemo");
     }
 
 }
