@@ -26,7 +26,7 @@ public class ACMDemo {
 
         ConfigService.init(props);
 
-        LOG.info("after ConfigService.init");
+        LOG.info("end of ConfigService.init");
         
         try {
             LOG.info("before ConfigService.getConfig");
