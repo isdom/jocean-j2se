@@ -32,7 +32,7 @@ public class ACMDemo {
             LOG.info("before ConfigService.getConfig");
             final String strval = ConfigService.getConfig(args[3], args[4], 6000);
             LOG.info("ConfigService.getConfig dataId/group --> {}/{}: value --> {}", args[3], args[4], strval);
-            LOG.info("after ConfigService.getConfig");
+            LOG.info("end of ConfigService.getConfig");
         } catch (final ConfigException e) {
         	LOG.warn("exception: {}", ExceptionUtils.exception2detail(e));
         }
