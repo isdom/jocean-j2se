@@ -15,7 +15,7 @@ public class ACMDemo {
 
     public static void main(final String[] args) {
         LOG.info("start ACMDemo");
-        LOG.info("before ConfigService.init");
+        LOG.info("before ConfigService.init with endpoint/namespace/ramRoleName {}/{}/{}", args[0], args[1], args[2]);
         
         // 从控制台命名空间管理中拷贝对应值
         final Properties props = new Properties();
