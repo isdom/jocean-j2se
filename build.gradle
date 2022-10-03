@@ -72,7 +72,7 @@ dependencies {
     // jolokia-agent
     runtime 'org.jolokia:jolokia-spring:1.7.1'
     
-    compile 'io.prometheus.jmx:collector:0.17.0'
+    compile 'io.prometheus.jmx:collector:0.17.2'
     compile 'io.prometheus:simpleclient_httpserver:0.16.0'
     
     compile 'io.micrometer:micrometer-registry-prometheus:1.9.3'
