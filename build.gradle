@@ -30,7 +30,7 @@ dependencies {
     // for cli
     compile 'org.jocean:jocean-cli:0.0.1-SNAPSHOT'
     compile 'org.jocean:jocean-http:0.0.2-SNAPSHOT'
-    compile 'com.alibaba.edas.acm:acm-sdk:1.0.9'
+    compile 'org.jocean:acm-sdk:1.0.9-mse'
     
     compile 'org.apache-extras.beanshell:bsh:2.0b6'
     
