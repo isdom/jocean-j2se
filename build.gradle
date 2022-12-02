@@ -75,7 +75,7 @@ dependencies {
     compile 'io.prometheus.jmx:collector:0.17.2'
     compile 'io.prometheus:simpleclient_httpserver:0.16.0'
     
-    compile 'io.micrometer:micrometer-registry-prometheus:1.10.0'
+    compile 'io.micrometer:micrometer-registry-prometheus:1.10.2'
     compile 'io.github.mweirauch:micrometer-jvm-extras:0.2.2'
     
     // dbpool
