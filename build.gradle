@@ -61,7 +61,7 @@ dependencies {
     
     compile "com.google.guava:guava:${guavaVersion}"
     compile "com.alibaba:fastjson:${fastjsonVersion}"
-    compile 'javax.ws.rs:javax.ws.rs-api:2.1'
+    compile 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     compile 'org.apache.curator:curator-recipes:2.13.0'
 
     // compile 'org.reflections:reflections:0.10.2'
