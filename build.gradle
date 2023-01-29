@@ -45,7 +45,7 @@ dependencies {
     compile "org.springframework:spring-aspects:${springVersion}"
     compile 'aopalliance:aopalliance:1.0'
 
-    compile 'ch.qos.logback:logback-classic:1.4.5'
+    compile 'ch.qos.logback:logback-classic:1.3.5'
     
     runtime 'org.javassist:javassist:3.29.2-GA'
     runtime 'com.jcraft:jzlib:1.1.3'
