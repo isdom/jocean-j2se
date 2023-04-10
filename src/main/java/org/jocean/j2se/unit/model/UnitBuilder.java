@@ -14,6 +14,7 @@ import org.jocean.j2se.unit.UnitAgentMXBean.UnitMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -59,7 +60,7 @@ public class UnitBuilder {
             if ( this._locationLastModified != this._location.lastModified() ) {
                 this._locationLastModified = this._location.lastModified();
 
-                final Yaml yaml = new Yaml(new Constructor(UnitDescription.class));
+                final Yaml yaml = new Yaml(new Constructor(UnitDescription.class, new LoaderOptions()));
 
                 try (final InputStream is = this._location.getInputStream()) {
                     final UnitDescription desc = (UnitDescription)yaml.load(is);
